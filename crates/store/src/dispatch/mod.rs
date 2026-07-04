@@ -32,6 +32,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(_) => "read_replica",
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(_) => "read_replica",
             Self::None => "none",
         }
     }

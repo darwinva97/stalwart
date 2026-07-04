@@ -81,6 +81,13 @@ pub mod enterprise;
 
 // SPDX-SnippetEnd
 
+// Free (AGPL) reimplementation of the enterprise-tier capabilities:
+// multi-tenancy, white-label branding, masked addresses, data retention,
+// metric-alert rendering, AI/LLM client, delivery history, and horizontal
+// sharding / read-replica routing. Available in every build, no license.
+pub use tenant as open_features;
+pub mod open_edition;
+
 pub use psl;
 
 pub static VERSION_PRIVATE: &str = env!("CARGO_PKG_VERSION");
@@ -161,6 +168,10 @@ pub struct Data {
 
     pub applications: WebApplications,
     pub logos: Mutex<AHashMap<Box<str>, LogoCache>>,
+
+    // Free-edition (AGPL) delivery history: always-on queryable log of
+    // message delivery outcomes.
+    pub delivery_history: Mutex<tenant::delivery::DeliveryHistory>,
 
     pub smtp_connectors: TlsConnectors,
 }

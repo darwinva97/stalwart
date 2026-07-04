@@ -19,6 +19,7 @@ members = [
     "crates/spam-filter",
     "crates/nlp",
     "crates/store",
+    "crates/tenant",
     "crates/coordinator",
     "crates/directory",
     "crates/registry",

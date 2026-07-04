@@ -35,6 +35,8 @@ impl BlobStore {
                 #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
                 Store::SQLReadReplica(store) => store.get_blob(key, 0..usize::MAX).await,
                 // SPDX-SnippetEnd
+                #[cfg(not(feature = "enterprise"))]
+                Store::ReadReplica(store) => store.get_blob(key, 0..usize::MAX).await,
                 Store::None => Err(trc::StoreEvent::NotConfigured.into()),
             },
             BlobStore::Fs(store) => store.get_blob(key, 0..usize::MAX).await,
@@ -157,6 +159,8 @@ impl BlobStore {
                 #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
                 Store::SQLReadReplica(store) => store.put_blob(key, &data).await,
                 // SPDX-SnippetEnd
+                #[cfg(not(feature = "enterprise"))]
+                Store::ReadReplica(store) => store.put_blob(key, &data).await,
                 Store::None => Err(trc::StoreEvent::NotConfigured.into()),
             },
             BlobStore::Fs(store) => store.put_blob(key, &data).await,
@@ -204,6 +208,8 @@ impl BlobStore {
                 #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
                 Store::SQLReadReplica(store) => store.delete_blob(key).await,
                 // SPDX-SnippetEnd
+                #[cfg(not(feature = "enterprise"))]
+                Store::ReadReplica(store) => store.delete_blob(key).await,
                 Store::None => Err(trc::StoreEvent::NotConfigured.into()),
             },
             BlobStore::Fs(store) => store.delete_blob(key).await,

@@ -37,6 +37,13 @@ impl EnterpriseRegistry for Server {
         }
         // SPDX-SnippetEnd
 
+        // Free edition (AGPL): masked email, archived items, metrics and traces
+        // are reimplemented under `open_features`/`open_edition` and available
+        // to everyone at no cost.
+        #[cfg(not(feature = "enterprise"))]
+        return Ok(());
+
+        #[cfg(feature = "enterprise")]
         Err(trc::JmapEvent::Forbidden.into_err().details(concat!(
             "This feature is only available in the Enterprise edition. ",
             "Obtain your trial license at https://license.stalw.art/trial."

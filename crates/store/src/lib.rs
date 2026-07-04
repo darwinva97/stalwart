@@ -162,6 +162,10 @@ pub enum Store {
     #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
     SQLReadReplica(Arc<backend::composite::read_replica::SQLReadReplica>),
     // SPDX-SnippetEnd
+    // Free-edition (AGPL) read-replica: primary + read replicas over the public
+    // Store API. The free counterpart of the enterprise SQLReadReplica.
+    #[cfg(not(feature = "enterprise"))]
+    ReadReplica(Arc<backend::open_composite::read_replica::OpenReadReplica>),
     #[default]
     None,
 }
@@ -667,6 +671,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Store::SQLReadReplica(_) => true,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Store::ReadReplica(store) => store.primary_store().is_sql(),
             _ => false,
         }
     }
@@ -740,6 +746,8 @@ impl std::fmt::Debug for Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(_) => f.debug_tuple("SQLReadReplica").finish(),
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(_) => f.debug_tuple("ReadReplica").finish(),
             Self::None => f.debug_tuple("None").finish(),
         }
     }

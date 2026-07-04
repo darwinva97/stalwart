@@ -565,6 +565,55 @@ impl ParseHttp for Server {
                         .into_http_response());
                     }
                 }
+                // Free-edition (AGPL) JSON metrics snapshot. Reuses the
+                // Prometheus endpoint's optional auth so it is not exposed
+                // without credentials.
+                "json" => {
+                    if let Some(prometheus) = &self.core.metrics.prometheus {
+                        if let Some(auth) = &prometheus.auth
+                            && req
+                                .authorization_basic()
+                                .is_none_or(|secret| secret != auth)
+                        {
+                            return Err(trc::AuthEvent::Failed
+                                .into_err()
+                                .details("Invalid or missing credentials.")
+                                .caused_by(trc::location!()));
+                        }
+
+                        return Ok(Resource::new(
+                            "application/json",
+                            self.open_metrics_snapshot().into_bytes(),
+                        )
+                        .into_http_response());
+                    }
+                }
+                // Free-edition (AGPL) delivery-history query. Because events
+                // contain recipient addresses (PII), this requires configured
+                // Prometheus credentials — it is never served unauthenticated.
+                "delivery-history" => {
+                    if let Some(prometheus) = &self.core.metrics.prometheus {
+                        let authorized = matches!(
+                            &prometheus.auth,
+                            Some(auth) if req
+                                .authorization_basic()
+                                .is_some_and(|secret| secret == auth)
+                        );
+                        if !authorized {
+                            return Err(trc::AuthEvent::Failed
+                                .into_err()
+                                .details("Invalid or missing credentials.")
+                                .caused_by(trc::location!()));
+                        }
+
+                        let query = common::open_edition::OpenDeliveryQuery::default();
+                        return Ok(Resource::new(
+                            "application/json",
+                            self.open_query_delivery(&query).into_bytes(),
+                        )
+                        .into_http_response());
+                    }
+                }
                 "otel" => {
                     // Reserved for future use
                 }
@@ -597,6 +646,32 @@ impl ParseHttp for Server {
                 }
             }
             // SPDX-SnippetEnd
+            // Free-edition (AGPL) white-label logo route. Serves logos without
+            // a license via `open_logo_resource`; compiled only when the SEL
+            // enterprise route above is absent.
+            #[cfg(not(feature = "enterprise"))]
+            "logo" => {
+                match self
+                    .open_logo_resource(
+                        req.headers()
+                            .get(header::HOST)
+                            .and_then(|h| h.to_str().ok())
+                            .map(|h| h.rsplit_once(':').map_or(h, |(h, _)| h))
+                            .unwrap_or_default(),
+                    )
+                    .await
+                {
+                    Ok(Some(resource)) => {
+                        return Ok(resource.into_http_response());
+                    }
+                    Ok(None) => {
+                        return Err(trc::ResourceEvent::NotFound.into_err());
+                    }
+                    Err(err) => {
+                        trc::error!(err.span_id(session.session_id));
+                    }
+                }
+            }
             "form" => {
                 if let Some(form) = &self.core.network.contact_form {
                     match *req.method() {

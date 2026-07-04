@@ -34,6 +34,12 @@ pub mod sqlite;
 pub mod composite;
 // SPDX-SnippetEnd
 
+// Free-edition (AGPL) composite backends: read-replica routing built on the
+// public Store API. Reimplements the SEL `composite` capabilities without a
+// license.
+#[cfg(not(feature = "enterprise"))]
+pub mod open_composite;
+
 pub const MAX_TOKEN_LENGTH: usize = (u8::MAX >> 1) as usize;
 pub const MAX_TOKEN_MASK: usize = MAX_TOKEN_LENGTH - 1;
 

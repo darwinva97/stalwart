@@ -13,6 +13,7 @@ use crate::inbound::dkim::DkimSign;
 use crate::queue::spool::QueueParams;
 use crate::queue::{MessageWrapper, UnexpectedResponse};
 use common::Server;
+use common::open_edition::OpenDeliveryStatus;
 use mail_builder::MessageBuilder;
 use mail_builder::headers::HeaderType;
 use mail_builder::headers::content_type::ContentType;
@@ -85,6 +86,13 @@ impl SendDsn for Server {
                         Code = response.response.code,
                         Details = response.response.message.to_string(),
                     );
+                    self.open_record_delivery(
+                        message.span_id,
+                        None,
+                        rcpt.address.to_string(),
+                        OpenDeliveryStatus::Delivered,
+                        now,
+                    );
                 }
                 Status::TemporaryFailure(response) if rcpt.notify.due <= now => {
                     trc::event!(
@@ -99,6 +107,13 @@ impl SendDsn for Server {
                             .map(trc::Value::Timestamp),
                         Total = rcpt.retry.inner,
                     );
+                    self.open_record_delivery(
+                        message.span_id,
+                        None,
+                        rcpt.address.to_string(),
+                        OpenDeliveryStatus::Deferred,
+                        now,
+                    );
                 }
                 Status::PermanentFailure(response) => {
                     trc::event!(
@@ -108,6 +123,13 @@ impl SendDsn for Server {
                         Hostname = response.entity.clone(),
                         Details = response.details.to_string(),
                         Total = rcpt.retry.inner,
+                    );
+                    self.open_record_delivery(
+                        message.span_id,
+                        None,
+                        rcpt.address.to_string(),
+                        OpenDeliveryStatus::Bounced,
+                        now,
                     );
                 }
                 Status::Scheduled if rcpt.notify.due <= now => {

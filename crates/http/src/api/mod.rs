@@ -10,6 +10,9 @@
 #[cfg(feature = "enterprise")]
 pub mod telemetry;
 // SPDX-SnippetEnd
+// Free-edition (AGPL) live telemetry, the open counterpart of the SEL module.
+#[cfg(not(feature = "enterprise"))]
+pub mod open_telemetry;
 pub mod diagnose;
 
 use crate::{
@@ -176,6 +179,38 @@ impl ManagementApi for Server {
                                 .await?,
                             ))
                     }
+                    // Free edition (AGPL): live telemetry tokens for everyone.
+                    #[cfg(not(feature = "enterprise"))]
+                    Some("tracing") => {
+                        access_token.enforce_permission(Permission::LiveTracing)?;
+                        Ok(HttpResponse::new(StatusCode::OK).with_no_cache().with_text_body(
+                            self.encode_access_token(
+                                GrantType::LiveTracing,
+                                account_id,
+                                self.account(account_id).await?.name(),
+                                60,
+                                None,
+                                None,
+                            )
+                            .await?,
+                        ))
+                    }
+                    #[cfg(not(feature = "enterprise"))]
+                    Some("metrics") => {
+                        access_token.enforce_permission(Permission::LiveMetrics)?;
+                        Ok(HttpResponse::new(StatusCode::OK).with_no_cache().with_text_body(
+                            self.encode_access_token(
+                                GrantType::LiveMetrics,
+                                account_id,
+                                self.account(account_id).await?.name(),
+                                60,
+                                None,
+                                None,
+                            )
+                            .await?,
+                        ))
+                    }
+                    #[cfg(feature = "enterprise")]
                     Some("tracing") | Some("metrics") => {
                         Err(trc::ResourceEvent::NotFound
                             .ctx(trc::Key::Details, "Enterprise feature"))
@@ -240,6 +275,20 @@ impl ManagementApi for Server {
                             .await
                     }
                     // SPDX-SnippetEnd
+                    // Free edition (AGPL): live tracing/metrics streams for all.
+                    #[cfg(not(feature = "enterprise"))]
+                    ("tracing", _, &Method::GET) => {
+                        use crate::api::open_telemetry::OpenTelemetryApi;
+                        self.handle_open_telemetry_request(req, true, &access_token)
+                            .await
+                    }
+                    #[cfg(not(feature = "enterprise"))]
+                    ("metrics", _, &Method::GET) => {
+                        use crate::api::open_telemetry::OpenTelemetryApi;
+                        self.handle_open_telemetry_request(req, false, &access_token)
+                            .await
+                    }
+                    #[cfg(feature = "enterprise")]
                     ("tracing" | "metrics", _, &Method::GET) => {
                         Err(trc::ResourceEvent::NotFound
                             .ctx(trc::Key::Details, "Enterprise feature"))
@@ -280,9 +329,16 @@ impl ManagementApi for Server {
                     }
                 }
                 // SPDX-SnippetEnd
+                // Free edition (AGPL): grant live tracing/metrics tokens.
                 #[cfg(not(feature = "enterprise"))]
                 {
-                    None
+                    if path.starts_with("/api/live/tracing") {
+                        Some((GrantType::LiveTracing, Permission::LiveTracing))
+                    } else if path.starts_with("/api/live/metrics") {
+                        Some((GrantType::LiveMetrics, Permission::LiveMetrics))
+                    } else {
+                        None
+                    }
                 }
             };
 

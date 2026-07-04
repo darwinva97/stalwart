@@ -41,6 +41,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.get_value(key).await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.get_value(key).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -65,6 +67,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.key_exists(key).await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.key_exists(key).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -94,6 +98,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.iterate(params, cb).await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.iterate(params, cb).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!());
@@ -128,6 +134,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.get_counter(key).await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.get_counter(key).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -182,6 +190,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.write(batch).await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.write(batch).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         };
 
@@ -233,6 +243,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.purge_store().await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.purge_store().await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -257,6 +269,8 @@ impl Store {
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             Self::SQLReadReplica(store) => store.delete_range(from, to).await,
             // SPDX-SnippetEnd
+            #[cfg(not(feature = "enterprise"))]
+            Self::ReadReplica(store) => store.delete_range(from, to).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())

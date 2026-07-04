@@ -8,6 +8,7 @@ build = "build.rs"
 utils = { path = "../utils" }
 nlp = { path = "../nlp" }
 store = { path = "../store" }
+tenant = { path = "../tenant" }
 trc = { path = "../trc" }
 directory = { path = "../directory" }
 coordinator = { path = "../coordinator" }

@@ -1,0 +1,101 @@
+name: Build Free Edition
+
+# Builds the AGPL "free edition" of Stalwart (all formerly-enterprise features,
+# compiled WITHOUT the `enterprise` feature) and publishes a ready-to-install
+# binary tarball as a GitHub Release. A VPS then only needs to run
+# deploy/install-free-edition.sh.
+
+on:
+  push:
+    branches: [free-edition]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      features:
+        description: 'Cargo features to build (space separated, no `enterprise`)'
+        required: false
+        default: 'sqlite postgres mysql rocks s3 redis'
+
+permissions:
+  contents: write
+
+env:
+  FREE_FEATURES: ${{ github.event.inputs.features || 'sqlite postgres mysql rocks s3 redis' }}
+  TARGET: x86_64-unknown-linux-gnu
+
+jobs:
+  build:
+    name: Build free-edition binary (x86_64-linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang cmake pkg-config libssl-dev protobuf-compiler
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build free edition (no enterprise feature)
+        run: |
+          echo "Building with features: ${FREE_FEATURES}"
+          cargo build --release \
+            --manifest-path crates/main/Cargo.toml \
+            --no-default-features \
+            --features "${FREE_FEATURES}"
+
+      - name: Package tarball
+        id: package
+        run: |
+          mkdir -p dist
+          cp target/release/stalwart dist/stalwart
+          cp deploy/install-free-edition.sh dist/install-free-edition.sh 2>/dev/null || true
+          TARBALL="stalwart-${TARGET}.tar.gz"
+          tar czf "${TARBALL}" -C dist stalwart
+          sha256sum "${TARBALL}" > "${TARBALL}.sha256"
+          echo "tarball=${TARBALL}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stalwart-free-edition-${{ env.TARGET }}
+          path: |
+            ${{ steps.package.outputs.tarball }}
+            ${{ steps.package.outputs.tarball }}.sha256
+
+      # Rolling "free-latest" release, updated on every branch build so the
+      # install script can always fetch the newest artifact.
+      - name: Publish rolling release (free-latest)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: free-latest
+          name: Free Edition (latest build)
+          prerelease: true
+          body: |
+            Rolling build of the AGPL free edition (no `enterprise` feature).
+            Built from ${{ github.sha }} with features: `${{ env.FREE_FEATURES }}`.
+
+            Install on a VPS (as root):
+            ```
+            curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/free-edition/deploy/install-free-edition.sh | sh
+            ```
+          files: |
+            ${{ steps.package.outputs.tarball }}
+            ${{ steps.package.outputs.tarball }}.sha256
+
+      # Versioned release when a v* tag is pushed.
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.package.outputs.tarball }}
+            ${{ steps.package.outputs.tarball }}.sha256

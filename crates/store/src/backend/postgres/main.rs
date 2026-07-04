@@ -82,6 +82,14 @@ impl PostgresStore {
         }
         // SPDX-SnippetEnd
 
+        // Free-edition (AGPL) read-replica routing.
+        #[cfg(not(feature = "enterprise"))]
+        if !replicas.is_empty() {
+            return Ok(Store::ReadReplica(std::sync::Arc::new(
+                backend::open_composite::read_replica::OpenReadReplica::new(primary, replicas),
+            )));
+        }
+
         Ok(primary)
     }
 

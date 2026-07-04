@@ -89,6 +89,7 @@ impl Data {
             queue_status: true.into(),
             applications,
             logos: Default::default(),
+            delivery_history: Default::default(),
             smtp_connectors: TlsConnectors::try_new().failed("Failed to build TLS connectors"),
             asn_geo_data: Default::default(),
         }
@@ -229,6 +230,7 @@ impl Default for Data {
             queue_status: true.into(),
             applications: WebApplications::new(),
             logos: Default::default(),
+            delivery_history: Default::default(),
             smtp_connectors: TlsConnectors::try_new().unwrap(),
             asn_geo_data: Default::default(),
             lookup_stores: Default::default(),
