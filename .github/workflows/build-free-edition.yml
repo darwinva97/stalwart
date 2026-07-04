@@ -22,6 +22,10 @@ permissions:
 env:
   FREE_FEATURES: ${{ github.event.inputs.features || 'sqlite postgres mysql rocks s3 redis' }}
   TARGET: x86_64-unknown-linux-gnu
+  # Disable LTO and use parallel codegen for much faster CI link times.
+  # (The optimized single-codegen-unit + LTO release profile is very slow.)
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
 
 jobs:
   build:
