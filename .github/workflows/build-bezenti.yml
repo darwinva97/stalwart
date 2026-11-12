@@ -1,0 +1,57 @@
+# Stalwart de bezenti: la versión OFICIAL sin la feature `enterprise` (ni código SEL).
+# Única diferencia con upstream: el crate `scim` (100 % SEL) pasa a ser opcional y solo entra con
+# `enterprise` (crates/main y crates/http Cargo.toml). Se publica como release `bezenti-<versión>`.
+name: Build bezenti (AGPL, sin enterprise)
+
+on:
+  push:
+    branches: [bezenti]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FEATURES: "postgres s3 sqlite rocks redis"
+  TARGET: x86_64-unknown-linux-gnu
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias de compilación
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends build-essential clang cmake pkg-config libssl-dev protobuf-compiler
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Compilar sin enterprise
+        run: cargo build --release --manifest-path crates/main/Cargo.toml --no-default-features --features "$FEATURES"
+      - name: Comprobar que no hay código SEL dentro
+        run: |
+          ! cargo tree --manifest-path crates/main/Cargo.toml --no-default-features --features "$FEATURES" -e normal --prefix none | grep -E "^(scim|scim-proto) "
+          echo "ni scim ni scim-proto en el binario"
+      - name: Empaquetar
+        id: pkg
+        run: |
+          V=$(grep -m1 '^version' crates/main/Cargo.toml | cut -d'"' -f2)
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          tar czf stalwart-$TARGET.tar.gz -C target/release stalwart
+          sha256sum stalwart-$TARGET.tar.gz > stalwart-$TARGET.tar.gz.sha256
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: bezenti-${{ steps.pkg.outputs.version }}
+          name: Stalwart ${{ steps.pkg.outputs.version }} (bezenti, AGPL sin enterprise)
+          prerelease: true
+          target_commitish: ${{ github.sha }}
+          body: |
+            Stalwart oficial ${{ steps.pkg.outputs.version }} compilado sin la feature `enterprise`.
+            Único parche: `scim` (código 100 % SEL) solo entra con `enterprise`.
+            Features: `${{ env.FEATURES }}`.
+          files: |
+            stalwart-${{ env.TARGET }}.tar.gz
+            stalwart-${{ env.TARGET }}.tar.gz.sha256

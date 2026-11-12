@@ -29,7 +29,7 @@ common = { path = "../common" }
 email = { path = "../email" }
 directory = { path = "../directory" }
 http = { path = "../http" }
-scim = { path = "../scim" }
+scim = { path = "../scim", optional = true }   # bezenti: solo con enterprise (código 100 % SEL)
 dav = { path = "../dav" }
 groupware = { path = "../groupware" }
 services = { path = "../services" }
@@ -74,7 +74,7 @@ enterprise = [ "jmap/enterprise",
                "email/enterprise",
                "spam-filter/enterprise",
                "http/enterprise",
-               "scim/enterprise",
+               "dep:scim", "scim/enterprise",
                "dav/enterprise",
                "groupware/enterprise",
                "trc/enterprise",
