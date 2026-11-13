@@ -309,8 +309,9 @@ def pruebas(srv, falso):
             for i in range(lote * 5, lote * 5 + 5):
                 errores.append(enviar(srv, "ana@a.test", f"dest{i}@remoto.example", f"masivo-{i}", conexion=s))
     ok(not any(errores), "ana encola 40 mensajes", json.dumps([e for e in errores if e][:3]))
-    t_beto = time.time()
     ok(enviar(srv, "beto@b.test", "alguien@remoto.example", "urgente-de-beto") is None, "beto envía un mensaje")
+    # Desde que el mensaje de beto está en la cola (el SMTP ya respondió 250).
+    t_beto = time.time()
     esperar(lambda: "urgente-de-beto" in falso.asuntos(), 60)
     recibidos = falso.lista()
     pos = next((i for i, r in enumerate(recibidos) if r[3] == "urgente-de-beto"), None)
