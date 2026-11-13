@@ -109,8 +109,21 @@ pub async fn tracing(
     let mut suscripcion = SuscripcionVivo::nueva();
     let server = server.clone();
 
-    Ok(sse(BoxBody::new(StreamBody::new(async_stream::stream! {
-        yield Ok(evento_sse("ping", &format!("{{\"interval\": {}}}", PING.as_millis())));
+    // El trabajo (que consulta las cachés y el almacén) va en su propia tarea: el cuerpo de la respuesta solo lee
+    // de un canal, así cumple `Send + Sync` con cualquier almacén. Al cerrarse la conexión se suelta el canal y
+    // la tarea termina (y con ella la suscripción).
+    let (tx, rx) = tokio::sync::mpsc::channel::<Frame<Bytes>>(16);
+    tokio::spawn(async move {
+        if tx
+            .send(evento_sse(
+                "ping",
+                &format!("{{\"interval\": {}}}", PING.as_millis()),
+            ))
+            .await
+            .is_err()
+        {
+            return;
+        }
         let mut pendientes = Vec::new();
         let mut ultimo = Instant::now();
         loop {
@@ -125,18 +138,33 @@ pub async fn tracing(
                     None => break,
                 },
                 _ = tokio::time::sleep(espera) => {}
+                _ = tx.closed() => break,
             }
-            if !pendientes.is_empty() && ultimo.elapsed() >= LOTE {
+            let marco = if !pendientes.is_empty() && ultimo.elapsed() >= LOTE {
                 let datos = serde_json::to_string(&pendientes).unwrap_or_default();
                 pendientes.clear();
-                ultimo = Instant::now();
-                yield Ok(evento_sse("trace", &datos));
+                evento_sse("trace", &datos)
             } else if pendientes.is_empty() && ultimo.elapsed() >= PING {
-                ultimo = Instant::now();
-                yield Ok(evento_sse("ping", &format!("{{\"interval\": {}}}", PING.as_millis())));
+                evento_sse("ping", &format!("{{\"interval\": {}}}", PING.as_millis()))
+            } else {
+                continue;
+            };
+            ultimo = Instant::now();
+            if tx.send(marco).await.is_err() {
+                break;
             }
         }
-    }))))
+    });
+    Ok(sse(canal(rx)))
+}
+
+/// Cuerpo SSE que lee los marcos de un canal.
+fn canal(mut rx: tokio::sync::mpsc::Receiver<Frame<Bytes>>) -> BoxBody<Bytes, hyper::Error> {
+    BoxBody::new(StreamBody::new(async_stream::stream! {
+        while let Some(marco) = rx.recv().await {
+            yield Ok(marco);
+        }
+    }))
 }
 
 /// Valores actuales de las métricas (`None` = todas).
@@ -195,12 +223,19 @@ pub async fn metrics(
     });
     let server = server.clone();
 
-    Ok(sse(BoxBody::new(StreamBody::new(async_stream::stream! {
+    let (tx, rx) = tokio::sync::mpsc::channel::<Frame<Bytes>>(4);
+    tokio::spawn(async move {
         loop {
             server.inner.refresh_live_gauges();
             let datos = valores(&nombres).to_string();
-            yield Ok(evento_sse("metrics", &datos));
-            tokio::time::sleep(intervalo).await;
+            if tx.send(evento_sse("metrics", &datos)).await.is_err() {
+                break;
+            }
+            tokio::select! {
+                _ = tokio::time::sleep(intervalo) => {}
+                _ = tx.closed() => break,
+            }
         }
-    }))))
+    });
+    Ok(sse(canal(rx)))
 }
