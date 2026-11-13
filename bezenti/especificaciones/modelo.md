@@ -170,6 +170,7 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
 - `trc::Key` no tiene aún las claves de IA del esquema (`model`, `inputTokens`, …): fases 4/5.
 - `trc::EventType`/`MetricType` no tienen los eventos y métricas de pago (`ai.*`, `scim.*`,
   `telemetry.alert-*`, `limit.tenant-quota`, …): se añadirán en `trc` en cada fase.
-- Toda la lógica: cuotas y aislamiento por inquilino, asignación y entrega de direcciones enmascaradas,
-  archivo y restauración, clientes de IA, almacenes de métricas/trazas, réplicas y almacenes repartidos, SCIM.
+- Toda la lógica: cuotas y aislamiento por inquilino (hecho en la fase 2, [`multi-inquilino.md`](multi-inquilino.md)),
+  asignación y entrega de direcciones enmascaradas y archivo y restauración (hechos en la fase 3,
+  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA, almacenes de métricas/trazas, réplicas y almacenes repartidos, SCIM.
   En el código limpio, las marcas `[fragmento SEL eliminado]` fuera del registro indican dónde engancharla.
