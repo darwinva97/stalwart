@@ -10,6 +10,8 @@ pub mod level;
 pub mod enums;
 #[allow(clippy::match_like_matches_macro)]
 pub mod enums_impl;
+#[cfg(feature = "bezenti")]
+pub mod ia;
 
 use compact_str::ToCompactString;
 use std::{fmt::Display, mem};

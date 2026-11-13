@@ -836,6 +836,9 @@ impl RegistrySet for Server {
             ObjectType::ArchivedItem => crate::registry::archivo::archived_item_set(set)
                 .await
                 .map(|set| set.into_response()),
+            // bezenti: IA (fase 4).
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel | ObjectType::SpamAi => registry_object_set(set).await,
             // [fragmento SEL eliminado: 13 líneas]
             ObjectType::ArfExternalReport
             | ObjectType::DmarcExternalReport
@@ -877,13 +880,11 @@ impl RegistrySet for Server {
                 set.fail_all_destroy("Telemetry objects cannot be deleted");
                 Ok(set.into_response())
             }
-            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 4 y 5).
+            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fase 5).
             #[cfg(feature = "bezenti")]
-            ObjectType::AiModel
-            | ObjectType::Alert
+            ObjectType::Alert
             | ObjectType::Metric
             | ObjectType::MetricsStore
-            | ObjectType::SpamAi
             | ObjectType::Trace
             | ObjectType::TracingStore => {
                 set.fail_all_create("Not available yet in this edition");

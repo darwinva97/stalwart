@@ -55,6 +55,18 @@ impl Core {
         let email = EmailConfig::parse(bp).await;
         let blob = BlobConfig::parse(bp).await;
 
+        // bezenti: modelos de IA y clasificador antispam con IA (fase 4); puntuaciones por defecto de AI_*.
+        #[cfg(feature = "bezenti")]
+        let ai = std::sync::Arc::new(crate::bezenti::ia::AiConfig::parse(bp).await);
+        #[cfg(feature = "bezenti")]
+        let spam = {
+            let mut spam = SpamFilterConfig::parse(bp).await;
+            ai.apply_default_scores(&mut spam.lists.scores);
+            spam
+        };
+        #[cfg(not(feature = "bezenti"))]
+        let spam = SpamFilterConfig::parse(bp).await;
+
         Box::new(Self {
             // [fragmento SEL eliminado: 6 líneas]
             sieve: Scripting::parse(bp, &email.limits).await,
@@ -64,12 +76,14 @@ impl Core {
             imap: ImapConfig::parse(bp).await,
             oauth: OAuthConfig::parse(bp).await,
             metrics: Metrics::parse(bp).await,
-            spam: SpamFilterConfig::parse(bp).await,
+            spam,
             email,
             groupware: GroupwareConfig::parse(bp).await,
             metadata,
             blob,
             storage,
+            #[cfg(feature = "bezenti")]
+            ai,
         })
     }
 

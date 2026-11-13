@@ -13,9 +13,12 @@
 //!   Especificación: `bezenti/especificaciones/enmascaradas.md`.
 //! - `archivo`: archivo de elementos borrados (fase 3): formato y claves del archivo, pendientes de archivar.
 //!   Especificación: `bezenti/especificaciones/archivo.md`.
+//! - `ia`: modelos de IA, clasificador antispam con IA y `llm_prompt` en Sieve (fase 4). Especificación:
+//!   `bezenti/especificaciones/ia.md`.
 
 pub mod archivo;
 pub(crate) mod arranque;
 pub mod enmascaradas;
+pub mod ia;
 pub mod inquilino;
 pub mod logo;

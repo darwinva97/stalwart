@@ -623,6 +623,9 @@ pub struct Core {
     pub blob: BlobConfig,
 
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: modelos de IA y clasificador antispam con IA (fase 4, ver bezenti/ia).
+    #[cfg(feature = "bezenti")]
+    pub ai: Arc<crate::bezenti::ia::AiConfig>,
 }
 
 pub trait BuildServer {

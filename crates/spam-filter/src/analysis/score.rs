@@ -242,6 +242,9 @@ impl SpamFilterAnalyzeScore for Server {
         let mut acc = ScoreAccumulator::new(&ctx.result, scores);
 
         // [fragmento SEL eliminado: 9 líneas]
+        // bezenti: clasificador antispam con IA (fase 4, ver crate::bezenti).
+        #[cfg(feature = "bezenti")]
+        crate::bezenti::SpamFilterAnalyzeAi::spam_filter_analyze_ai(self, ctx, &mut acc).await;
 
         // User-defined rules that depend on AI tags
         if acc.decision().is_none() && !self.core.spam.rules.after_ai.is_empty() {

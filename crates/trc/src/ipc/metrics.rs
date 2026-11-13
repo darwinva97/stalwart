@@ -49,6 +49,16 @@ static ENCRYPTION_KEY_LOOKUP_TIME: AtomicHistogram<12> =
     AtomicHistogram::<10>::new_short_durations(MetricType::EncryptionKeyLookupTime);
 
 // [fragmento SEL eliminado: 13 líneas]
+// bezenti: histogramas de la IA (fase 4): duración y tokens de cada petición (evento ai.request).
+#[cfg(feature = "bezenti")]
+static AI_REQUEST_TIME: AtomicHistogram<12> =
+    AtomicHistogram::<10>::new_medium_durations(MetricType::AiRequestTime);
+#[cfg(feature = "bezenti")]
+static AI_INPUT_TOKENS: AtomicHistogram<12> =
+    AtomicHistogram::<12>::new_token_counts(MetricType::AiInputTokens);
+#[cfg(feature = "bezenti")]
+static AI_OUTPUT_TOKENS: AtomicHistogram<12> =
+    AtomicHistogram::<12>::new_token_counts(MetricType::AiOutputTokens);
 
 static SERVER_MEMORY: AtomicGauge = AtomicGauge::new(MetricType::ServerMemory);
 static QUEUE_COUNT: AtomicGauge = AtomicGauge::new(MetricType::QueueCount);
@@ -104,11 +114,17 @@ impl Collector {
         let mut elapsed = 0;
         let mut size = 0;
         // [fragmento SEL eliminado: 8 líneas]
+        #[cfg(feature = "bezenti")]
+        let (mut input_tokens, mut output_tokens) = (None, None);
         for (key, value) in keys {
             match (key, value) {
                 (Key::Elapsed, Value::Duration(d)) => elapsed = *d,
                 (Key::Size, Value::UInt(s)) => size = *s,
                 // [fragmento SEL eliminado: 8 líneas]
+                #[cfg(feature = "bezenti")]
+                (Key::InputTokens, Value::UInt(t)) => input_tokens = Some(*t),
+                #[cfg(feature = "bezenti")]
+                (Key::OutputTokens, Value::UInt(t)) => output_tokens = Some(*t),
                 _ => {}
             }
         }
@@ -224,6 +240,17 @@ impl Collector {
                 STORE_DATA_READ_TIME.observe(elapsed);
             }
             // [fragmento SEL eliminado: 10 líneas]
+            // bezenti: IA (fase 4).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::Request) => {
+                AI_REQUEST_TIME.observe(elapsed);
+                if let Some(tokens) = input_tokens {
+                    AI_INPUT_TOKENS.observe(tokens);
+                }
+                if let Some(tokens) = output_tokens {
+                    AI_OUTPUT_TOKENS.observe(tokens);
+                }
+            }
             _ => {}
         }
     }
@@ -302,11 +329,25 @@ impl Collector {
             &STORE_BLOB_WRITE_TIME,
             &DNS_LOOKUP_TIME,
             &ENCRYPTION_KEY_LOOKUP_TIME,
+            // bezenti: IA (fase 4).
+            #[cfg(feature = "bezenti")]
+            &AI_REQUEST_TIME,
+            #[cfg(feature = "bezenti")]
+            &AI_INPUT_TOKENS,
+            #[cfg(feature = "bezenti")]
+            &AI_OUTPUT_TOKENS,
         ];
         static C_HISTOGRAMS: &[&AtomicHistogram<12>] = &[
             &MESSAGE_DELIVERY_TIME,
             &MESSAGE_INCOMING_SIZE,
             &MESSAGE_SUBMISSION_SIZE,
+            // bezenti: IA (fase 4).
+            #[cfg(feature = "bezenti")]
+            &AI_REQUEST_TIME,
+            #[cfg(feature = "bezenti")]
+            &AI_INPUT_TOKENS,
+            #[cfg(feature = "bezenti")]
+            &AI_OUTPUT_TOKENS,
         ];
 
         if is_enterprise {
@@ -381,6 +422,12 @@ impl Collector {
             MetricType::TaskManagerPending => TASK_MANAGER_PENDING.get() as f64,
             MetricType::TaskManagerDue => TASK_MANAGER_DUE.get() as f64,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime => AI_REQUEST_TIME.average(),
+            #[cfg(feature = "bezenti")]
+            MetricType::AiInputTokens => AI_INPUT_TOKENS.average(),
+            #[cfg(feature = "bezenti")]
+            MetricType::AiOutputTokens => AI_OUTPUT_TOKENS.average(),
             _ => EVENT_COUNTERS.get(metric_type.event_id()) as f64,
         }
     }
@@ -427,6 +474,13 @@ impl Collector {
             MetricType::StoreDataWriteTime => STORE_DATA_WRITE_TIME.observe(value),
             MetricType::StoreBlobReadTime => STORE_BLOB_READ_TIME.observe(value),
             MetricType::StoreBlobWriteTime => STORE_BLOB_WRITE_TIME.observe(value),
+            // bezenti: IA (fase 4).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime => AI_REQUEST_TIME.observe(value),
+            #[cfg(feature = "bezenti")]
+            MetricType::AiInputTokens => AI_INPUT_TOKENS.observe(value),
+            #[cfg(feature = "bezenti")]
+            MetricType::AiOutputTokens => AI_OUTPUT_TOKENS.observe(value),
             _ => {}
         }
     }

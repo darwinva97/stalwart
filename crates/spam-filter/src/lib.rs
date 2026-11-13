@@ -7,6 +7,8 @@
 #![warn(clippy::large_futures)]
 
 pub mod analysis;
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod modules;
 mod texts;
 
@@ -130,6 +132,9 @@ pub struct SpamFilterAiResult {
     pub facts: Option<String>,
     pub header: Option<String>,
     pub train_spam: Option<bool>,
+    /// bezenti: veredicto en el formato de la cabecera X-Spam-AI (`aiVerdict` de `x:SpamClassify`).
+    #[cfg(feature = "bezenti")]
+    pub verdict: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -33,6 +33,8 @@ sync_wrapper = "1.0.2"
 serde_json = { version = "1.0", features = ["raw_value"], optional = true }
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md): clasificador antispam con IA (fase 4).
+bezenti = ["common/bezenti", "registry/bezenti", "trc/bezenti", "dep:serde_json"]
 enterprise = ["common/enterprise", "dep:serde_json", "utils/enterprise", "store/enterprise", "trc/enterprise", "registry/enterprise"]
 
 [dev-dependencies]

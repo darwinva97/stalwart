@@ -9,9 +9,15 @@
 pub const TOTAL_EVENT_COUNT: usize = 672;
 pub const TOTAL_METRIC_COUNT: usize = 399;
 
+#[cfg(feature = "bezenti")]
+pub use super::ia::AiEvent;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EventType {
     Acme(AcmeEvent),
+    // bezenti: eventos de la IA (fase 4, ver event/ia.rs).
+    #[cfg(feature = "bezenti")]
+    Ai(AiEvent),
     // [fragmento SEL eliminado: 6 líneas]
     Arc(ArcEvent),
     Auth(AuthEvent),
@@ -957,6 +963,23 @@ pub enum MetricType {
     AcmeTlsAlpnError = 32,
     AcmeTokenNotFound = 33,
     AcmeError = 34,
+    // bezenti: métricas de la IA (fase 4, ver event/ia.rs).
+    #[cfg(feature = "bezenti")]
+    AiRequestTime = 328,
+    #[cfg(feature = "bezenti")]
+    AiInputTokens = 329,
+    #[cfg(feature = "bezenti")]
+    AiOutputTokens = 330,
+    #[cfg(feature = "bezenti")]
+    AiApiError = 331,
+    #[cfg(feature = "bezenti")]
+    AiRequest = 332,
+    #[cfg(feature = "bezenti")]
+    AiSpamVerdict = 333,
+    #[cfg(feature = "bezenti")]
+    AiSpamSkipped = 334,
+    #[cfg(feature = "bezenti")]
+    AiBreakerOpen = 335,
     // [fragmento SEL eliminado: 20 líneas]
     ArcChainInvalid = 379,
     ArcSignatureInvalid = 380,
@@ -1433,6 +1456,25 @@ pub enum Key {
     Cipher = 84,
     ResourceUid = 85,
     Script = 86,
+    // bezenti: claves de traza de la IA (fase 4, ver event/ia.rs).
+    #[cfg(feature = "bezenti")]
+    Model = 87,
+    #[cfg(feature = "bezenti")]
+    InputTokens = 88,
+    #[cfg(feature = "bezenti")]
+    OutputTokens = 89,
+    #[cfg(feature = "bezenti")]
+    CachedTokens = 90,
+    #[cfg(feature = "bezenti")]
+    FinishReason = 91,
+    #[cfg(feature = "bezenti")]
+    Category = 92,
+    #[cfg(feature = "bezenti")]
+    Probability = 93,
+    #[cfg(feature = "bezenti")]
+    Confidence = 94,
+    #[cfg(feature = "bezenti")]
+    Tier = 95,
     // [fragmento SEL eliminado: 22 líneas]
     Fingerprint = 96,
 }

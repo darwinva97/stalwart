@@ -97,7 +97,7 @@ dns-update = { version = "0.6", features = ["test_provider"] }
 
 [features]
 # bezenti: edición bezenti (ver bezenti/README.md).
-bezenti = ["registry/bezenti", "store/bezenti"]
+bezenti = ["registry/bezenti", "store/bezenti", "trc/bezenti"]
 dev_mode = []
 enterprise = ["store/enterprise", "utils/enterprise", "trc/enterprise", "telemetry/enterprise", "directory/enterprise", "coordinator/enterprise", "registry/enterprise", "jmap_proto/enterprise"]
 foundation = []

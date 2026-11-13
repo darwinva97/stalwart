@@ -437,6 +437,13 @@ async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<Spa
     };
 
     // [fragmento SEL eliminado: 24 líneas]
+    // bezenti: parte del clasificador con IA (fase 4): compuerta, hechos enviados y veredicto.
+    #[cfg(feature = "bezenti")]
+    {
+        request.ai_gate = ctx.result.ai.gate.map(|gate| gate.as_str().to_string());
+        request.ai_facts = ctx.result.ai.facts.take();
+        request.ai_verdict = ctx.result.ai.verdict.take();
+    }
 
     request.tags = VecMap::with_capacity(ctx.result.tags.len());
     for tag in ctx.result.tags {

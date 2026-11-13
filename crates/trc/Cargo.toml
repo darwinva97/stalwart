@@ -21,6 +21,8 @@ hashify = "0.3"
 itoa = "1"
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md): eventos, métricas y claves de la IA (fase 4).
+bezenti = []
 dev_mode = []
 enterprise = []
 

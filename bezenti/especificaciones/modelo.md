@@ -167,10 +167,11 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
 
 ## 4. Pendiente para fases siguientes
 
-- `trc::Key` no tiene aún las claves de IA del esquema (`model`, `inputTokens`, …): fases 4/5.
-- `trc::EventType`/`MetricType` no tienen los eventos y métricas de pago (`ai.*`, `scim.*`,
-  `telemetry.alert-*`, `limit.tenant-quota`, …): se añadirán en `trc` en cada fase.
+- Fase 4: `trc::Key` ya tiene las claves de IA y `trc::EventType`/`MetricType` los eventos y métricas `ai.*`
+  (tras la feature `bezenti` de `trc`; identificadores en [`ia.md`](ia.md), §6). Faltan los de otras fases
+  (`scim.*`, `telemetry.alert-*`, `limit.tenant-quota`, …): se añadirán en `trc` en cada fase, sin reutilizar
+  los identificadores ya asignados.
 - Toda la lógica: cuotas y aislamiento por inquilino (hecho en la fase 2, [`multi-inquilino.md`](multi-inquilino.md)),
   asignación y entrega de direcciones enmascaradas y archivo y restauración (hechos en la fase 3,
-  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA, almacenes de métricas/trazas, réplicas y almacenes repartidos, SCIM.
+  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA (hechos en la fase 4, [`ia.md`](ia.md)), almacenes de métricas/trazas, réplicas y almacenes repartidos, SCIM.
   En el código limpio, las marcas `[fragmento SEL eliminado]` fuera del registro indican dónde engancharla.

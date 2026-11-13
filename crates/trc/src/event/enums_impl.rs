@@ -13,6 +13,11 @@ impl EventType {
     // [fragmento SEL eliminado: 685 líneas]
     #[cfg(not(feature = "enterprise"))]
     pub fn parse(value: &str) -> Option<Self> {
+        // bezenti: IA (fase 4, ver event/ia.rs).
+        #[cfg(feature = "bezenti")]
+        if let Some(item) = crate::event::ia::AiEvent::parse(value).map(EventType::Ai) {
+            return Some(item);
+        }
         hashify::map! {
             value.as_bytes(),
             EventType,
@@ -671,6 +676,9 @@ impl EventType {
 
     pub fn as_str(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.as_str(),
             EventType::Acme(AcmeEvent::AuthStart) => "acme.auth-start",
             EventType::Acme(AcmeEvent::AuthPending) => "acme.auth-pending",
             EventType::Acme(AcmeEvent::AuthValid) => "acme.auth-valid",
@@ -1487,6 +1495,9 @@ impl EventType {
 
     pub const fn to_id(&self) -> u16 {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.to_id(),
             EventType::Acme(AcmeEvent::AuthStart) => 3,
             EventType::Acme(AcmeEvent::AuthPending) => 2,
             EventType::Acme(AcmeEvent::AuthValid) => 5,
@@ -2147,6 +2158,9 @@ impl EventType {
 
     pub fn from_id(id: u16) -> Option<Self> {
         match id {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            609..=614 => AiEvent::from_id(id).map(EventType::Ai),
             3 => Some(EventType::Acme(AcmeEvent::AuthStart)),
             2 => Some(EventType::Acme(AcmeEvent::AuthPending)),
             5 => Some(EventType::Acme(AcmeEvent::AuthValid)),
@@ -2850,6 +2864,9 @@ impl EventType {
 
     pub fn level(&self) -> Level {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.level(),
             EventType::Acme(AcmeEvent::Error) => Level::Error,
             EventType::Auth(AuthEvent::Error) => Level::Error,
             EventType::Cluster(ClusterEvent::SubscriberError) => Level::Error,
@@ -3212,6 +3229,9 @@ impl EventType {
 
     pub fn description(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.description(),
             EventType::Acme(AcmeEvent::AuthStart) => "ACME authentication started",
             EventType::Acme(AcmeEvent::AuthPending) => "ACME authentication pending",
             EventType::Acme(AcmeEvent::AuthValid) => "ACME authentication valid",
@@ -4036,6 +4056,9 @@ impl EventType {
 
     pub fn message(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.message(),
             EventType::Auth(AuthEvent::Success) => "Authentication error",
             EventType::Auth(AuthEvent::Failed) => "Authentication failed",
             EventType::Auth(AuthEvent::TokenExpired) => "Authentication error",
@@ -4339,6 +4362,9 @@ impl EventType {
 
     pub fn otel_metric_name(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.otel_metric_name(),
             EventType::Acme(AcmeEvent::AuthError) => "stalwart.acme.auth_error",
             EventType::Acme(AcmeEvent::AuthTooManyAttempts) => {
                 "stalwart.acme.auth_too_many_attempts"
@@ -4913,6 +4939,9 @@ impl EventType {
 
     pub fn prom_metric_name(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(event) => event.prom_metric_name(),
             EventType::Acme(AcmeEvent::AuthError) => "stalwart_acme_auth_error_total",
             EventType::Acme(AcmeEvent::AuthTooManyAttempts) => {
                 "stalwart_acme_auth_too_many_attempts_total"
@@ -5611,6 +5640,18 @@ impl EventType {
 
     pub const fn variants() -> &'static [Self] {
         &[
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::LlmResponse),
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::ApiError),
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::Request),
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::SpamVerdict),
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::SpamSkipped),
+            #[cfg(feature = "bezenti")]
+            EventType::Ai(AiEvent::BreakerOpen),
             EventType::Acme(AcmeEvent::AuthStart),
             EventType::Acme(AcmeEvent::AuthPending),
             EventType::Acme(AcmeEvent::AuthValid),
@@ -6274,6 +6315,11 @@ impl MetricType {
     // [fragmento SEL eliminado: 412 líneas]
     #[cfg(not(feature = "enterprise"))]
     pub fn parse(value: &str) -> Option<Self> {
+        // bezenti: IA (fase 4, ver event/ia.rs).
+        #[cfg(feature = "bezenti")]
+        if let Some(item) = crate::event::ia::metric_parse(value) {
+            return Some(item);
+        }
         hashify::map! {
             value.as_bytes(),
             MetricType,
@@ -6670,6 +6716,16 @@ impl MetricType {
 
     pub fn as_str(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_entry(self).map_or("", |e| e.1),
             MetricType::AcmeAuthError => "acme.auth-error",
             MetricType::AcmeAuthTooManyAttempts => "acme.auth-too-many-attempts",
             MetricType::AcmeOrderCompleted => "acme.order-completed",
@@ -7078,6 +7134,16 @@ impl MetricType {
 
     pub fn to_id(&self) -> u16 {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_entry(self).map_or(0, |e| e.2),
             MetricType::AcmeAuthError => 27,
             MetricType::AcmeAuthTooManyAttempts => 28,
             MetricType::AcmeOrderCompleted => 29,
@@ -7474,6 +7540,9 @@ impl MetricType {
 
     pub fn from_id(id: u16) -> Option<Self> {
         match id {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            328..=335 => crate::event::ia::metric_from_id(id),
             27 => Some(MetricType::AcmeAuthError),
             28 => Some(MetricType::AcmeAuthTooManyAttempts),
             29 => Some(MetricType::AcmeOrderCompleted),
@@ -7871,6 +7940,18 @@ impl MetricType {
 
     pub fn event_id(&self) -> usize {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => {
+                crate::event::ia::metric_entry(self).map_or(usize::MAX, |e| e.3)
+            }
             MetricType::AcmeAuthError => 1,
             MetricType::AcmeAuthTooManyAttempts => 4,
             MetricType::AcmeOrderCompleted => 16,
@@ -8227,6 +8308,16 @@ impl MetricType {
 
     pub fn description(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_description(self),
             MetricType::AcmeAuthError => "ACME authentication error",
             MetricType::AcmeAuthTooManyAttempts => "Too many ACME authentication attempts",
             MetricType::AcmeOrderCompleted => "ACME order completed",
@@ -8645,6 +8736,16 @@ impl MetricType {
 
     pub fn unit(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_names(self).map_or("", |n| n.0),
             MetricType::CacheMessagesSize
             | MetricType::CacheMessagesLargeSize
             | MetricType::CacheSize
@@ -9040,6 +9141,16 @@ impl MetricType {
 
     pub fn otel_name(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_names(self).map_or("", |n| n.1),
             // [fragmento SEL eliminado: 10 líneas]
             MetricType::CacheMessagesSize => "stalwart.cache.messages_size",
             MetricType::CacheMessagesLargeSize => "stalwart.cache.messages_large_size",
@@ -9088,6 +9199,16 @@ impl MetricType {
 
     pub fn otel_unit(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_names(self).map_or("", |n| n.2),
             // [fragmento SEL eliminado: 10 líneas]
             MetricType::CacheMessagesSize => "By",
             MetricType::CacheMessagesLargeSize => "By",
@@ -9136,6 +9257,16 @@ impl MetricType {
 
     pub fn prom_name(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_names(self).map_or("", |n| n.3),
             // [fragmento SEL eliminado: 10 líneas]
             MetricType::CacheMessagesSize => "stalwart_cache_messages_size_bytes",
             MetricType::CacheMessagesLargeSize => "stalwart_cache_messages_large_size_bytes",
@@ -9184,6 +9315,16 @@ impl MetricType {
 
     pub fn prom_unit(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime
+            | MetricType::AiInputTokens
+            | MetricType::AiOutputTokens
+            | MetricType::AiApiError
+            | MetricType::AiRequest
+            | MetricType::AiSpamVerdict
+            | MetricType::AiSpamSkipped
+            | MetricType::AiBreakerOpen => crate::event::ia::metric_names(self).map_or("", |n| n.4),
             // [fragmento SEL eliminado: 10 líneas]
             MetricType::CacheMessagesSize => "bytes",
             MetricType::CacheMessagesLargeSize => "bytes",
@@ -9232,6 +9373,22 @@ impl MetricType {
 
     pub const fn variants() -> &'static [Self] {
         &[
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequestTime,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiInputTokens,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiOutputTokens,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiApiError,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiRequest,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiSpamVerdict,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiSpamSkipped,
+            #[cfg(feature = "bezenti")]
+            MetricType::AiBreakerOpen,
             MetricType::AcmeAuthError,
             MetricType::AcmeAuthTooManyAttempts,
             MetricType::AcmeOrderCompleted,
@@ -9631,6 +9788,11 @@ impl Key {
     // [fragmento SEL eliminado: 110 líneas]
     #[cfg(not(feature = "enterprise"))]
     pub fn parse(value: &str) -> Option<Self> {
+        // bezenti: IA (fase 4, ver event/ia.rs).
+        #[cfg(feature = "bezenti")]
+        if let Some(item) = crate::event::ia::key_parse(value) {
+            return Some(item);
+        }
         hashify::map! {
             value.as_bytes(),
             Key,
@@ -9728,6 +9890,17 @@ impl Key {
 
     pub fn as_str(&self) -> &'static str {
         match self {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            Key::Model
+            | Key::InputTokens
+            | Key::OutputTokens
+            | Key::CachedTokens
+            | Key::FinishReason
+            | Key::Category
+            | Key::Probability
+            | Key::Confidence
+            | Key::Tier => crate::event::ia::key_as_str(self),
             Key::AccountName => "accountName",
             Key::AccountId => "accountId",
             Key::BlobId => "blobId",
@@ -9826,6 +9999,9 @@ impl Key {
 
     pub fn from_id(id: u16) -> Option<Self> {
         match id {
+            // bezenti: IA (fase 4, ver event/ia.rs).
+            #[cfg(feature = "bezenti")]
+            87..=95 => crate::event::ia::key_from_id(id),
             0 => Some(Key::AccountName),
             1 => Some(Key::AccountId),
             2 => Some(Key::BlobId),

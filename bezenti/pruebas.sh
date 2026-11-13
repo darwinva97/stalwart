@@ -38,5 +38,12 @@ python3 -I bezenti/pruebas/multi_inquilino.py "$BIN"
 echo "### Fase 3: integración de direcciones enmascaradas y archivo de borrados (SQLite, JMAP, SMTP, IMAP)"
 python3 -I bezenti/pruebas/archivo_enmascaradas.py "$BIN"
 
-echo "### Fases 2 y 3: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
-cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0
+echo "### Fase 4: pruebas unitarias de la IA (eventos/métricas/claves en trc, filtro antispam con IA)"
+cargo test "${JOBS[@]}" -p trc --features bezenti --lib ia::
+cargo test "${JOBS[@]}" -p spam-filter --features bezenti --lib bezenti::
+
+echo "### Fase 4: integración IA contra el servidor real (proveedores falsos: OpenAI, Anthropic, Gemini, Ollama, TypeSafe)"
+python3 -I bezenti/pruebas/ia.py "$BIN"
+
+echo "### Fases 2, 3 y 4: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
+cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0 -p trc -p spam-filter -p smtp

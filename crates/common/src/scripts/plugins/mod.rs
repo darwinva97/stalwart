@@ -92,6 +92,10 @@ impl Core {
             9 => headers::exec(ctx),
             10 => text::exec_tokenize(ctx),
             11 => text::exec_domain_part(ctx),
+            // bezenti: llm_prompt propio (fase 4, ver bezenti/ia/sieve.rs).
+            #[cfg(feature = "bezenti")]
+            12 => crate::bezenti::ia::sieve::llm_prompt(ctx).await,
+            #[cfg(not(feature = "bezenti"))]
             12 => llm_prompt::exec(ctx).await,
             _ => unreachable!(),
         };

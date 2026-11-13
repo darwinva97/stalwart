@@ -218,6 +218,14 @@ impl Default for DefaultPermissions {
                     default.tenant_admin.push(permission);
                 }
                 // [fragmento SEL eliminado: 10 líneas]
+                // bezenti: según la documentación pública, los roles por defecto User y System Administrator
+                // (y el de administrador de inquilino) incluyen `interactAi` (llm_prompt en scripts de usuario).
+                #[cfg(feature = "bezenti")]
+                Permission::InteractAi => {
+                    default.user.push(permission);
+                    default.tenant_admin.push(permission);
+                    default.superuser.push(permission);
+                }
                 Permission::Impersonate
                 | Permission::UnlimitedRequests
                 | Permission::UnlimitedUploads => {
@@ -285,7 +293,6 @@ impl Default for DefaultPermissions {
                         if name.starts_with("sysArfExternalReport")
                             || name.starts_with("sysDmarcExternalReport")
                             || name.starts_with("sysTlsExternalReport")
-                            || name == "interactAi"
                         {
                             default.tenant_admin.push(permission);
                         }
