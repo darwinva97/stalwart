@@ -90,10 +90,12 @@ Todo lo que sigue es [bezenti] y es la parte más importante de la fase:
    su propia cuenta (`x:AccountSettings`, `x:ApiKey`, `x:AppPassword`, `x:AccountPassword`, `x:Passkey`,
    `x:PublicKey`, `x:OAuthGrant`, `x:SpamTrainingSample`, `x:MaskedEmail`, `x:ArchivedItem`) y `x:Tenant` (solo
    los inquilinos **descendientes**, nunca el suyo ni sus ancestros: así no puede cambiarse sus propias cuotas ni
-   permisos). Cualquier otro tipo (configuración del servidor, cola, tareas, registros, acciones, informes
-   externos…) responde `forbidden` aunque se le hayan dado los permisos por error. Los informes externos
-   (ARF/DMARC/TLS) son de inquilino según el esquema, pero todavía no se etiquetan con el inquilino al recibirlos:
-   hasta entonces son solo del operador (pendiente).
+   permisos). Fase 8: también la **cola de salida** (`x:QueuedMessage`, solo los mensajes de su ámbito, §5), los
+   **informes externos** (`x:ArfExternalReport`, `x:DmarcExternalReport`, `x:TlsExternalReport`, solo los de los
+   dominios de su ámbito, §4.12) y las **cuentas borradas pendientes de destrucción** (`x:Task`, solo las tareas
+   `DestroyAccount` de su ámbito; ver `archivo.md`, §7). Cualquier otro tipo (configuración del servidor, tareas
+   del servidor, registros, acciones, informes salientes…) responde `forbidden` aunque se le hayan dado los
+   permisos por error.
 3. **get.** Un objeto fuera del ámbito se responde como `notFound`, igual que un id que no existe.
 4. **query.** Los resultados se restringen al ámbito antes de ordenar y paginar: no se pueden contar ni deducir
    objetos ajenos. Filtrar por `memberTenantId` de otro inquilino devuelve una lista vacía.
@@ -122,6 +124,16 @@ Todo lo que sigue es [bezenti] y es la parte más importante de la fase:
 10. **Red.** [doc] Los administradores de inquilino no tienen la posición de red del servidor: las URL que
     configuran (ACME, DNS, logos) van con la política `PublicOnly` (https, sin credenciales, IP públicas).
 11. **El operador** (cuenta sin inquilino con permisos de administración) ve y gestiona todo.
+12. **Informes externos** (fase 8). [esquema] `x:ArfExternalReport`, `x:DmarcExternalReport` y
+    `x:TlsExternalReport` tienen `memberTenantId`. [bezenti] Al recibir un informe (DMARC agregado, TLS-RPT o
+    ARF) se le pone el inquilino del dominio al que se refiere: primero los dominios de su contenido (el dominio
+    publicado en DMARC, las políticas de TLS, los dominios denunciados en ARF) que son de este servidor y, si
+    ninguno lo es, los de sus destinatarios. Si todos los de este servidor son del mismo inquilino, el informe es
+    de ese inquilino; si son de varios, o alguno es del operador, queda solo para el operador (nunca se enseña a
+    un inquilino un informe que también habla de otro). Se indexa por `memberTenantId`, así que `query`, `get` y
+    `set` (borrar) del administrador de inquilino ven solo los de su ámbito y lo demás responde `notFound`. Los
+    informes salientes (`x:DmarcInternalReport`, `x:TlsInternalReport`) siguen siendo del operador. El rol
+    «Tenant Administrator» ya tiene los permisos de los informes externos (§3).
 
 ## 5. Cuotas y límites
 
@@ -142,10 +154,49 @@ Todo lo que sigue es [bezenti] y es la parte más importante de la fase:
 - [bezenti] Con revendedores las cuotas son **jerárquicas**: lo de un hijo cuenta también para el padre, así que un
   revendedor nunca puede pasar de su propia cuota repartiéndola entre hijos.
 - [doc] No hay límites de cola ni de envío por inquilino en la documentación (`MtaQueueQuota` y los throttles no
-  tienen clave de inquilino). [bezenti] **Pendiente**: la cola SMTP por inquilino (índice de mensajes en cola por
-  inquilino y su gestión por la API) queda para una fase siguiente; mientras tanto la cola (`x:QueuedMessage`) es
-  solo del operador. Se puede limitar el envío por dominio con los `MtaQueueQuota`/throttles libres
-  (`senderDomain`).
+  tienen clave de inquilino). La fase 8 los añade (§5.1).
+
+### 5.1 Cola SMTP y límites de envío por inquilino (fase 8)
+
+Todo [bezenti]: ni el esquema ni la documentación lo definen. Objetivo: que un inquilino no pueda acaparar la cola
+ni quemar la reputación de la IP de todos.
+
+- **De quién es un mensaje en cola.** Se apunta al encolarlo (metadato propio del mensaje, al final de la lista
+  para que los mensajes ya encolados se sigan leyendo) y solo cuando se sabe de verdad: el envío autenticado por
+  SMTP (`AUTH`) o por JMAP (`EmailSubmission`) es del inquilino de la cuenta; lo que genera la entrega local para
+  una cuenta (redirecciones y respuestas de Sieve) es del inquilino de esa cuenta; un aviso de entrega (DSN) de
+  un mensaje de un inquilino es de ese inquilino. El correo entrante sin autenticar **no es de nadie** (es del
+  operador) aunque el remitente diga ser de un dominio de un inquilino: así nadie puede colar mensajes (ni su
+  contenido) en la vista de otro.
+- **Campos propios de `x:Tenant`** (prefijo `bezenti`, `extensiones.json`; nulos = sin límite):
+  - `bezentiMaxQueuedMessages`: mensajes del inquilino que pueden estar **a la vez en la cola**. Al llegar al
+    límite, un envío autenticado nuevo se aplaza con `452 4.3.1` (el cliente lo reintenta más tarde). Cuenta todo
+    lo del inquilino (también los avisos y lo generado por Sieve) pero solo rechaza los envíos autenticados: un
+    aviso de entrega nunca se pierde por esto. Se lleva con los contadores de cuota de la cola del código libre
+    (los de `MtaQueueQuota`), que se liberan cuando el mensaje sale de la cola (entregado, caducado o cancelado).
+  - `bezentiMessageRate` (`x:Rate`): **mensajes por intervalo** de los envíos autenticados del inquilino.
+  - `bezentiRecipientRate` (`x:Rate`): **destinatarios por intervalo** (la suma de los destinatarios de cada
+    mensaje); un mensaje que no cabe entero se rechaza entero.
+  Al pasarse de un ritmo, `451 4.7.1 Sending rate exceeded for your organization, try again later.` y el evento
+  `queue.rate-limit-exceeded` con el inquilino. Los ritmos son ventanas fijas en el almacén en memoria (como los
+  throttles libres), así que en un clúster con Redis se comparten entre nodos.
+- **Jerárquicos** (revendedores, §8): lo de un hijo cuenta también para los límites de su padre y de sus
+  ancestros; basta con que uno se pase para aplazar el envío.
+- **Reparto justo al entregar.** En cada cola virtual, los hilos de entrega se reparten entre inquilinos (más el
+  grupo «sin inquilino»): (1) el valor de la clave de cada evento de la cola lleva el inquilino del mensaje, así
+  que el gestor lo sabe sin leer el mensaje; (2) al buscar mensajes listos mira hasta 2.048 eventos más allá de
+  los que busca el código libre (variable de entorno `BEZENTI_COLA_VENTANA`) y elige los candidatos **por turnos
+  entre inquilinos**, empezando por el que menos tiene en marcha; (3) de los listos sale primero el del inquilino
+  con menos entregas en marcha; (4) un mensaje recién encolado de un inquilino que no tiene nada en marcha en esa
+  cola entra en la lista de listos aunque esté llena. Resultado: un envío masivo de un inquilino no retrasa el
+  correo de los demás (prueba: con 2 hilos y 40 mensajes de A delante, el de B sale a la vez que los que ya
+  estaban en marcha). Límite honesto: un nodo que arranca con más de 2.048 mensajes vencidos de un mismo inquilino
+  por delante tarda en ver los de otros hasta que esa cola baja; `bezentiMaxQueuedMessages` lo evita.
+- **Vista y gestión para el administrador de inquilino** (permisos `sysQueuedMessage*`, que ya están en el rol
+  «Tenant Administrator»): `x:QueuedMessage/query` (con sus filtros: texto, remitente, destinatario, cola,
+  vencimiento) recorre los mensajes y deja solo los de su ámbito; `get` y la descarga del mensaje (`blobId`)
+  responden `notFound` a lo ajeno; `set` reintenta («Retry Now», `nextRetry`) y cancela («Cancel Delivery»,
+  `destroy`) solo los suyos. El historial de entrega de un mensaje (`x:Trace`) ya estaba aislado (fase 5).
 
 ## 6. Cómo se resuelve el inquilino
 
@@ -195,11 +246,10 @@ Todo lo que sigue es [bezenti] y es la parte más importante de la fase:
 
 ## 9. Fuera de esta fase
 
-- Cola SMTP y límites de envío por inquilino (§5).
-- Directorios externos (LDAP/SQL/OIDC) por dominio o inquilino (`x:Domain.directoryId`).
+- Directorios externos (LDAP/SQL/OIDC) por dominio o inquilino (`x:Domain.directoryId`): sigue fuera (ver
+  `README.md`, «Estado»).
 - Tarea `TenantMaintenance` (`recalculateQuota`) y `resetTenantQuotas`: no hacen falta con el cálculo bajo demanda
   y no se implementan (la API no deja crearlas).
-- Informes externos (ARF/DMARC/TLS) por inquilino: etiquetarlos con el inquilino del dominio al recibirlos.
 - Evento y métrica `limit.tenant-quota`: se usa el evento libre `limit.quota` con el detalle «tenant».
 
 ## 10. Lo implementado en la fase 2
@@ -219,6 +269,12 @@ Todo va tras la feature `bezenti`; sin ella el código libre se compila y se com
 | Directorio de principales (JMAP y WebDAV), compartir (JMAP e IMAP), OAuth | `crates/jmap/src/principal/`, `api/acl.rs`, `crates/dav/src/principal/`, `crates/imap/src/op/acl.rs`, `crates/http/src/auth/oauth/auth.rs` |
 | Cuota de disco del inquilino en la entrega SMTP, IMAP APPEND/COPY, JMAP y WebDAV | `crates/common/src/storage/quota.rs`, `crates/email/src/message/{ingest,copy,delivery}.rs`, `crates/imap/src/op/append.rs`, `crates/dav/src/common/propfind/mod.rs` |
 | Firmas DKIM automáticas en el inquilino del dominio | `crates/services/src/task_manager/tasks/dkim.rs` |
+| Fase 8: inquilino del mensaje en cola, límites y contador de cola | `crates/smtp/src/queue/bezenti.rs`, ganchos en `queue/spool.rs`, `inbound/data.rs`, `outbound/local.rs`, `queue/dsn.rs` |
+| Fase 8: reparto justo entre inquilinos al entregar | `crates/smtp/src/queue/manager.rs` (`bezenti_*`), `queue/walk.rs`, `crates/common/src/ipc.rs` |
+| Fase 8: campos `bezentiMaxQueuedMessages`, `bezentiMessageRate`, `bezentiRecipientRate` | `bezenti/generador/extensiones.json`, `crates/common/src/bezenti/inquilino.rs` (`TenantCache`) |
+| Fase 8: `x:QueuedMessage` por inquilino (query, get, set, descarga) | `crates/jmap/src/registry/mapping/queued_message.rs`, `crates/jmap/src/blob/download.rs` |
+| Fase 8: informes externos con inquilino | `crates/smtp/src/reporting/bezenti.rs`, `reporting/{analysis,index}.rs`, `crates/jmap/src/registry/mapping/report.rs` |
+| Fase 8: cuentas borradas desde el administrador de inquilino | `crates/jmap/src/registry/archivo.rs`, `mapping/task.rs`, `crates/jmap/src/api/auth.rs` |
 
 ### Pruebas
 
@@ -235,5 +291,11 @@ Todo va tras la feature `bezenti`; sin ella el código libre se compila y se com
   SMTP), el flujo de correo SMTP → IMAP/JMAP en un dominio de inquilino, las firmas DKIM, el logo y el esquema
   servido.
 - Pruebas unitarias en `crates/common/src/bezenti/` (`cargo test -p common --features bezenti --lib bezenti::`).
+- Fase 8: `bezenti/pruebas/cola_inquilinos.py` (servidor real con SQLite y un SMTP remoto falso): reparto justo
+  (40 mensajes de A con 2 hilos y uno de B, que sale enseguida), vista y gestión de la cola por cada
+  administrador de inquilino (query, filtros, total, get, descarga, reintentar, cancelar; lo ajeno → `notFound`),
+  ritmos de mensajes y de destinatarios, jerárquicos (revendedor), máximo de mensajes en cola (y que se libera al
+  cancelar), informes DMARC y TLS por inquilino y recuperación de cuentas borradas por el administrador de
+  inquilino (con su cuota).
 - `bezenti/pruebas.sh` (CI) las lanza todas y comprueba que los crates tocados compilan y pasan sus pruebas sin la
   feature.

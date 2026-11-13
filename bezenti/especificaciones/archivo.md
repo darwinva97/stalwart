@@ -45,9 +45,24 @@ referencias de `ArchivedItem` (<https://stalw.art/docs/ref/object/archived-item/
   `Email/set destroy`, IMAP `EXPUNGE`/`UID EXPUNGE`/`CLOSE`, POP3 `DELE`, borrar un buzón con sus mensajes
   (`onDestroyRemoveEmails`) y el vaciado automático de Papelera y Spam (`expungeTrashAfter`). Quitar un mensaje de
   un buzón cuando sigue en otro no es borrarlo y no se archiva.
-- [bezenti] **Pendiente**: archivos (WebDAV), eventos, contactos y guiones Sieve. El modelo y la API ya los admiten
-  (variantes del esquema); falta engancharlos al borrado de cada tipo y escribir su restauración. Hasta entonces no
-  aparecen en el archivo.
+- [bezenti] Fase 8: también los **archivos** (WebDAV/`FileNode`; las carpetas no, pero sí los archivos que
+  contienen al borrarlas), los **eventos de calendario**, los **contactos** y los **guiones Sieve**, cuando los
+  borra un usuario: WebDAV/CalDAV/CardDAV `DELETE` (de un elemento o de una colección con su contenido), JMAP
+  `FileNode/set`, `CalendarEvent/set`, `Calendar/set` (con `onDestroyRemoveEvents`), `ContactCard/set`,
+  `AddressBook/set` (con `onDestroyRemoveContents`) y `SieveScript/set`, y ManageSieve `DELETESCRIPT`.
+- [bezenti] **Mover no es borrar**: `MOVE` de WebDAV (también entre cuentas) y las limpiezas internas del servidor
+  (expurgo automático de invitaciones iTIP, notificaciones) usan las mismas funciones de borrado por debajo y no
+  archivan nada. Se distingue porque solo las órdenes de borrar de los usuarios abren un «ámbito de archivo» (una
+  variable local de la tarea) que miran las funciones de borrado.
+- [bezenti] Un evento que solo sale de uno de sus calendarios (y sigue en otro) o un contacto que sale de una de
+  sus libretas no se borra y no se archiva.
+- [bezenti] Qué se guarda de cada tipo (además de cuenta, fechas, `status` y `blobId`):
+  - `FileNode`: nombre, carpeta, tipo MIME y si era ejecutable; el `blobId` es el contenido del archivo (el mismo
+    blob, sin copiarlo).
+  - `CalendarEvent`: título (`SUMMARY`), inicio, calendarios y nombres de recurso; el `blobId` es el iCalendar
+    completo del evento (un blob nuevo, porque los eventos no se guardan como blob).
+  - `ContactCard`: nombre (`FN`), libretas y nombres de recurso; el `blobId` es la vCard completa (blob nuevo).
+  - `SieveScript`: nombre; el `blobId` es el guion, y `contents` (del esquema) lleva su texto en `get`.
 - [bezenti] Lo que se borra al destruir una cuenta **no** se archiva: para eso está `archiveDeletedAccountsFor`
   (§7).
 
@@ -68,9 +83,24 @@ referencias de `ArchivedItem` (<https://stalw.art/docs/ref/object/archived-item/
 - [bezenti] Del objeto solo se puede cambiar `status`; cualquier otro campo (`from`, `subject`…) es el registro de
   lo que se borró y se rechaza con `invalidProperties`. Volver a poner `archived` no cancela una restauración ya
   pedida. `x:ArchivedItem/set create` responde `forbidden` (los crea el servidor).
-- [bezenti] El `blobId` de un elemento es descargable por la cuenta dueña mientras esté archivado (enlace temporal
-  de la cuenta), así se puede ver el mensaje antes de restaurarlo: es el mensaje tal como llegó, sin las cabeceras
-  que añadió el servidor.
+- [bezenti] El `blobId` de un elemento es descargable mientras esté archivado (enlace temporal de la cuenta), así
+  se puede ver antes de restaurarlo. Fase 8: un mensaje se descarga **íntegro**, con las cabeceras que añadió el
+  servidor al recibirlo (`Received`, `Return-Path`…), recompuestas como en la descarga de un mensaje normal. Lo
+  descargan la cuenta dueña y el administrador de un inquilino si la cuenta es de su ámbito (§6); nadie más.
+- [bezenti] Fase 8, restaurar lo que no es correo (tarea `RestoreArchivedItem`, igual que con el correo; si
+  falla, el elemento vuelve a `archived` con el motivo en la tarea):
+  - **Archivo**: vuelve a su carpeta si sigue existiendo (si no, a la raíz), con su nombre (si está ocupado,
+    `nombre-1.ext`…), su tipo MIME y el mismo blob, byte a byte.
+  - **Evento**: vuelve a los calendarios originales que sigan existiendo (si no queda ninguno, al calendario por
+    defecto, que se crea si hace falta), con su nombre de recurso si está libre y el iCalendar íntegro (UID,
+    título, fechas, lugar, alarmas…); se reprograman sus alarmas y **no** se envían invitaciones. Si en ese
+    calendario ya hay un evento con el mismo UID, falla («Ya existe un elemento con el mismo UID…»).
+  - **Contacto**: igual, en sus libretas (o en la libreta por defecto), con la vCard íntegra; mismo UID ocupado →
+    falla.
+  - **Guion Sieve**: vuelve **inactivo** con su nombre (si está ocupado, `nombre-1`…) y el mismo texto; si ya no
+    compila o la cuenta tiene el máximo de guiones, falla.
+  - Todos comprueban las cuotas como un alta normal (de objetos de la cuenta, de disco de la cuenta y del
+    inquilino). Son objetos nuevos para los clientes (id nuevo).
 
 ## 5. Cómo se guarda y purga al vencer
 
@@ -108,6 +138,8 @@ referencias de `ArchivedItem` (<https://stalw.art/docs/ref/object/archived-item/
 - [bezenti] El operador (sin inquilino, con `impersonate`) ve el de cualquier cuenta con el filtro. Sin filtro, todos
   ven el de su propia cuenta (una cuenta cada vez, como dice la documentación).
 - [bezenti] El campo `accountId` solo se oculta en la respuesta a quien únicamente ve lo suyo.
+- [bezenti] Fase 8: el administrador de inquilino (con `sysArchivedItemGet` y `sysAccountGet`) también descarga
+  el `blobId` de los elementos de las cuentas de su ámbito; para cualquier otro, el blob no existe.
 
 ## 7. Cuentas borradas (`archiveDeletedAccountsFor`)
 
@@ -123,7 +155,15 @@ referencias de `ArchivedItem` (<https://stalw.art/docs/ref/object/archived-item/
   tiene ya su nombre). Hace falta `taskDestroyAccount`.
 - [bezenti] La cuenta recuperada vuelve al **inquilino de su dominio** (si no, quedaría como cuenta del operador en
   un dominio de inquilino, lo que la fase 2 prohíbe). La tarea `DestroyAccount` y `x:Task` siguen siendo solo del
-  operador: un administrador de inquilino no recupera cuentas (pendiente).
+  operador.
+- [bezenti] Fase 8: **el administrador de un inquilino recupera las cuentas borradas de su ámbito.** Para un usuario
+  de inquilino, `x:Task` solo contiene las tareas `DestroyAccount` de cuentas cuyo dominio es de su ámbito; todo
+  lo demás (tareas del servidor, cuentas de otros inquilinos) no existe (`notFound`, consultas vacías). Los
+  permisos son los de las cuentas, no los de las tareas: ver y consultar con `sysAccountGet`/`sysAccountQuery`,
+  recuperar (borrar la tarea) con `sysAccountCreate` (recuperar es volver a crear la cuenta), que tiene el rol
+  «Tenant Administrator»; crear o cambiar tareas, nunca. La cuenta recuperada vuelve a contar para las cuotas del
+  inquilino (`maxAccounts`/`maxGroups`, jerárquicas): con la cuota llena la recuperación responde `overQuota` (lo
+  mismo para el operador).
 - [bezenti] Mientras dura el plazo, el archivo de la cuenta y sus enmascaradas se conservan; si se recupera, siguen
   ahí. Si la tarea se ejecuta, se borran también el archivo de la cuenta y sus pendientes.
 
@@ -150,12 +190,21 @@ Todo tras la feature `bezenti`.
 | `x:ArchivedItem/get`, `/query`, `/set` con la vista por inquilino | `crates/jmap/src/registry/archivo.rs` y los ganchos en `get.rs`, `query.rs`, `set.rs` |
 | Aplazar `DestroyAccount` y recuperar la cuenta al borrar la tarea | `crates/jmap/src/registry/archivo.rs`, `mapping/principal.rs`, `mapping/task.rs` |
 | Borrar el archivo y los pendientes con la cuenta | `crates/services/src/task_manager/tasks/destroy_account.rs` |
+| Fase 8: archivar y restaurar archivos, eventos y contactos | `crates/groupware/src/bezenti.rs` y los ganchos en `groupware/src/{file,calendar,contact}/storage.rs` |
+| Fase 8: archivar y restaurar guiones Sieve | `crates/email/src/bezenti.rs`, `email/src/sieve/delete.rs` |
+| Fase 8: ámbito «borrado de usuario» (archivar sí / mover no) | `common::bezenti::archivo::con_archivo`; `crates/dav/src/request.rs`, `crates/jmap/src/api/request.rs`, `crates/managesieve/src/op/deletescript.rs` |
+| Fase 8: `blobId` íntegro y descarga por el administrador de inquilino | `crates/jmap/src/blob/download.rs` |
+| Fase 8: cuentas borradas para el administrador de inquilino | `crates/jmap/src/registry/archivo.rs`, `mapping/task.rs`, `api/auth.rs` |
 
 Pruebas: `bezenti/pruebas/archivo_enmascaradas.py` (servidor real con SQLite) y las unitarias de
-`crates/common/src/bezenti/archivo.rs`.
+`crates/common/src/bezenti/archivo.rs`. Fase 8: `bezenti/pruebas/archivo_tipos.py` (borrar, ver, descargar y
+restaurar íntegros un archivo, un evento, un contacto y un guion Sieve; borrar una carpeta o un calendario con
+contenido; mover no archiva; carpeta o calendario ya borrados; UID ocupado; aislamiento entre inquilinos y vista
+del administrador de inquilino; mensaje descargado íntegro con las cabeceras del servidor; purga al vencer) y
+`bezenti/pruebas/cola_inquilinos.py` (recuperación de cuentas por el administrador de inquilino).
 
 ## 10. Pendiente
 
-- Archivar y restaurar archivos, eventos, contactos y guiones Sieve (§3).
-- Recuperación de cuentas por un administrador de inquilino (`x:Task` es solo del operador).
 - Métrica o evento propio del archivo (se usan los eventos libres de la cola del índice y de las tareas).
+- Restaurar a otro sitio (otra carpeta, otro calendario) o con otro nombre a elección del usuario: el esquema solo
+  tiene `status: requestRestore`.

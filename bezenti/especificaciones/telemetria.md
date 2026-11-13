@@ -153,8 +153,11 @@ real va en una máquina pequeña.
   minutos). [bezenti] **Lo cambiamos: histéresis.** Se avisa una vez cuando la condición pasa de falsa a
   verdadera (evento con `type: triggered`, correo con el asunto configurado) y otra cuando vuelve a ser falsa
   (`type: resolved`, correo con «[Resolved] » delante del asunto y una línea explicativa); mientras no cambia no se
-  repite nada. El estado vive en memoria: tras reiniciar, una condición que se sigue cumpliendo avisa una vez.
-  Para los contadores, que solo crecen, la condición quedará cumplida hasta reiniciar, pero ya no inunda el buzón.
+  repite nada. Fase 8: el estado (qué alertas están disparadas) se guarda en el almacén de datos, por nodo (clave
+  `[2] nodo` del subespacio de métricas, que la purga de métricas no toca), así que tras reiniciar una condición
+  que se sigue cumpliendo **no** vuelve a avisar, y si dejó de cumplirse mientras el servidor estaba parado se
+  avisa de que está resuelta. Para los contadores, que solo crecen, la condición puede quedar cumplida mucho
+  tiempo, pero no inunda el buzón.
 - [bezenti] El correo sale **por el propio servidor**: se encola como mensaje autogenerado y se entrega como
   cualquier otro (local o remoto). Los webhooks son los `x:WebHook` libres que seleccionan
   `telemetry.alert-event`; sus **reintentos** son los del trazador de webhooks: si la petición falla se reintenta
@@ -200,4 +203,4 @@ usara los mismos, hay que cambiarlos aquí y allí.
 - `FoundationDb` como almacén aparte solo funciona si el binario se compila con esa base.
 - `search-index.pending-tracing` no existe: las trazas no pasan por el índice de búsqueda (§3).
 - El estado de las alertas no se comparte entre nodos (cada nodo avisa con sus métricas, como dice la
-  documentación).
+  documentación); desde la fase 8 sí sobrevive a los reinicios de cada nodo (§7).

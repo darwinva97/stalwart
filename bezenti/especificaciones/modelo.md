@@ -163,6 +163,11 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
 - Fase 2: `indice_campos` (qué campo alimenta cada índice de un objeto nuevo; corrige que el nombre de
   `x:Tenant` no fuera único) y el campo propio `x:Tenant.bezentiParentTenantId` (`extensiones.json`, revendedores;
   ver [`multi-inquilino.md`](multi-inquilino.md)).
+- Fase 8: los campos propios `x:Tenant.bezentiMaxQueuedMessages` (entero, nulable), `bezentiMessageRate` y
+  `bezentiRecipientRate` (`x:Rate`, nulables) para los límites de cola y de envío por inquilino
+  ([`multi-inquilino.md`](multi-inquilino.md), §5.1). Son opcionales en el formato binario (hueco de campo y de
+  bit), así que los inquilinos guardados antes se siguen leyendo; salen en el formulario del panel (sección
+  «Quotas») por `gen_esquema.py`.
 - `x:Metric` necesita un enum de variantes que el esquema no nombra: se genera `MetricVariantType`
   (`Counter`, `Gauge`, `Histogram`), porque `MetricType` ya es el enum de métricas de `trc`.
 
