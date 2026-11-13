@@ -626,6 +626,9 @@ pub struct Core {
     /// bezenti: modelos de IA y clasificador antispam con IA (fase 4, ver bezenti/ia).
     #[cfg(feature = "bezenti")]
     pub ai: Arc<crate::bezenti::ia::AiConfig>,
+    /// bezenti: historial de telemetría y alertas (fase 5).
+    #[cfg(feature = "bezenti")]
+    pub telemetria: crate::bezenti::telemetria::ConfigTelemetria,
 }
 
 pub trait BuildServer {

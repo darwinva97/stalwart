@@ -75,6 +75,9 @@ pub(crate) fn is_tenant_accessible(object_type: ObjectType) -> bool {
             | ObjectType::SpamTrainingSample
             | ObjectType::MaskedEmail
             | ObjectType::ArchivedItem
+            // Historial de telemetría, filtrado por ámbito (fase 5, telemetria.md §5).
+            | ObjectType::Trace
+            | ObjectType::Metric
     )
 }
 

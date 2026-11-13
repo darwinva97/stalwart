@@ -20,8 +20,10 @@ cargo test "${JOBS[@]}" -p registry --features bezenti --lib bezenti::
 echo "### Fase 1: el crate registry sigue compilando y pasando sus pruebas sin la feature"
 cargo test "${JOBS[@]}" -p registry --lib
 
-echo "### Fases 2 y 3: pruebas unitarias (multi-inquilino, enmascaradas y archivo; crate common, feature bezenti)"
+echo "### Fases 2, 3 y 5: pruebas unitarias (multi-inquilino, enmascaradas, archivo y telemetría; feature bezenti)"
 cargo test "${JOBS[@]}" -p common --features bezenti --lib bezenti::
+cargo test "${JOBS[@]}" -p jmap --features bezenti --lib registry::telemetria
+cargo test "${JOBS[@]}" -p services --features bezenti --lib bezenti::telemetria
 
 echo "### Fase 2: integración multi-inquilino contra el servidor real (SQLite, JMAP, SMTP, IMAP, HTTP)"
 BIN="${STALWART_BIN:-}"
@@ -45,5 +47,8 @@ cargo test "${JOBS[@]}" -p spam-filter --features bezenti --lib bezenti::
 echo "### Fase 4: integración IA contra el servidor real (proveedores falsos: OpenAI, Anthropic, Gemini, Ollama, TypeSafe)"
 python3 -I bezenti/pruebas/ia.py "$BIN"
 
-echo "### Fases 2, 3 y 4: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
+echo "### Fase 5: integración de la telemetría con historial y alertas (SQLite, JMAP, SMTP, HTTP/SSE, webhook)"
+python3 -I bezenti/pruebas/telemetria.py "$BIN"
+
+echo "### Fases 2 a 5: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
 cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0 -p trc -p spam-filter -p smtp

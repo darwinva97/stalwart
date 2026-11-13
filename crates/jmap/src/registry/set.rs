@@ -880,16 +880,16 @@ impl RegistrySet for Server {
                 set.fail_all_destroy("Telemetry objects cannot be deleted");
                 Ok(set.into_response())
             }
-            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fase 5).
+            // bezenti: telemetría con historial y alertas (fase 5).
             #[cfg(feature = "bezenti")]
-            ObjectType::Alert
-            | ObjectType::Metric
-            | ObjectType::MetricsStore
-            | ObjectType::Trace
-            | ObjectType::TracingStore => {
-                set.fail_all_create("Not available yet in this edition");
-                set.fail_all_update("Not available yet in this edition");
-                set.fail_all_destroy("Not available yet in this edition");
+            ObjectType::Alert | ObjectType::MetricsStore | ObjectType::TracingStore => {
+                registry_object_set(set).await
+            }
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric | ObjectType::Trace => {
+                set.fail_all_create("Telemetry objects cannot be created");
+                set.fail_all_update("Telemetry objects cannot be modified");
+                set.fail_all_destroy("Telemetry objects cannot be deleted");
                 Ok(set.into_response())
             }
         }

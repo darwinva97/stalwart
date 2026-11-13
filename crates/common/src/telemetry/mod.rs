@@ -39,6 +39,11 @@ impl Telemetry {
         // Remove tracers that are no longer active
         let active_subscribers = Collector::get_subscribers();
         for subscribed_id in &active_subscribers {
+            // bezenti: los flujos de la telemetría en vivo no son trazadores de la configuración.
+            #[cfg(feature = "bezenti")]
+            if subscribed_id.starts_with(crate::bezenti::telemetria::vivo::PREFIJO) {
+                continue;
+            }
             if !self
                 .tracers
                 .subscribers
@@ -86,6 +91,8 @@ impl TelemetrySubscriberType {
                 tracers::journald::spawn_journald_tracer(builder, subscriber)
             }
             // [fragmento SEL eliminado: 9 líneas]
+            #[cfg(feature = "bezenti")]
+            TelemetrySubscriberType::Historial(historial) => historial.spawn(builder),
         }
     }
 }

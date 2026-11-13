@@ -17,6 +17,8 @@ pub mod get;
 pub mod mapping;
 pub mod query;
 pub mod set;
+#[cfg(feature = "bezenti")]
+pub mod telemetria;
 
 pub trait EnterpriseRegistry {
     fn assert_enterprise_object(&self, object_type: ObjectType) -> trc::Result<()>;

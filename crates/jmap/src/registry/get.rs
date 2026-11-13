@@ -236,13 +236,19 @@ impl RegistryGet for Server {
             | ObjectType::AppPassword
             | ObjectType::Passkey => account_get(get).await.map(|get| get.into_response()),
             ObjectType::Action => Ok(get.not_found_any().into_response()),
-            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fase 5).
+            // bezenti: telemetría con historial y alertas (fase 5).
             #[cfg(feature = "bezenti")]
-            ObjectType::Alert
-            | ObjectType::Metric
-            | ObjectType::MetricsStore
-            | ObjectType::Trace
-            | ObjectType::TracingStore => Ok(get.not_found_any().into_response()),
+            ObjectType::Alert | ObjectType::MetricsStore | ObjectType::TracingStore => {
+                registry_object_get(get).await
+            }
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => crate::registry::telemetria::trace_get(get)
+                .await
+                .map(|get| get.into_response()),
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => crate::registry::telemetria::metric_get(get)
+                .await
+                .map(|get| get.into_response()),
         }
     }
 }

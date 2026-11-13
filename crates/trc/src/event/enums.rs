@@ -905,6 +905,13 @@ pub enum TelemetryEvent {
     JournalError = 517,
     EventsDropped = 601,
     MetricsCollected = 135,
+    /// bezenti: alertas e historial de métricas (fase 5, `bezenti/especificaciones/telemetria.md`).
+    #[cfg(feature = "bezenti")]
+    AlertEvent = 531,
+    #[cfg(feature = "bezenti")]
+    AlertMessage = 536,
+    #[cfg(feature = "bezenti")]
+    MetricsStored = 539,
     // [fragmento SEL eliminado: 6 líneas]
     MetricsPushed = 130,
 }
@@ -1353,6 +1360,10 @@ pub enum MetricType {
     TaskManagerTaskExpired = 384,
     TaskManagerBlobNotFound = 312,
     TaskManagerMetadataNotFound = 313,
+    #[cfg(feature = "bezenti")]
+    TelemetryAlertEvent = 143,
+    #[cfg(feature = "bezenti")]
+    TelemetryAlertMessage = 196,
     // [fragmento SEL eliminado: 8 líneas]
     TelemetryLogError = 314,
     TelemetryWebhookError = 315,

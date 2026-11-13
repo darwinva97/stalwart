@@ -97,9 +97,13 @@ impl MaintenanceTask for Server {
 
 async fn store_maintenance(server: &Server, task: &TaskStoreMaintenance) -> trc::Result<Outcome> {
     match task.maintenance_type {
-        // bezenti: reindexar la telemetría (fase 5) y reiniciar cuotas de inquilinos (fase 2), sin implementar.
+        // bezenti: el historial de entregas no usa el índice de búsqueda (telemetria.md, §3): no hay nada que
+        // reindexar.
         #[cfg(feature = "bezenti")]
-        TaskStoreMaintenanceType::ReindexTelemetry | TaskStoreMaintenanceType::ResetTenantQuotas => {
+        TaskStoreMaintenanceType::ReindexTelemetry => {}
+        // bezenti: reiniciar cuotas de inquilinos (fase 2): no hace falta con el cálculo bajo demanda.
+        #[cfg(feature = "bezenti")]
+        TaskStoreMaintenanceType::ResetTenantQuotas => {
             return Ok(Outcome::Fatal("tarea de la edición bezenti todavía no implementada".to_string()));
         }
         // [fragmento SEL eliminado: 37 líneas]
@@ -211,6 +215,20 @@ async fn store_maintenance(server: &Server, task: &TaskStoreMaintenance) -> trc:
                 .caused_by(trc::location!())?;
 
             // [fragmento SEL eliminado: 37 líneas]
+
+            // bezenti: retención del historial de telemetría (holdTracesFor, holdMetricsFor).
+            #[cfg(feature = "bezenti")]
+            {
+                let trazas = server.purgar_trazas().await.caused_by(trc::location!())?;
+                let metricas = server.purgar_metricas().await.caused_by(trc::location!())?;
+                if trazas + metricas > 0 {
+                    trc::event!(
+                        Store(StoreEvent::DataStorePurged),
+                        Details = "Telemetry history",
+                        Total = trazas + metricas,
+                    );
+                }
+            }
 
             trc::event!(
                 Store(StoreEvent::DataStorePurged),

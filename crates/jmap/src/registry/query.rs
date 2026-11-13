@@ -165,6 +165,32 @@ impl RegistryQuery for Server {
             .await
             .and_then(|response| response.build()),
 
+            // bezenti: historial de telemetría (fase 5).
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => crate::registry::telemetria::trace_query(
+                RegistryQueryResponse {
+                    server: self,
+                    access_token,
+                    object_type,
+                    request,
+                },
+                &tenant,
+            )
+            .await
+            .and_then(|response| response.build()),
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => crate::registry::telemetria::metric_query(
+                RegistryQueryResponse {
+                    server: self,
+                    access_token,
+                    object_type,
+                    request,
+                },
+                &tenant,
+            )
+            .await
+            .and_then(|response| response.build()),
+
             _ => {
                 let mut query = store::registry::RegistryQuery::new(object_type);
                 // [fragmento SEL eliminado: 8 líneas]

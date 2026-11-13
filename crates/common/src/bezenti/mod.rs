@@ -15,6 +15,8 @@
 //!   Especificación: `bezenti/especificaciones/archivo.md`.
 //! - `ia`: modelos de IA, clasificador antispam con IA y `llm_prompt` en Sieve (fase 4). Especificación:
 //!   `bezenti/especificaciones/ia.md`.
+//! - `telemetria`: historial de entregas y de métricas, alertas y telemetría en vivo (fase 5).
+//!   Especificación: `bezenti/especificaciones/telemetria.md`.
 
 pub mod archivo;
 pub(crate) mod arranque;
@@ -22,3 +24,4 @@ pub mod enmascaradas;
 pub mod ia;
 pub mod inquilino;
 pub mod logo;
+pub mod telemetria;

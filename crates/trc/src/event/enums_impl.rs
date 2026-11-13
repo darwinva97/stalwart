@@ -672,6 +672,24 @@ impl EventType {
             b"web-dav.error" => EventType::WebDav(WebDavEvent::Error),
         }
         .copied()
+        .or_else(|| Self::parse_bezenti(value))
+    }
+
+    /// bezenti: eventos de la fase 5 (alertas e historial), fuera de `hashify` para poder ir tras la feature.
+    #[cfg(feature = "bezenti")]
+    fn parse_bezenti(value: &str) -> Option<Self> {
+        match value {
+            "telemetry.alert-event" => Some(EventType::Telemetry(TelemetryEvent::AlertEvent)),
+            "telemetry.alert-message" => Some(EventType::Telemetry(TelemetryEvent::AlertMessage)),
+            "telemetry.metrics-stored" => Some(EventType::Telemetry(TelemetryEvent::MetricsStored)),
+            _ => None,
+        }
+    }
+
+    #[cfg(not(feature = "bezenti"))]
+    #[inline(always)]
+    fn parse_bezenti(_: &str) -> Option<Self> {
+        None
     }
 
     pub fn as_str(&self) -> &'static str {
@@ -1456,6 +1474,12 @@ impl EventType {
             EventType::Telemetry(TelemetryEvent::JournalError) => "telemetry.journal-error",
             EventType::Telemetry(TelemetryEvent::EventsDropped) => "telemetry.events-dropped",
             EventType::Telemetry(TelemetryEvent::MetricsCollected) => "telemetry.metrics-collected",
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertEvent) => "telemetry.alert-event",
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertMessage) => "telemetry.alert-message",
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::MetricsStored) => "telemetry.metrics-stored",
             // [fragmento SEL eliminado: 6 líneas]
             EventType::Telemetry(TelemetryEvent::MetricsPushed) => "telemetry.metrics-pushed",
             EventType::Tls(TlsEvent::Handshake) => "tls.handshake",
@@ -2123,6 +2147,12 @@ impl EventType {
             EventType::Telemetry(TelemetryEvent::JournalError) => 517,
             EventType::Telemetry(TelemetryEvent::EventsDropped) => 601,
             EventType::Telemetry(TelemetryEvent::MetricsCollected) => 135,
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertEvent) => 531,
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertMessage) => 536,
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::MetricsStored) => 539,
             // [fragmento SEL eliminado: 6 líneas]
             EventType::Telemetry(TelemetryEvent::MetricsPushed) => 130,
             EventType::Tls(TlsEvent::Handshake) => 526,
@@ -2828,6 +2858,12 @@ impl EventType {
             517 => Some(EventType::Telemetry(TelemetryEvent::JournalError)),
             601 => Some(EventType::Telemetry(TelemetryEvent::EventsDropped)),
             135 => Some(EventType::Telemetry(TelemetryEvent::MetricsCollected)),
+            #[cfg(feature = "bezenti")]
+            531 => Some(EventType::Telemetry(TelemetryEvent::AlertEvent)),
+            #[cfg(feature = "bezenti")]
+            536 => Some(EventType::Telemetry(TelemetryEvent::AlertMessage)),
+            #[cfg(feature = "bezenti")]
+            539 => Some(EventType::Telemetry(TelemetryEvent::MetricsStored)),
             // [fragmento SEL eliminado: 6 líneas]
             130 => Some(EventType::Telemetry(TelemetryEvent::MetricsPushed)),
             526 => Some(EventType::Tls(TlsEvent::Handshake)),
@@ -3121,6 +3157,12 @@ impl EventType {
             EventType::TaskManager(TaskManagerEvent::ManagerStarted) => Level::Info,
             // [fragmento SEL eliminado: 6 líneas]
             EventType::Telemetry(TelemetryEvent::MetricsCollected) => Level::Info,
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertEvent) => Level::Warn,
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertMessage) => Level::Info,
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::MetricsStored) => Level::Info,
             EventType::Tls(TlsEvent::Handshake) => Level::Info,
             EventType::Tls(TlsEvent::ExpiredCertificateRemoved) => Level::Info,
             EventType::TlsRpt(TlsRptEvent::RecordFetchError) => Level::Info,
@@ -4017,6 +4059,12 @@ impl EventType {
             EventType::Telemetry(TelemetryEvent::JournalError) => "Journal collector error",
             EventType::Telemetry(TelemetryEvent::EventsDropped) => "Telemetry events dropped",
             EventType::Telemetry(TelemetryEvent::MetricsCollected) => "Metrics collected",
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertEvent) => "Alert event triggered",
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertMessage) => "Alert message sent",
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::MetricsStored) => "Metric store",
             // [fragmento SEL eliminado: 6 líneas]
             EventType::Telemetry(TelemetryEvent::MetricsPushed) => "Metrics pushed",
             EventType::Tls(TlsEvent::Handshake) => "TLS handshake",
@@ -6277,6 +6325,12 @@ impl EventType {
             EventType::Telemetry(TelemetryEvent::JournalError),
             EventType::Telemetry(TelemetryEvent::EventsDropped),
             EventType::Telemetry(TelemetryEvent::MetricsCollected),
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertEvent),
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::AlertMessage),
+            #[cfg(feature = "bezenti")]
+            EventType::Telemetry(TelemetryEvent::MetricsStored),
             // [fragmento SEL eliminado: 6 líneas]
             EventType::Telemetry(TelemetryEvent::MetricsPushed),
             EventType::Tls(TlsEvent::Handshake),
@@ -6712,6 +6766,23 @@ impl MetricType {
             b"user.count" => MetricType::UserCount,
         }
         .copied()
+        .or_else(|| Self::parse_bezenti(value))
+    }
+
+    /// bezenti: métricas de la fase 5 (alertas), fuera de `hashify` para poder ir tras la feature.
+    #[cfg(feature = "bezenti")]
+    fn parse_bezenti(value: &str) -> Option<Self> {
+        match value {
+            "telemetry.alert-event" => Some(MetricType::TelemetryAlertEvent),
+            "telemetry.alert-message" => Some(MetricType::TelemetryAlertMessage),
+            _ => None,
+        }
+    }
+
+    #[cfg(not(feature = "bezenti"))]
+    #[inline(always)]
+    fn parse_bezenti(_: &str) -> Option<Self> {
+        None
     }
 
     pub fn as_str(&self) -> &'static str {
@@ -7117,6 +7188,10 @@ impl MetricType {
             MetricType::TaskManagerTaskExpired => "task-manager.task-expired",
             MetricType::TaskManagerBlobNotFound => "task-manager.blob-not-found",
             MetricType::TaskManagerMetadataNotFound => "task-manager.metadata-not-found",
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertEvent => "telemetry.alert-event",
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertMessage => "telemetry.alert-message",
             // [fragmento SEL eliminado: 8 líneas]
             MetricType::TelemetryLogError => "telemetry.log-error",
             MetricType::TelemetryWebhookError => "telemetry.webhook-error",
@@ -7525,6 +7600,10 @@ impl MetricType {
             MetricType::TaskManagerTaskExpired => 384,
             MetricType::TaskManagerBlobNotFound => 312,
             MetricType::TaskManagerMetadataNotFound => 313,
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertEvent => 143,
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertMessage => 196,
             // [fragmento SEL eliminado: 8 líneas]
             MetricType::TelemetryLogError => 314,
             MetricType::TelemetryWebhookError => 315,
@@ -7924,6 +8003,10 @@ impl MetricType {
             384 => Some(MetricType::TaskManagerTaskExpired),
             312 => Some(MetricType::TaskManagerBlobNotFound),
             313 => Some(MetricType::TaskManagerMetadataNotFound),
+            #[cfg(feature = "bezenti")]
+            143 => Some(MetricType::TelemetryAlertEvent),
+            #[cfg(feature = "bezenti")]
+            196 => Some(MetricType::TelemetryAlertMessage),
             // [fragmento SEL eliminado: 8 líneas]
             314 => Some(MetricType::TelemetryLogError),
             315 => Some(MetricType::TelemetryWebhookError),
@@ -8293,6 +8376,10 @@ impl MetricType {
             MetricType::TaskManagerTaskExpired => 652,
             MetricType::TaskManagerBlobNotFound => 125,
             MetricType::TaskManagerMetadataNotFound => 129,
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertEvent => 531,
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertMessage => 536,
             // [fragmento SEL eliminado: 8 líneas]
             MetricType::TelemetryLogError => 518,
             MetricType::TelemetryWebhookError => 522,
@@ -8721,6 +8808,10 @@ impl MetricType {
             MetricType::TaskManagerTaskExpired => "Task expired",
             MetricType::TaskManagerBlobNotFound => "Blob not found for task",
             MetricType::TaskManagerMetadataNotFound => "Metadata not found for task",
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertEvent => "Alert event triggered",
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertMessage => "Alert message sent",
             // [fragmento SEL eliminado: 8 líneas]
             MetricType::TelemetryLogError => "Log collector error",
             MetricType::TelemetryWebhookError => "Webhook collector error",
@@ -8746,6 +8837,8 @@ impl MetricType {
             | MetricType::AiSpamVerdict
             | MetricType::AiSpamSkipped
             | MetricType::AiBreakerOpen => crate::event::ia::metric_names(self).map_or("", |n| n.0),
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertEvent | MetricType::TelemetryAlertMessage => "count",
             MetricType::CacheMessagesSize
             | MetricType::CacheMessagesLargeSize
             | MetricType::CacheSize
@@ -9770,6 +9863,10 @@ impl MetricType {
             MetricType::TaskManagerTaskExpired,
             MetricType::TaskManagerBlobNotFound,
             MetricType::TaskManagerMetadataNotFound,
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertEvent,
+            #[cfg(feature = "bezenti")]
+            MetricType::TelemetryAlertMessage,
             // [fragmento SEL eliminado: 8 líneas]
             MetricType::TelemetryLogError,
             MetricType::TelemetryWebhookError,

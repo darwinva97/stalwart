@@ -65,6 +65,10 @@ impl SpawnServices for IpcReceivers {
             // Spawn search index queue manager
             spawn_index_queue_manager(inner.clone());
 
+            // bezenti: historial de métricas y alertas (fase 5).
+            #[cfg(feature = "bezenti")]
+            bezenti::telemetria::arrancar(inner.clone());
+
             // Spawn task scheduler
             spawn_task_scheduler(inner);
         }

@@ -54,6 +54,9 @@ impl Core {
         let metadata = MetadataConfig::parse(bp).await;
         let email = EmailConfig::parse(bp).await;
         let blob = BlobConfig::parse(bp).await;
+        #[cfg(feature = "bezenti")]
+        let telemetria =
+            crate::bezenti::telemetria::ConfigTelemetria::parse(bp, &storage.data).await;
 
         // bezenti: modelos de IA y clasificador antispam con IA (fase 4); puntuaciones por defecto de AI_*.
         #[cfg(feature = "bezenti")]
@@ -84,6 +87,8 @@ impl Core {
             storage,
             #[cfg(feature = "bezenti")]
             ai,
+            #[cfg(feature = "bezenti")]
+            telemetria,
         })
     }
 

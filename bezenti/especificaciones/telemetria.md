@@ -52,6 +52,13 @@ real va en una máquina pequeña.
   de sus tamaños; en una de salida, remitente, destinatarios pendientes y tamaño del mensaje (los del evento
   `delivery.attempt-start`). El «estado» de la entrega son sus propios eventos (`delivery.delivered`,
   `delivery.mx-lookup-failed`, `delivery.attempt-end`…).
+- [bezenti] Dos detalles del código libre que el agrupador tiene en cuenta: (1) las sesiones SMTP y los intentos
+  de entrega sacan su `spanId` de generadores distintos y a veces coinciden, así que las sesiones abiertas se
+  distinguen por `(spanId, tipo)`; (2) el colector vacía por turnos las colas de cada hilo y los eventos de una
+  sesión que cambia de hilo llegan desordenados (incluso antes que su inicio o después de su cierre). Por eso los
+  eventos sin sesión abierta se guardan como «huérfanos» hasta 60 s y se adoptan al llegar el inicio, una traza
+  se guarda 2 s después de su evento de cierre, y al guardarla se ordenan sus eventos por fecha (inicio primero,
+  cierre al final).
 - [bezenti] El id de la traza es el `spanId` de la sesión (un id «snowflake» ordenado por tiempo) con el bit más
   bajo indicando entrada (0) o salida (1). Así ordenar por id es ordenar por fecha y un filtro de fechas es un
   rango de claves.

@@ -58,6 +58,9 @@ pub enum TelemetrySubscriberType {
     #[cfg(unix)]
     JournalTracer(crate::telemetry::tracers::journald::Subscriber),
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: historial de entregas en el almacén de trazas (fase 5).
+    #[cfg(feature = "bezenti")]
+    Historial(crate::bezenti::telemetria::trazas::Historial),
 }
 
 pub type OtelTracer = OtlpTracer;
@@ -501,6 +504,8 @@ impl Tracers {
                         EventType::Telemetry(TelemetryEvent::JournalError).into()
                     }
                     // [fragmento SEL eliminado: 6 líneas]
+                    #[cfg(feature = "bezenti")]
+                    TelemetrySubscriberType::Historial(_) => None,
                 };
 
                 // Parse disabled events
@@ -525,6 +530,15 @@ impl Tracers {
             }
 
             // [fragmento SEL eliminado: 29 líneas]
+
+            // bezenti: historial de entregas (x:TracingStore), un suscriptor más con los eventos de las sesiones
+            // SMTP y de los intentos de entrega (bezenti/especificaciones/telemetria.md, §2).
+            #[cfg(feature = "bezenti")]
+            if let Some(tracer) = crate::bezenti::telemetria::trazas::suscriptor(bp, storage).await
+            {
+                global_interests.union(&tracer.interests);
+                tracers.push(tracer);
+            }
 
             // Parse webhooks
             for hook in bp.list_infallible::<WebHook>().await {

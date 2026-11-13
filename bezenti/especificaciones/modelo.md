@@ -158,7 +158,8 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
   único; `memberTenantId` búsqueda por id (salvo informes externos, solo clave ajena); `externalId` búsqueda
   exacta; todo identificador de objeto de pago es clave ajena.
 - Contextos de expresión: `SpamAiProperties.condition` usa `SPAM_AI_VARIABLE`; `Alert.condition` queda sin
-  variables (**TODO fase 5**: las condiciones de alerta se escriben sobre métricas).
+  variables: las condiciones de alerta leen métricas con la función `metric('…')`, que ya existe en el motor de
+  expresiones libre (fase 5, [`telemetria.md`](telemetria.md)).
 - Fase 2: `indice_campos` (qué campo alimenta cada índice de un objeto nuevo; corrige que el nombre de
   `x:Tenant` no fuera único) y el campo propio `x:Tenant.bezentiParentTenantId` (`extensiones.json`, revendedores;
   ver [`multi-inquilino.md`](multi-inquilino.md)).
@@ -168,10 +169,11 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
 ## 4. Pendiente para fases siguientes
 
 - Fase 4: `trc::Key` ya tiene las claves de IA y `trc::EventType`/`MetricType` los eventos y métricas `ai.*`
-  (tras la feature `bezenti` de `trc`; identificadores en [`ia.md`](ia.md), §6). Faltan los de otras fases
-  (`scim.*`, `telemetry.alert-*`, `limit.tenant-quota`, …): se añadirán en `trc` en cada fase, sin reutilizar
-  los identificadores ya asignados.
+  (tras la feature `bezenti` de `trc`; identificadores en [`ia.md`](ia.md), §6). Fase 5: eventos
+  `telemetry.alert-event`, `telemetry.alert-message` y `telemetry.metrics-stored` y sus métricas (identificadores
+  en [`telemetria.md`](telemetria.md), §9). Faltan los de otras fases (`scim.*`, `limit.tenant-quota`, …): se
+  añadirán en `trc` en cada fase, sin reutilizar los identificadores ya asignados.
 - Toda la lógica: cuotas y aislamiento por inquilino (hecho en la fase 2, [`multi-inquilino.md`](multi-inquilino.md)),
   asignación y entrega de direcciones enmascaradas y archivo y restauración (hechos en la fase 3,
-  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA (hechos en la fase 4, [`ia.md`](ia.md)), almacenes de métricas/trazas, réplicas y almacenes repartidos, SCIM.
+  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA (hechos en la fase 4, [`ia.md`](ia.md)), almacenes de métricas/trazas (hechos en la fase 5, [`telemetria.md`](telemetria.md)), réplicas y almacenes repartidos, SCIM.
   En el código limpio, las marcas `[fragmento SEL eliminado]` fuera del registro indican dónde engancharla.

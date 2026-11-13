@@ -6,6 +6,8 @@
 
 // [fragmento SEL eliminado: 6 líneas]
 pub mod diagnose;
+#[cfg(feature = "bezenti")]
+pub mod vivo;
 
 use crate::{
     api::diagnose::{DeliveryStage, DeliveryTarget, spawn_delivery_diagnose},
@@ -185,6 +187,12 @@ impl ManagementApi for Server {
                                 .await?,
                             ))
                     }
+                    // bezenti: telemetría en vivo (fase 5).
+                    #[cfg(feature = "bezenti")]
+                    Some(kind @ ("tracing" | "metrics")) => {
+                        vivo::token(self, &access_token, kind == "metrics").await
+                    }
+                    #[cfg(not(feature = "bezenti"))]
                     Some("tracing") | Some("metrics") => {
                         Err(trc::ResourceEvent::NotFound
                             .ctx(trc::Key::Details, "Enterprise feature"))
@@ -234,6 +242,17 @@ impl ManagementApi for Server {
                             ))))
                     }
                     // [fragmento SEL eliminado: 18 líneas]
+                    // bezenti: telemetría en vivo (fase 5).
+                    #[cfg(feature = "bezenti")]
+                    ("tracing", _, &Method::GET) => {
+                        vivo::tracing(self, &access_token, req.uri().query().unwrap_or_default())
+                            .await
+                    }
+                    #[cfg(feature = "bezenti")]
+                    ("metrics", _, &Method::GET) => {
+                        vivo::metrics(self, &access_token, req.uri().query()).await
+                    }
+                    #[cfg(not(feature = "bezenti"))]
                     ("tracing" | "metrics", _, &Method::GET) => {
                         Err(trc::ResourceEvent::NotFound
                             .ctx(trc::Key::Details, "Enterprise feature"))
@@ -257,7 +276,16 @@ impl ManagementApi for Server {
                 Some((GrantType::LiveDelivery, Permission::LiveDeliveryTest))
             } else {
                 // [fragmento SEL eliminado: 18 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                // bezenti: tokens de un solo flujo de la telemetría en vivo (fase 5).
+                #[cfg(feature = "bezenti")]
+                if path.starts_with("/api/live/tracing") {
+                    Some((GrantType::LiveTracing, Permission::LiveTracing))
+                } else if path.starts_with("/api/live/metrics") {
+                    Some((GrantType::LiveMetrics, Permission::LiveMetrics))
+                } else {
+                    None
+                }
+                #[cfg(not(feature = "bezenti"))]
                 {
                     None
                 }
