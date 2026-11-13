@@ -277,6 +277,12 @@ impl EmailIngest for Server {
         // [fragmento SEL eliminado: 6 líneas]
         let mut raw_message_len = params.raw_message.len() as u64;
         let account = self.account(account_id).await.caused_by(trc::location!())?;
+        // bezenti: cuota de disco del inquilino (la de la cuenta la aplica el lote de escritura).
+        #[cfg(feature = "bezenti")]
+        if let Some(tenant_id) = account.tenant_id {
+            self.check_tenant_disk_quota(tenant_id, raw_message_len)
+                .await?;
+        }
         let limits = &self.core.email.limits;
         if matches!(
             params.source,

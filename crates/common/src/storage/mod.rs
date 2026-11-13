@@ -134,7 +134,16 @@ impl Server {
             .map(|_| (pending, due))
     }
 
-    #[cfg(not(feature = "enterprise"))]
+    /// bezenti: logo del dominio o de su inquilino (ver bezenti/logo.rs).
+    #[cfg(feature = "bezenti")]
+    pub async fn logo_resource(
+        &self,
+        host: &str,
+    ) -> trc::Result<Option<crate::manager::application::Resource<bytes::Bytes>>> {
+        self.bezenti_logo(host).await
+    }
+
+    #[cfg(not(feature = "bezenti"))]
     pub async fn logo_resource(
         &self,
         _: &str,

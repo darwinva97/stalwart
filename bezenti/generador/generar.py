@@ -201,6 +201,20 @@ def generar(m, nombre):
     return cabecera + "\n" + cuerpo
 
 
+def aplicar_extensiones(esquema, ext):
+    """Añade al esquema los campos propios de la edición bezenti (extensiones.json), solo en modo bezenti.
+
+    Son campos que el esquema oficial no tiene (p. ej. `x:Tenant.bezentiParentTenantId`, la jerarquía de
+    revendedores). Van marcados como de pago, así que se generan tras `#[cfg(feature = "bezenti")]` con sus
+    identificadores en asignaciones.json, como cualquier otro campo de pago."""
+    for objeto, campos in ext.get("campos", {}).items():
+        props = esquema["fields"][objeto]["properties"]
+        for nombre, definicion in campos.items():
+            if nombre in props:
+                raise SystemExit(f"extensión {objeto}.{nombre}: el esquema oficial ya tiene ese campo")
+            props[nombre] = definicion
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--modo", default="bezenti", choices=["bezenti", "fidelidad"])
@@ -208,10 +222,13 @@ def main():
     ap.add_argument("--perfil", default=os.path.join(AQUI, "perfil.json"))
     ap.add_argument("--decisiones", default=os.path.join(AQUI, "decisiones.json"))
     ap.add_argument("--asignaciones", default=os.path.join(AQUI, "asignaciones.json"))
+    ap.add_argument("--extensiones", default=os.path.join(AQUI, "extensiones.json"))
     ap.add_argument("--salida", default=os.path.join(RAIZ, "crates/registry/src/schema"))
     ap.add_argument("--solo", action="append", help="genera solo este archivo (se puede repetir)")
     a = ap.parse_args()
     esquema = cargar_json(a.esquema)
+    if a.modo == "bezenti":
+        aplicar_extensiones(esquema, cargar_json(a.extensiones))
     perfil = cargar_json(a.perfil)
     asig = Asignador(a.asignaciones, guardar=a.modo == "bezenti")
     decisiones = cargar_json(a.decisiones)

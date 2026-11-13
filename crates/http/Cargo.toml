@@ -45,6 +45,8 @@ flate2 = "1.1"
 jmap-tools = { path = "../jmap-tools" }
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md).
+bezenti = ["common/bezenti", "jmap/bezenti", "dav/bezenti"]
 dev_mode = []
 enterprise = ["dep:scim", "scim/enterprise", "store/enterprise", "common/enterprise", "utils/enterprise", "trc/enterprise", "email/enterprise", "smtp/enterprise", "jmap/enterprise", "dav/enterprise", "groupware/enterprise", "http_proto/enterprise", "jmap_proto/enterprise", "directory/enterprise", "services/enterprise", "registry/enterprise"]
 

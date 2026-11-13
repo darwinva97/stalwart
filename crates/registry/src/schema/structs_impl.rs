@@ -39542,7 +39542,9 @@ impl ObjectImpl for MaskedEmail {
     }
 
     fn index<'x>(&'x self, i: &mut IndexBuilder<'x>) {
+        i.unique(Property::Email, &self.email);
         i.foreign_key(ObjectType::Account, self.account_id.into(), None);
+        i.search(Property::AccountId, &self.account_id);
     }
 }
 
@@ -69182,11 +69184,22 @@ impl ObjectImpl for Tenant {
         value.validate(errors);
         let value = &self.permissions;
         value.validate(errors);
+        if let Some(value) = &self.bezenti_parent_tenant_id {
+            if !value.is_valid() {
+                errors.push(ValidationError::required(Property::BezentiParentTenantId));
+            }
+        }
         errors.len() == neb
     }
 
     fn index<'x>(&'x self, i: &mut IndexBuilder<'x>) {
+        i.unique(Property::Name, &self.name);
+        i.text(Property::Text, &self.name);
         self.roles.index(i);
+        i.foreign_key(ObjectType::Tenant, self.bezenti_parent_tenant_id, None);
+        if let Some(value) = &self.bezenti_parent_tenant_id {
+            i.search(Property::BezentiParentTenantId, value);
+        }
     }
 }
 
@@ -69197,7 +69210,10 @@ impl Pickle for Tenant {
         if self.logo.is_some() {
             bitmap |= 1 << 0;
         }
-        let block = crate::pickle::begin_block(out, 7, 1, bitmap);
+        if self.bezenti_parent_tenant_id.is_some() {
+            bitmap |= 1 << 1;
+        }
+        let block = crate::pickle::begin_block(out, 8, 2, bitmap);
         self.name.pickle(out);
         self.created_at.pickle(out);
         self.used_disk_quota.pickle(out);
@@ -69207,6 +69223,9 @@ impl Pickle for Tenant {
         self.roles.pickle(out);
         self.permissions.pickle(out);
         self.quotas.pickle(out);
+        if let Some(value) = &self.bezenti_parent_tenant_id {
+            value.pickle(out);
+        }
         crate::pickle::end_block(out, block);
     }
 
@@ -69254,6 +69273,15 @@ impl Pickle for Tenant {
         } else {
             Default::default()
         };
+        let field7: Option<Id> = if block.has(7) {
+            if block.flag(1) {
+                Some(Pickle::unpickle(stream)?)
+            } else {
+                None
+            }
+        } else {
+            Default::default()
+        };
         stream.close_block(block);
         Some(Self {
             name: field0,
@@ -69263,6 +69291,7 @@ impl Pickle for Tenant {
             roles: field4,
             permissions: field5,
             quotas: field6,
+            bezenti_parent_tenant_id: field7,
         })
     }
 }
@@ -69278,6 +69307,7 @@ impl Default for Tenant {
             roles: Default::default(),
             permissions: Default::default(),
             quotas: Default::default(),
+            bezenti_parent_tenant_id: Default::default(),
         }
     }
 }
@@ -69289,7 +69319,7 @@ impl IntoValue for Tenant {
     }
 
     fn into_value_with(self, opts: ValueOptions) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(9);
+        let mut map = jmap_tools::Map::with_capacity(10);
         map.insert_unchecked(Property::Name, self.name.into_value_with(opts));
         map.insert_unchecked(Property::CreatedAt, self.created_at.into_value_with(opts));
         map.insert_unchecked(
@@ -69303,6 +69333,10 @@ impl IntoValue for Tenant {
             self.permissions.into_value_with(opts),
         );
         map.insert_unchecked(Property::Quotas, self.quotas.into_value_with(opts));
+        map.insert_unchecked(
+            Property::BezentiParentTenantId,
+            self.bezenti_parent_tenant_id.into_value_with(opts),
+        );
         JmapValue::Object(map)
     }
 }
@@ -69322,6 +69356,9 @@ impl RegistryJsonPropertyPatch for Tenant {
             Some(Property::Roles) => self.roles.patch(pointer, value),
             Some(Property::Permissions) => self.permissions.patch(pointer, value),
             Some(Property::Quotas) => self.quotas.patch(pointer, value),
+            Some(Property::BezentiParentTenantId) => {
+                self.bezenti_parent_tenant_id.patch(pointer, value)
+            }
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,
                 value,

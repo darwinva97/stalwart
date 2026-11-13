@@ -137,10 +137,18 @@ impl ManagementApi for Server {
                 } = self.authenticate_headers(req, session).await?;
                 // [fragmento SEL eliminado: 10 líneas]
 
-                #[cfg(not(feature = "enterprise"))]
+                // bezenti: esquema completo sin x:Enterprise y con las extensiones propias
+                // (bezenti/generador/gen_esquema.py), para que el panel muestre inquilinos y memberTenantId.
+                #[cfg(feature = "bezenti")]
+                static SCHEMA_JSON: &[u8] =
+                    include_bytes!("../../../../resources/schema/schema_bezenti.json.gz");
+                #[cfg(feature = "bezenti")]
+                const SCHEMA_HASH: &str =
+                    include_str!("../../../../resources/schema/schema_bezenti.json.sha256");
+                #[cfg(not(feature = "bezenti"))]
                 static SCHEMA_JSON: &[u8] =
                     include_bytes!("../../../../resources/schema/schema_oss.json.gz");
-                #[cfg(not(feature = "enterprise"))]
+                #[cfg(not(feature = "bezenti"))]
                 const SCHEMA_HASH: &str =
                     include_str!("../../../../resources/schema/schema_oss.json.sha256");
 

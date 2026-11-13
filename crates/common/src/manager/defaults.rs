@@ -451,6 +451,10 @@ async fn insert_safe_defaults(bp: &mut Bootstrap) -> trc::Result<()> {
         update_role_permissions(bp).await?;
     }
 
+    // bezenti: rol «Tenant Administrator» y defaultTenantRoleIds si faltan (fase 2, multi-inquilino).
+    #[cfg(feature = "bezenti")]
+    crate::bezenti::arranque::ensure_tenant_admin_role(bp).await?;
+
     if bp
         .registry
         .count_object(ObjectType::NetworkListener)
@@ -560,6 +564,11 @@ async fn update_role_permissions(bp: &mut Bootstrap) -> trc::Result<()> {
             permissions.group.as_slice(),
         ),
         // [fragmento SEL eliminado: 9 líneas]
+        #[cfg(feature = "bezenti")]
+        (
+            authentication.default_tenant_role_ids.as_slice(),
+            permissions.tenant_admin.as_slice(),
+        ),
         (
             authentication.default_admin_role_ids.as_slice(),
             permissions.superuser.as_slice(),

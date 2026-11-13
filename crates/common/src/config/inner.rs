@@ -201,6 +201,14 @@ impl Caches {
             roles: Cache::new(cache.roles, (std::mem::size_of::<RoleCache>() + 255) as u64)
                 .with_name("roles"),
             // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            tenants: Cache::new(
+                cache.tenants,
+                (std::mem::size_of::<crate::bezenti::inquilino::TenantCache>() + 255) as u64,
+            )
+            .with_name("tenants"),
+            #[cfg(feature = "bezenti")]
+            tenant_disk_usage: CacheWithTtl::new(cache.tenants, 64),
             lists: Cache::new(
                 cache.mailing_lists,
                 (std::mem::size_of::<MailingListCache>() + 255) as u64,

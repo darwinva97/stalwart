@@ -6,12 +6,15 @@
 
 //! Piezas escritas a mano que necesita el modelo de datos de pago generado por `bezenti/generador`.
 //!
-//! El modelo en sí está en `schema/` (generado); aquí van sus pruebas.
+//! El modelo en sí está en `schema/` (generado); aquí van sus pruebas y, desde la fase 2, los accesores de
+//! `memberTenantId` (`inquilino_gen.rs`, generado por `bezenti/generador/gen_inquilino.py`).
 //!
 //! TODO (fases 4 y 5): el esquema completo añade al enum `Key` de las trazas (`x:TraceKeyValue.key`, que
 //! es `trc::Key`) claves de la IA (`model`, `inputTokens`, `outputTokens`, `cachedTokens`, `finishReason`,
 //! `category`, `probability`, `confidence`, `tier`) que `trc::Key` todavía no tiene; se añadirán en `trc`
 //! cuando se implementen la IA y la telemetría.
+
+mod inquilino_gen;
 
 #[cfg(test)]
 mod pruebas;

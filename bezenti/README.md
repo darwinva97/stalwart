@@ -47,7 +47,7 @@ y fusionarla en `bezenti`. Los conflictos solo aparecen donde nuestro código to
 |---|---|---|
 | 0 | Sala limpia, rama limpia de la v1.1.0, CI con comprobaciones | hecho |
 | 1 | Generador propio del registro a partir del esquema (structs, enums, propiedades) para los objetos de pago, tras la feature `bezenti` — [`generador/`](generador/README.md), modelo en [`especificaciones/modelo.md`](especificaciones/modelo.md); fidelidad: 0 líneas distintas frente a la rama limpia | hecho |
-| 2 | **Multi-inquilino**: inquilinos, dominios y cuentas por inquilino, administradores limitados a su inquilino, cuotas y límites por inquilino, cola SMTP por inquilino, logo por inquilino; extensión propia: **revendedores** (inquilinos con subinquilinos) | pendiente |
+| 2 | **Multi-inquilino**: inquilinos (`x:Tenant`), dominios, cuentas, grupos, listas y roles por inquilino; administradores limitados a su inquilino (aislamiento en toda la API, directorio, compartir y OAuth); techo de permisos; cuotas de objetos y de disco por inquilino; logo por dominio/inquilino (`/logo`); extensión propia: **revendedores** (inquilinos con subinquilinos, `bezentiParentTenantId`) — [`especificaciones/multi-inquilino.md`](especificaciones/multi-inquilino.md), guía [`guias/alta-de-empresa.md`](guias/alta-de-empresa.md), pruebas `pruebas/multi_inquilino.py`. Pendiente: cola SMTP e informes externos por inquilino | hecho |
 | 3 | Direcciones enmascaradas; archivo, retención y recuperación de borrados | pendiente |
 | 4 | IA: modelos (OpenAI, Anthropic, Gemini, Ollama), clasificación antispam, `llm_prompt` en Sieve | pendiente |
 | 5 | Historial de métricas y trazas, alertas, telemetría en vivo | pendiente |

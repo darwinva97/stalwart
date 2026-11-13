@@ -226,6 +226,9 @@ async fn dkim_management(
                     stage: DkimRotationStage::Active,
                     domain_id: task.domain_id,
                     // [fragmento SEL eliminado: 6 líneas]
+                    // bezenti: la firma es del mismo inquilino que su dominio.
+                    #[cfg(feature = "bezenti")]
+                    member_tenant_id: domain.member_tenant_id,
                     selector: selector.clone(),
                     private_key,
                     ..Default::default()
@@ -243,6 +246,9 @@ async fn dkim_management(
                     stage: DkimRotationStage::Active,
                     domain_id: task.domain_id,
                     // [fragmento SEL eliminado: 6 líneas]
+                    // bezenti: la firma es del mismo inquilino que su dominio.
+                    #[cfg(feature = "bezenti")]
+                    member_tenant_id: domain.member_tenant_id,
                     selector: selector.clone(),
                     private_key,
                     ..Default::default()

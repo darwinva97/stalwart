@@ -1,0 +1,17 @@
+{
+ "_comentario": "Extensiones propias de la edición bezenti que NO están en el esquema de Stalwart. Solo se aplican en modo bezenti (en modo fidelidad no existen). Se usan nombres con el prefijo 'bezenti' para que nunca choquen con un campo futuro del esquema oficial. Ver especificaciones/multi-inquilino.md.",
+ "campos": {
+  "x:Tenant": {
+   "bezentiParentTenantId": {
+    "description": "(bezenti) Inquilino padre: el inquilino revendedor que gestiona a este. null = inquilino de primer nivel, gestionado solo por el administrador del servidor",
+    "type": {
+     "type": "objectId",
+     "objectName": "x:Tenant",
+     "nullable": true
+    },
+    "update": "mutable",
+    "enterprise": true
+   }
+  }
+ }
+}

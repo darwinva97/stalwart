@@ -199,6 +199,9 @@ impl RegistryStore {
 
         // Validate foreign keys
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: inquilino del objeto, para comprobar que sus claves ajenas no salen de él.
+        #[cfg(feature = "bezenti")]
+        let tenant_id = object.inner.member_tenant_id();
         let account_id = object
             .inner
             .account_id()
@@ -248,6 +251,17 @@ impl RegistryStore {
                     }
 
                     // [fragmento SEL eliminado: 26 líneas]
+                    // bezenti: nunca se apunta a un objeto de otro inquilino (ver registry/bezenti.rs).
+                    #[cfg(feature = "bezenti")]
+                    if !self
+                        .tenant_foreign_key_in_scope(object_type, tenant_id, foreign_id)
+                        .await?
+                    {
+                        return Ok(RegistryWriteResult::ForeignKeyOutOfScope {
+                            object_id: *foreign_id,
+                            scope: ForeignKeyScope::Tenant,
+                        });
+                    }
 
                     if (object_flags & OBJ_FILTER_ACCOUNT) != 0
                         && let Some(account_id) = account_id

@@ -65,5 +65,11 @@ cmp -s "$TMP/asig.json" $G/asignaciones.json || { echo "ERROR: hay identificador
 for f in $ARCHIVOS; do
   cmp -s "$TMP/bez/$f" crates/registry/src/schema/$f || { echo "ERROR: crates/registry/src/schema/$f no es la salida del generador"; exit 1; }
 done
+python3 -I $G/gen_inquilino.py --salida "$TMP/inquilino_gen.rs" >/dev/null
+cmp -s "$TMP/inquilino_gen.rs" crates/registry/src/bezenti/inquilino_gen.rs || { echo "ERROR: crates/registry/src/bezenti/inquilino_gen.rs no es la salida de gen_inquilino.py"; exit 1; }
+python3 -I $G/gen_esquema.py --salida "$TMP" >/dev/null
+for f in schema_bezenti.json.gz schema_bezenti.json.sha256; do
+  cmp -s "$TMP/$f" resources/schema/$f || { echo "ERROR: resources/schema/$f no es la salida de gen_esquema.py"; exit 1; }
+done
 echo "al día"
 echo "fidelidad: OK"

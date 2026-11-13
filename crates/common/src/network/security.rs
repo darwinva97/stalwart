@@ -52,6 +52,10 @@ pub struct Security {
     pub default_role_ids_user: Vec<Id>,
     pub default_role_ids_group: Vec<Id>,
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: roles por defecto de los inquilinos (`defaultTenantRoleIds`): el techo de un inquilino con
+    /// `roles: Default`.
+    #[cfg(feature = "bezenti")]
+    pub default_role_ids_tenant: Vec<Id>,
     pub default_role_ids_admin: Vec<Id>,
 
     pub password_hash_algorithm: PasswordHashAlgorithm,
@@ -189,6 +193,8 @@ impl Security {
             default_role_ids_user: auth.default_user_role_ids.into_inner(),
             default_role_ids_group: auth.default_group_role_ids.into_inner(),
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            default_role_ids_tenant: auth.default_tenant_role_ids.into_inner(),
             default_role_ids_admin: auth.default_admin_role_ids.into_inner(),
             password_hash_algorithm: auth.password_hash_algorithm,
             password_max_length: auth.max_password_length as u32,
@@ -217,6 +223,10 @@ impl Security {
     pub fn is_default_role(&self, role_id: u32) -> bool {
         let contains = |ids: &[Id]| ids.iter().any(|id| id.document_id() == role_id);
         // [fragmento SEL eliminado: 8 líneas]
+        #[cfg(feature = "bezenti")]
+        if contains(&self.default_role_ids_tenant) {
+            return true;
+        }
         contains(&self.default_role_ids_user)
             || contains(&self.default_role_ids_group)
             || contains(&self.default_role_ids_admin)

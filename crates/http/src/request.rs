@@ -549,6 +549,27 @@ impl ParseHttp for Server {
                 _ => (),
             },
             // [fragmento SEL eliminado: 26 líneas]
+            // bezenti: logo de marca del dominio o inquilino del host de la petición (fase 2).
+            #[cfg(feature = "bezenti")]
+            "logo" if req.method() == Method::GET || req.method() == Method::HEAD => {
+                // Limit anonymous requests
+                self.is_http_anonymous_request_allowed(session.remote_ip)
+                    .await?;
+
+                let host = req
+                    .headers()
+                    .get(HOST)
+                    .and_then(|h| h.to_str().ok())
+                    .unwrap_or_default()
+                    .to_string();
+                return Ok(match self.logo_resource(&host).await? {
+                    Some(logo) => logo
+                        .into_http_response()
+                        .with_cache_control("public, max-age=3600")
+                        .with_image_sandbox_policy(),
+                    None => HttpResponse::new(StatusCode::NOT_FOUND),
+                });
+            }
             "api" => {
                 // Allow CORS preflight requests
                 if req.method() == Method::OPTIONS {

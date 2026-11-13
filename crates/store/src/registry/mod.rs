@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod bootstrap;
 pub mod get;
 pub mod local;

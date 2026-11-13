@@ -312,6 +312,15 @@ impl JmapAcl for Server {
         }
 
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: solo se comparte dentro del inquilino del dueño (multi-inquilino, fase 2).
+        #[cfg(feature = "bezenti")]
+        let owner_tenant = match self.try_account(owner_id).await {
+            Ok(owner) => owner.and_then(|owner| owner.tenant_id),
+            Err(err) => {
+                trc::error!(err.caused_by(trc::location!()));
+                return Err(ShareValidationError::Unavailable);
+            }
+        };
         for grant in grants {
             if !current.grants_of(grant.account_id).is_empty() {
                 continue;
@@ -330,6 +339,13 @@ impl JmapAcl for Server {
                 }
             };
             // [fragmento SEL eliminado: 26 líneas]
+            // bezenti: una cuenta de otro inquilino es como si no existiera.
+            #[cfg(feature = "bezenti")]
+            if grantee.tenant_id != owner_tenant {
+                return Err(ShareValidationError::InvalidAccountId(Id::from(
+                    grant.account_id,
+                )));
+            }
         }
 
         Ok(())

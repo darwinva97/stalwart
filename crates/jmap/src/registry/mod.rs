@@ -7,6 +7,8 @@
 use common::Server;
 use registry::schema::prelude::ObjectType;
 
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod get;
 pub mod mapping;
 pub mod query;

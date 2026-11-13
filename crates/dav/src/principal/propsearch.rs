@@ -107,7 +107,15 @@ impl PrincipalPropSearch for Server {
                         .caused_by(trc::location!())?
                     {
                         // [fragmento SEL eliminado: 12 líneas]
-                        #[cfg(not(feature = "enterprise"))]
+                        // bezenti: un usuario de inquilino solo encuentra cuentas de su inquilino.
+                        #[cfg(feature = "bezenti")]
+                        let is_allowed = access_token.tenant_id().is_none()
+                            || self
+                                .try_account(account_id)
+                                .await
+                                .caused_by(trc::location!())?
+                                .is_some_and(|account| account.is_same_tenant(access_token));
+                        #[cfg(not(feature = "bezenti"))]
                         let is_allowed = true;
                         if is_allowed {
                             matches.insert(account_id);
@@ -126,6 +134,8 @@ impl PrincipalPropSearch for Server {
 
         let query = RegistryQuery::new(ObjectType::Account);
         // [fragmento SEL eliminado: 6 líneas]
+        #[cfg(feature = "bezenti")]
+        let query = query.with_tenant(access_token.tenant_id());
         self.registry()
             .query::<RoaringBitmap>(query.text(Property::Text, text))
             .await

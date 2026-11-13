@@ -734,6 +734,23 @@ async fn authenticate_login(
         return Ok(Err(LoginResponse::Expired));
     }
 
+    // bezenti: un cliente OAuth de un inquilino solo deja entrar a cuentas de ese inquilino (documentación
+    // pública; multi-inquilino, fase 2).
+    #[cfg(feature = "bezenti")]
+    if let ResolvedClient::Registered(registered)
+    | ResolvedClient::RegisteredApplication(registered) = client
+        && let Some(tenant_id) = registered.member_tenant_id
+        && access_token.tenant_id() != Some(tenant_id.document_id())
+    {
+        trc::event!(
+            Security(trc::SecurityEvent::Unauthorized),
+            AccountId = account_id,
+            SpanId = session.session_id,
+            Reason = "This OAuth client belongs to another tenant.",
+        );
+        return Ok(Err(LoginResponse::Denied));
+    }
+
     Ok(Ok(LoginAccount {
         account_id,
         // [fragmento SEL eliminado: 6 líneas]

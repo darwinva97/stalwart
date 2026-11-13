@@ -42,7 +42,7 @@ compact_str = "0.10.0"
 [features]
 enterprise = ["store/enterprise", "common/enterprise", "coordinator/enterprise", "utils/enterprise", "trc/enterprise", "email/enterprise", "smtp/enterprise", "groupware/enterprise", "spam-filter/enterprise", "jmap_proto/enterprise", "registry/enterprise"]
 # bezenti: edición bezenti (ver bezenti/README.md).
-bezenti = ["registry/bezenti"]
+bezenti = ["registry/bezenti", "common/bezenti"]
 
 [lints]
 workspace = true

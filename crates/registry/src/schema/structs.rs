@@ -6108,6 +6108,8 @@ pub struct Tenant {
     pub roles: Roles,
     pub permissions: Permissions,
     pub quotas: VecMap<TenantStorageQuota, u64>,
+    #[serde(rename = "bezentiParentTenantId")]
+    pub bezenti_parent_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

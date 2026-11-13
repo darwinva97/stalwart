@@ -74,6 +74,8 @@ use utils::{
 // [fragmento SEL eliminado: 8 líneas]
 
 pub mod auth;
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod cache;
 pub mod config;
 pub mod expr;
@@ -192,6 +194,9 @@ pub struct Data {
 pub struct LogoCache {
     domain_id: u32,
     // [fragmento SEL eliminado: 8 líneas]
+    /// bezenti: el logo ya cargado (o su ausencia) y hasta cuándo vale (ver bezenti/logo.rs).
+    #[cfg(feature = "bezenti")]
+    logo: crate::bezenti::logo::CachedLogo,
 }
 
 pub struct Caches {
@@ -220,6 +225,11 @@ pub struct Caches {
     pub accounts: Cache<u32, Arc<AccountCache>>,
     pub roles: Cache<u32, Arc<RoleCache>>,
     // [fragmento SEL eliminado: 6 líneas]
+    // bezenti: inquilinos (fase 2) y uso de disco de cada inquilino (suma de sus cuentas, con TTL corto).
+    #[cfg(feature = "bezenti")]
+    pub tenants: Cache<u32, Arc<crate::bezenti::inquilino::TenantCache>>,
+    #[cfg(feature = "bezenti")]
+    pub tenant_disk_usage: CacheWithTtl<u32, u64>,
     pub lists: Cache<u32, Arc<MailingListCache>>,
 
     pub dkim_signers: Cache<u32, Arc<DkimSigners>>,

@@ -267,6 +267,15 @@ impl MailDelivery for Server {
                 }
                 Err(err) => {
                     let status = match err.as_ref() {
+                        // bezenti: cuota de disco del inquilino (texto de la documentación pública).
+                        #[cfg(feature = "bezenti")]
+                        trc::EventType::Limit(trc::LimitEvent::Quota)
+                            if common::bezenti::inquilino::is_tenant_quota_error(&err) =>
+                        {
+                            LocalDeliveryStatus::TemporaryFailure {
+                                reason: "Organization over quota.".into(),
+                            }
+                        }
                         trc::EventType::Limit(trc::LimitEvent::Quota) => {
                             LocalDeliveryStatus::TemporaryFailure {
                                 reason: "Mailbox over quota.".into(),

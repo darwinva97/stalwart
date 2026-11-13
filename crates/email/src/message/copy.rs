@@ -94,6 +94,17 @@ impl EmailCopy for Server {
 
         let size = u32::try_from(metadata.size()).unwrap_or(u32::MAX);
         // [fragmento SEL eliminado: 10 líneas]
+        // bezenti: cuota de disco del inquilino de la cuenta destino.
+        #[cfg(feature = "bezenti")]
+        if let Some(tenant_id) = to_account.tenant_id
+            && let Err(err) = self.check_tenant_disk_quota(tenant_id, size as u64).await
+        {
+            if err.matches(trc::EventType::Limit(trc::LimitEvent::Quota)) {
+                trc::error!(err.account_id(to_account_id).span_id(session_id));
+                return Ok(Err(CopyMessageError::OverQuota));
+            }
+            return Err(err);
+        }
 
         // Obtain threadId
         let headers = row.raw_headers().caused_by(trc::location!())?;

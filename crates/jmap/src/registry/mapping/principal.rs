@@ -16,7 +16,7 @@ use registry::{
     schema::{
         enums::{AccountType, Permission},
         prelude::{MASKED_PASSWORD, ObjectType, Property},
-        structs::{Account, Credential, Role, Task, TaskDestroyAccount},
+        structs::{Account, Credential, GroupAccount, Role, Task, TaskDestroyAccount, UserAccount},
     },
     types::EnumImpl,
 };
@@ -25,6 +25,27 @@ use trc::AddContext;
 use types::id::Id;
 
 // [fragmento SEL eliminado: 8 líneas]
+
+/// bezenti: al cambiar de inquilino cambia el techo de permisos de la cuenta, así que se vuelven a validar.
+#[cfg(feature = "bezenti")]
+fn user_tenant_changed(new: &UserAccount, old: &UserAccount) -> bool {
+    new.member_tenant_id != old.member_tenant_id
+}
+
+#[cfg(feature = "bezenti")]
+fn group_tenant_changed(new: &GroupAccount, old: &GroupAccount) -> bool {
+    new.member_tenant_id != old.member_tenant_id
+}
+
+#[cfg(not(feature = "bezenti"))]
+fn user_tenant_changed(_: &UserAccount, _: &UserAccount) -> bool {
+    false
+}
+
+#[cfg(not(feature = "bezenti"))]
+fn group_tenant_changed(_: &GroupAccount, _: &GroupAccount) -> bool {
+    false
+}
 
 #[derive(Clone, Copy)]
 pub enum AccountUpdate<'x> {
@@ -209,10 +230,14 @@ pub async fn validate_account(
                 }
             }
 
-            account.permissions != old_account.permissions || account.roles != old_account.roles
+            account.permissions != old_account.permissions
+                || account.roles != old_account.roles
+                || user_tenant_changed(account, old_account)
         }
         (Account::Group(account), AccountUpdate::Update(Account::Group(old_account))) => {
-            account.permissions != old_account.permissions || account.roles != old_account.roles
+            account.permissions != old_account.permissions
+                || account.roles != old_account.roles
+                || group_tenant_changed(account, old_account)
         }
         (Account::User(account), AccountUpdate::Create(_)) => {
             // Validate credentials

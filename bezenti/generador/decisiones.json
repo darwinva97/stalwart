@@ -2,7 +2,7 @@
  "_comentario": "Decisiones de la edición bezenti para lo que el esquema no dice (ver especificaciones/modelo.md). Las reglas generales están en modelo.py; aquí solo van las excepciones razonadas.",
  "objetos": {
   "Tenant": {
-   "_por_que": "Los inquilinos son entidades del directorio como las cuentas y los dominios, que usan ids secuenciales. La lista de inquilinos filtra por texto; el nombre es único.",
+   "_por_que": "Los inquilinos son entidades del directorio como las cuentas y los dominios, que usan ids secuenciales. La lista de inquilinos filtra por texto; el nombre es único. El campo propio bezentiParentTenantId (extensiones.json) se indexa por id para listar los inquilinos hijos de un revendedor. indice_campos: qué campo alimenta cada índice declarado (fase 2: sin esto el nombre no era único).",
    "flags_extra": [
     "OBJ_SEQ_ID"
    ],
@@ -16,8 +16,25 @@
      "Name",
      "Unique",
      "Keyword"
+    ],
+    [
+     "BezentiParentTenantId",
+     "Search",
+     "Id"
     ]
-   ]
+   ],
+   "indice_campos": {
+    "name": [
+     [
+      "unique",
+      "Name"
+     ],
+     [
+      "text",
+      "Text"
+     ]
+    ]
+   }
   },
   "MaskedEmail": {
    "_por_que": "La lista filtra por cuenta y la dirección enmascarada no puede repetirse.",
@@ -32,7 +49,21 @@
      "Unique",
      "Keyword"
     ]
-   ]
+   ],
+   "indice_campos": {
+    "accountId": [
+     [
+      "search",
+      "AccountId"
+     ]
+    ],
+    "email": [
+     [
+      "unique",
+      "Email"
+     ]
+    ]
+   }
   },
   "AiModel": {
    "_por_que": "Como el resto de objetos de configuración con nombre (rutas, colas, reglas), el nombre es único.",
@@ -105,6 +136,19 @@
     "ExternalId",
     "Search",
     "Keyword"
+   ]
+  },
+  "bezentiParentTenantId": {
+   "indice": [
+    [
+     "search",
+     "BezentiParentTenantId"
+    ]
+   ],
+   "esquema_indice": [
+    "BezentiParentTenantId",
+    "Search",
+    "Id"
    ]
   }
  }

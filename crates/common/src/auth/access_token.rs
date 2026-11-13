@@ -50,9 +50,20 @@ impl Server {
         revision: u64,
         revision_account: u64,
     ) -> trc::Result<AccessTokenInner> {
+        // bezenti: permisos con el techo del inquilino (ver bezenti/inquilino.rs) e inquilino del token.
+        #[cfg(feature = "bezenti")]
+        let (bezenti_permissions, tenant_id) = (
+            self.account_permissions(&account).await?,
+            match &account {
+                Account::User(account) => account.member_tenant_id,
+                Account::Group(account) => account.member_tenant_id,
+            }
+            .map(|id| id.document_id()),
+        );
         match account {
             Account::User(account) => {
                 // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(not(feature = "bezenti"))]
                 let role_ids = match &account.roles {
                     UserRoles::User => self.core.network.security.default_role_ids_user.as_slice(),
                     // [fragmento SEL eliminado: 11 líneas]
@@ -62,10 +73,12 @@ impl Server {
                     UserRoles::Custom(custom_roles) => custom_roles.role_ids.as_slice(),
                 };
                 // [fragmento SEL eliminado: 8 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                #[cfg(not(feature = "bezenti"))]
                 let permissions = self
                     .effective_permissions(&account.permissions, role_ids)
                     .await?;
+                #[cfg(feature = "bezenti")]
+                let permissions = bezenti_permissions;
 
                 let member_of = account
                     .member_group_ids
@@ -149,6 +162,8 @@ impl Server {
                     credential_version,
                     account_id,
                     // [fragmento SEL eliminado: 6 líneas]
+                    #[cfg(feature = "bezenti")]
+                    tenant_id,
                     member_of,
                     access_to,
                     scopes: []
@@ -158,16 +173,20 @@ impl Server {
                 }
                 .update_size())
             }
+            #[cfg_attr(feature = "bezenti", allow(unused_variables))]
             Account::Group(account) => {
+                #[cfg(not(feature = "bezenti"))]
                 let role_ids = account
                     .roles
                     .role_ids()
                     .unwrap_or(self.core.network.security.default_role_ids_group.as_slice());
                 // [fragmento SEL eliminado: 10 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                #[cfg(not(feature = "bezenti"))]
                 let permissions = self
                     .effective_permissions(&account.permissions, role_ids)
                     .await?;
+                #[cfg(feature = "bezenti")]
+                let permissions = bezenti_permissions;
 
                 Ok(AccessTokenInner {
                     limits: self.account_limits(),
@@ -177,6 +196,8 @@ impl Server {
                     credential_version: 0,
                     account_id,
                     // [fragmento SEL eliminado: 6 líneas]
+                    #[cfg(feature = "bezenti")]
+                    tenant_id,
                     member_of: Default::default(),
                     access_to: Default::default(),
                     scopes: Box::new([AccessScope::new(permissions.finalize(), u32::MAX)]),
@@ -502,6 +523,20 @@ impl AccessToken {
 
     // [fragmento SEL eliminado: 9 líneas]
 
+    /// bezenti: inquilino de quien hace la petición (`None` = operador del servidor, ve todo).
+    #[cfg(feature = "bezenti")]
+    #[inline(always)]
+    pub fn tenant_id(&self) -> Option<u32> {
+        self.inner.tenant_id
+    }
+
+    /// Sin la edición bezenti no hay inquilinos.
+    #[cfg(not(feature = "bezenti"))]
+    #[inline(always)]
+    pub fn tenant_id(&self) -> Option<u32> {
+        None
+    }
+
     pub fn secondary_ids(&self) -> impl Iterator<Item = &u32> {
         self.inner
             .member_of
@@ -645,6 +680,8 @@ impl AccessToken {
                     scopes: scopes.into_boxed_slice(),
                     account_id: old_inner.account_id,
                     // [fragmento SEL eliminado: 6 líneas]
+                    #[cfg(feature = "bezenti")]
+                    tenant_id: old_inner.tenant_id,
                     member_of: old_inner.member_of.clone(),
                     access_to: old_inner.access_to.clone(),
                     limits: old_inner.limits.clone(),
@@ -837,6 +874,8 @@ impl AccessToken {
             inner: Arc::new(AccessTokenInner {
                 account_id,
                 // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(feature = "bezenti")]
+                tenant_id: None,
                 member_of: Default::default(),
                 access_to: Default::default(),
                 scopes: Box::new([AccessScope::new(permissions, u32::MAX)]),
@@ -922,6 +961,8 @@ impl AccessTokenInner {
         AccessTokenInner {
             account_id: RECOVERY_ADMIN_ID,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            tenant_id: None,
             member_of: Default::default(),
             access_to: Default::default(),
             scopes: Box::new([AccessScope::new(Permissions::all(), u32::MAX)]),
@@ -1039,6 +1080,8 @@ fn hash_account(account: &Account) -> u64 {
     match account {
         Account::User(account) => {
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            account.member_tenant_id.hash(&mut s);
             match &account.roles {
                 UserRoles::User => {
                     0u8.hash(&mut s);
@@ -1067,6 +1110,8 @@ fn hash_account(account: &Account) -> u64 {
         }
         Account::Group(account) => {
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            account.member_tenant_id.hash(&mut s);
             match &account.roles {
                 Roles::Default => {}
                 Roles::Custom(custom_roles) => {

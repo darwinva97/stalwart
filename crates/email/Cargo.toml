@@ -28,6 +28,8 @@ tinyvec = { version = "1.13.3", features = ["alloc"] }
 bytecount = "0.6"
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md).
+bezenti = ["common/bezenti"]
 enterprise = ["utils/enterprise", "store/enterprise", "trc/enterprise", "jmap_proto/enterprise", "common/enterprise", "groupware/enterprise", "registry/enterprise"]
 
 [dev-dependencies]

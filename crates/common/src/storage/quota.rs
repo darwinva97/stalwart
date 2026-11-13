@@ -46,6 +46,11 @@ impl Server {
         }
 
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: segunda cuota, la de disco del inquilino (y de sus ancestros, si es de un revendedor).
+        #[cfg(feature = "bezenti")]
+        if let Some(tenant_id) = account.tenant_id {
+            self.check_tenant_disk_quota(tenant_id, item_size).await?;
+        }
 
         Ok(())
     }
@@ -95,6 +100,13 @@ impl Server {
         }
 
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: lo que queda en la cuota de disco del inquilino también limita.
+        #[cfg(feature = "bezenti")]
+        if let Some(tenant_id) = account.tenant_id
+            && let Some(available) = self.tenant_disk_available(tenant_id).await?
+        {
+            budget.limit_to(available, trc::LimitEvent::Quota);
+        }
         Ok(budget)
     }
 

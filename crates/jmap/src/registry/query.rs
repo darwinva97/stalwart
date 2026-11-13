@@ -62,6 +62,10 @@ impl RegistryQuery for Server {
             )));
         }
         self.assert_enterprise_object(object_type)?;
+        // bezenti: ámbito de inquilino (y tipos de objeto prohibidos a los usuarios de un inquilino).
+        #[cfg(feature = "bezenti")]
+        let tenant =
+            crate::registry::bezenti::TenantAccess::new(self, access_token, object_type).await?;
 
         match object_type {
             ObjectType::ArfExternalReport
@@ -150,6 +154,17 @@ impl RegistryQuery for Server {
             _ => {
                 let mut query = store::registry::RegistryQuery::new(object_type);
                 // [fragmento SEL eliminado: 8 líneas]
+                // bezenti: solo el ámbito del inquilino (con un filtro si es un solo inquilino; si no, después).
+                #[cfg(feature = "bezenti")]
+                {
+                    query = tenant.restrict_query(query);
+                }
+                #[cfg(feature = "bezenti")]
+                let post_filter = if tenant.needs_post_filter(object_type) {
+                    tenant.visible_ids(self, object_type).await?
+                } else {
+                    None
+                };
                 let can_impersonate = access_token.has_permission(Permission::Impersonate);
                 let mut has_account_filter = false;
                 let indexes = object_type.indexes();
@@ -224,6 +239,13 @@ impl RegistryQuery for Server {
                     query = query.with_account(request.account_id.document_id());
                 }
 
+                // bezenti: con filtro posterior no se pagina en el almacén (se pagina sobre el resultado filtrado).
+                #[cfg(feature = "bezenti")]
+                let params = request.extract_parameters(
+                    self.core.jmap.query_max_results,
+                    post_filter.is_none().then_some(Property::Id),
+                )?;
+                #[cfg(not(feature = "bezenti"))]
                 let params = request
                     .extract_parameters(self.core.jmap.query_max_results, Some(Property::Id))?;
 
@@ -287,6 +309,16 @@ impl RegistryQuery for Server {
                                 .await?
                         }
                     }
+                };
+
+                // bezenti: fuera lo que no es del ámbito, antes de contar y paginar.
+                #[cfg(feature = "bezenti")]
+                let results = match &post_filter {
+                    Some(visible) => results
+                        .into_iter()
+                        .filter(|id| visible.contains(id.document_id()))
+                        .collect::<Vec<_>>(),
+                    None => results,
                 };
 
                 // Build response

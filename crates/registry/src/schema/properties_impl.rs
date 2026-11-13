@@ -683,6 +683,7 @@ impl EnumImpl for Property {
             b"baseDn" => Property::BaseDn,
             b"bearerToken" => Property::BearerToken,
             b"beta" => Property::Beta,
+            b"bezentiParentTenantId" => Property::BezentiParentTenantId,
             b"bind" => Property::Bind,
             b"bindAuthentication" => Property::BindAuthentication,
             b"bindDn" => Property::BindDn,
@@ -2788,6 +2789,8 @@ impl EnumImpl for Property {
             Property::BaseDn => "baseDn",
             Property::BearerToken => "bearerToken",
             Property::Beta => "beta",
+            #[cfg(feature = "bezenti")]
+            Property::BezentiParentTenantId => "bezentiParentTenantId",
             Property::Bind => "bind",
             Property::BindAuthentication => "bindAuthentication",
             Property::BindDn => "bindDn",
@@ -3948,6 +3951,8 @@ impl EnumImpl for Property {
             552 => Some(Property::BaseDn),
             482 => Some(Property::BearerToken),
             465 => Some(Property::Beta),
+            #[cfg(feature = "bezenti")]
+            1056 => Some(Property::BezentiParentTenantId),
             681 => Some(Property::Bind),
             555 => Some(Property::BindAuthentication),
             553 => Some(Property::BindDn),
@@ -5471,6 +5476,11 @@ impl ObjectType {
                     Property::Text,
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Text,
+                ),
+                IndexSchema::new(
+                    Property::BezentiParentTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
                 ),
                 IndexSchema::new(
                     Property::Name,

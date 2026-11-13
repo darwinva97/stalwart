@@ -262,6 +262,22 @@ impl<T: SessionStream> Session<T> {
                 .await
                 .imap_ctx(&arguments.tag, trc::location!())?;
             // [fragmento SEL eliminado: 24 líneas]
+            // bezenti: no se comparte con cuentas de otro inquilino (multi-inquilino, fase 2).
+            #[cfg(feature = "bezenti")]
+            {
+                let owner = data
+                    .server
+                    .account(mailbox_id.account_id)
+                    .await
+                    .imap_ctx(&arguments.tag, trc::location!())?;
+                if grantee.tenant_id != owner.tenant_id {
+                    return Err(trc::ImapEvent::Error
+                        .into_err()
+                        .details("Account does not exist")
+                        .id(arguments.tag.clone())
+                        .caused_by(trc::location!()));
+                }
+            }
             mailbox.acls.push(AclGrant {
                 account_id: acl_account_id,
                 grants: rights,

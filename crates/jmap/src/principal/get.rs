@@ -62,6 +62,9 @@ impl PrincipalGet for Server {
         // Return all principals
         let query = RegistryQuery::new(ObjectType::Account);
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: un usuario de inquilino solo ve las cuentas de su inquilino.
+        #[cfg(feature = "bezenti")]
+        let query = query.with_tenant(access_token.tenant_id());
         let ids = match ids {
             Some(ids) => ids,
             None if allow_directory_query => all_ids(
@@ -206,6 +209,13 @@ impl PrincipalGet for Server {
             .await
             .caused_by(trc::location!());
         // [fragmento SEL eliminado: 12 líneas]
+        // bezenti: las cuentas de otro inquilino no existen para un usuario de inquilino.
+        #[cfg(feature = "bezenti")]
+        let account = account.map(|account| {
+            account.filter(|account| {
+                access_token.tenant_id().is_none() || account.is_same_tenant(access_token)
+            })
+        });
         account
     }
 }

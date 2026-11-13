@@ -24,6 +24,8 @@ rand = "0.10.3"
 compact_str = "0.10.0"
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md).
+bezenti = ["common/bezenti"]
 enterprise = ["directory/enterprise", "trc/enterprise", "store/enterprise", "common/enterprise", "email/enterprise", "utils/enterprise", "registry/enterprise"]
 
 [lints]

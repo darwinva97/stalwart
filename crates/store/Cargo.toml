@@ -65,6 +65,8 @@ encodify = "1.0"
 tokio = { version = "1.54", features = ["full"] }
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md).
+bezenti = ["registry/bezenti"]
 # Data Stores
 rocks = ["rocksdb", "rayon", "num_cpus"]
 sqlite = ["rusqlite", "rayon", "r2d2", "num_cpus", "lru-cache"]

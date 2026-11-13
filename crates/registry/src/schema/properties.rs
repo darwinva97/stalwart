@@ -405,6 +405,8 @@ pub enum Property {
     BaseDn = 552,
     BearerToken = 482,
     Beta = 465,
+    #[cfg(feature = "bezenti")]
+    BezentiParentTenantId = 1056,
     Bind = 681,
     BindAuthentication = 555,
     BindDn = 553,

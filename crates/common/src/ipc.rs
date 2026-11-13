@@ -148,6 +148,9 @@ pub enum CacheInvalidation {
     Account(u32),
     DkimSignature(u32),
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: cambió un inquilino (techo de permisos, cuotas, logo o jerarquía).
+    #[cfg(feature = "bezenti")]
+    Tenant(u32),
     Role(u32),
     List(u32),
     DomainLogo(u32),

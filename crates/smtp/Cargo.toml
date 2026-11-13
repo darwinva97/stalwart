@@ -56,7 +56,7 @@ mail-auth = { version = "0.15.1", features = ["test"] }
 [features]
 enterprise = ["store/enterprise", "utils/enterprise", "directory/enterprise", "common/enterprise", "email/enterprise", "registry/enterprise", "spam-filter/enterprise", "trc/enterprise"]
 # bezenti: edición bezenti (ver bezenti/README.md).
-bezenti = ["registry/bezenti"]
+bezenti = ["registry/bezenti", "common/bezenti"]
 
 #[[bench]]
 #name = "hash"

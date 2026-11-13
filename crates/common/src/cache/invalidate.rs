@@ -98,7 +98,9 @@ impl CacheInvalidationBuilder {
                 let permissions_changed = current.permissions != new.permissions;
                 let roles_changed = current.roles != new.roles;
                 // [fragmento SEL eliminado: 6 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                #[cfg(feature = "bezenti")]
+                let tenant_changed = current.member_tenant_id != new.member_tenant_id;
+                #[cfg(not(feature = "bezenti"))]
                 let tenant_changed = false;
                 let details_changed =
                     current.locale != new.locale || current.description != new.description;
@@ -149,7 +151,9 @@ impl CacheInvalidationBuilder {
                 let permissions_changed = current.permissions != new.permissions;
                 let roles_changed = current.roles != new.roles;
                 // [fragmento SEL eliminado: 6 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                #[cfg(feature = "bezenti")]
+                let tenant_changed = current.member_tenant_id != new.member_tenant_id;
+                #[cfg(not(feature = "bezenti"))]
                 let tenant_changed = false;
                 let details_changed =
                     current.locale != new.locale || current.description != new.description;
@@ -179,7 +183,11 @@ impl CacheInvalidationBuilder {
 
             (ObjectInner::Domain(current), ObjectInner::Domain(new)) => {
                 // [fragmento SEL eliminado: 7 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                // bezenti: cambio de inquilino o de logo del dominio.
+                #[cfg(feature = "bezenti")]
+                let enterprise_changed =
+                    current.member_tenant_id != new.member_tenant_id || current.logo != new.logo;
+                #[cfg(not(feature = "bezenti"))]
                 let enterprise_changed = false;
 
                 if (current.name != new.name)
@@ -198,6 +206,10 @@ impl CacheInvalidationBuilder {
                 }
 
                 // [fragmento SEL eliminado: 8 líneas]
+                #[cfg(feature = "bezenti")]
+                if enterprise_changed {
+                    self.invalidate(CacheInvalidation::DomainLogo(id));
+                }
             }
 
             (ObjectInner::DkimSignature(current), ObjectInner::DkimSignature(new)) => {
@@ -227,6 +239,11 @@ impl CacheInvalidationBuilder {
             }
 
             // [fragmento SEL eliminado: 17 líneas]
+            // bezenti: cualquier cambio de un inquilino puede cambiar techos, cuotas, logos o la jerarquía.
+            #[cfg(feature = "bezenti")]
+            (ObjectInner::Tenant(current), ObjectInner::Tenant(new)) if current != new => {
+                self.invalidate(CacheInvalidation::Tenant(id));
+            }
             (ObjectInner::Role(current), ObjectInner::Role(new))
                 if (current.enabled_permissions != new.enabled_permissions)
                     || (current.disabled_permissions != new.disabled_permissions)
@@ -284,6 +301,10 @@ impl CacheInvalidationBuilder {
                 ));
             }
             // [fragmento SEL eliminado: 9 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(_) => {
+                self.invalidate(CacheInvalidation::Tenant(id));
+            }
             ObjectInner::Role(_) => {
                 self.invalidate(CacheInvalidation::Role(id));
             }
@@ -438,6 +459,13 @@ impl Server {
                                 ));
                             }
                             // [fragmento SEL eliminado: 20 líneas]
+                            // bezenti: un inquilino con roles propios (techo) que usan este rol.
+                            #[cfg(feature = "bezenti")]
+                            ObjectType::Tenant => {
+                                changes.insert(CacheInvalidation::Tenant(
+                                    linked_object.id().document_id(),
+                                ));
+                            }
                             ObjectType::Role => {
                                 let parent_id = linked_object.id().document_id();
                                 if self.core.network.security.is_default_role(parent_id) {
@@ -470,6 +498,8 @@ impl Server {
         self.inner.cache.domain_names.clear();
         self.inner.cache.emails.clear();
         // [fragmento SEL eliminado: 6 líneas]
+        #[cfg(feature = "bezenti")]
+        self.invalidate_tenant_caches();
         self.inner.cache.clear_resources();
         self.inner.cache.metadata_viewers.clear();
         self.inner.cache.dkim_signers.clear();
@@ -508,6 +538,8 @@ impl Server {
         let mut email_lists = IdFilter::default();
         let mut domain_logos = IdFilter::default();
         // [fragmento SEL eliminado: 6 líneas]
+        #[cfg(feature = "bezenti")]
+        let mut tenant_changed = false;
         let mut default_role_changed = false;
 
         for change in changes {
@@ -541,6 +573,10 @@ impl Server {
                     cache.dkim_signers.remove(id);
                 }
                 // [fragmento SEL eliminado: 8 líneas]
+                #[cfg(feature = "bezenti")]
+                CacheInvalidation::Tenant(_) => {
+                    tenant_changed = true;
+                }
                 CacheInvalidation::Role(id) => {
                     cache.roles.remove(id);
                     default_role_changed |= self.core.network.security.is_default_role(*id);
@@ -591,6 +627,14 @@ impl Server {
             filter.seal();
         }
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: el techo de un inquilino (o el de sus descendientes) cambia los permisos de todas sus
+        // cuentas: se olvidan los inquilinos y todos los tokens (los cambios de inquilino son raros).
+        #[cfg(feature = "bezenti")]
+        if tenant_changed || default_role_changed {
+            self.invalidate_tenant_caches();
+            self.inner.data.logos.lock().clear();
+            default_role_changed = true;
+        }
 
         if default_role_changed {
             cache.access_tokens.clear();
@@ -634,7 +678,6 @@ impl Server {
         }
 
         // [fragmento SEL eliminado: 11 líneas]
-        #[cfg(not(feature = "enterprise"))]
         if !domain_logos.is_empty() {
             self.inner
                 .data

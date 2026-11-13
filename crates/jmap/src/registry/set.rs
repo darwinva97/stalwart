@@ -73,7 +73,9 @@ use store::{
 };
 use trc::AddContext;
 use types::id::Id;
-use utils::{map::vec_map::VecMap, outbound::OutboundPolicy};
+use utils::map::vec_map::VecMap;
+#[cfg(not(feature = "bezenti"))]
+use utils::outbound::OutboundPolicy;
 // [fragmento SEL eliminado: 14 líneas]
 
 pub trait RegistrySet: Sync + Send {
@@ -135,7 +137,9 @@ async fn registry_object_set(
             .caused_by(trc::location!())?
         {
             // [fragmento SEL eliminado: 7 líneas]
-            #[cfg(not(feature = "enterprise"))]
+            #[cfg(feature = "bezenti")]
+            let is_tenant_mismatch = !set.tenant.can_see(object_type, id, &object);
+            #[cfg(not(feature = "bezenti"))]
             let is_tenant_mismatch = false;
             if is_tenant_mismatch
                 || (is_account_filtered
@@ -248,10 +252,29 @@ async fn registry_object_set(
             }
         }
 
+        // bezenti: inquilino del objeto (se rellena si falta), ámbito, cuotas, claves ajenas y secretos.
+        #[cfg(feature = "bezenti")]
+        {
+            let old_object = match &modification {
+                Modification::Update { object, .. } => Some(object),
+                Modification::Create { object, .. } => object.as_ref(),
+            };
+            if let Err(err) = set
+                .tenant
+                .validate_write(server, modification.id(), &mut new_object, old_object)
+                .await?
+            {
+                set.failed(modification, err);
+                continue 'outer;
+            }
+        }
+
         // Validate objects
         let mut tasks = Vec::new();
         // [fragmento SEL eliminado: 6 líneas]
-        #[cfg(not(feature = "enterprise"))]
+        #[cfg(feature = "bezenti")]
+        let outbound_policy = set.tenant.outbound_policy();
+        #[cfg(not(feature = "bezenti"))]
         let outbound_policy = OutboundPolicy::Trusted;
         // [fragmento SEL eliminado: 32 líneas]
         let result = match &mut new_object.inner {
@@ -517,7 +540,9 @@ async fn registry_object_set(
             .caused_by(trc::location!())?
             .filter(|object| {
                 // [fragmento SEL eliminado: 7 líneas]
-                #[cfg(not(feature = "enterprise"))]
+                #[cfg(feature = "bezenti")]
+                let is_tenant_mismatch = !set.tenant.can_see(object_type, id, object);
+                #[cfg(not(feature = "bezenti"))]
                 let is_tenant_mismatch = false;
                 !(is_tenant_mismatch
                     || (is_account_filtered
@@ -580,6 +605,19 @@ async fn registry_object_set(
     // Finalize cache invalidation
     server.invalidate_caches(cache_invalidator).await?;
 
+    // bezenti: un usuario de inquilino no recibe ids de objetos ajenos en los errores de clave duplicada.
+    #[cfg(feature = "bezenti")]
+    if !set.tenant.is_server_wide() {
+        set.response
+            .not_created
+            .values_mut()
+            .for_each(crate::registry::bezenti::sanitize_set_error);
+        set.response
+            .not_updated
+            .values_mut()
+            .for_each(crate::registry::bezenti::sanitize_set_error);
+    }
+
     Ok(set.into_response())
 }
 
@@ -616,6 +654,10 @@ impl RegistrySet for Server {
         let is_singleton = (object_flags & OBJ_SINGLETON) != 0;
         let has_account_id = (object_flags & OBJ_FILTER_ACCOUNT) != 0;
         // [fragmento SEL eliminado: 7 líneas]
+        // bezenti: ámbito de inquilino (y tipos de objeto prohibidos a los usuarios de un inquilino).
+        #[cfg(feature = "bezenti")]
+        let tenant =
+            crate::registry::bezenti::TenantAccess::new(self, access_token, object_type).await?;
         let can_set_account = access_token.has_permission(Permission::Impersonate);
         let is_account_filtered = has_account_id && !can_set_account;
 
@@ -664,6 +706,8 @@ impl RegistrySet for Server {
             object_type,
             response,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            tenant,
             is_account_filtered,
             create,
             update,
@@ -766,6 +810,9 @@ impl RegistrySet for Server {
             | ObjectType::OAuthGrant
             | ObjectType::Role
             | ObjectType::Domain => registry_object_set(set).await,
+            // bezenti: inquilinos (fase 2).
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => registry_object_set(set).await,
             // [fragmento SEL eliminado: 13 líneas]
             ObjectType::ArfExternalReport
             | ObjectType::DmarcExternalReport
@@ -816,7 +863,6 @@ impl RegistrySet for Server {
             | ObjectType::Metric
             | ObjectType::MetricsStore
             | ObjectType::SpamAi
-            | ObjectType::Tenant
             | ObjectType::Trace
             | ObjectType::TracingStore => {
                 set.fail_all_create("Not available yet in this edition");

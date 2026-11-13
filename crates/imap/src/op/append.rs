@@ -347,9 +347,12 @@ fn appended(
 
 fn append_error(err: trc::Error) -> trc::Error {
     // [fragmento SEL eliminado: 6 líneas]
-    #[cfg(not(feature = "enterprise"))]
+    // bezenti: la cuota de disco del inquilino se avisa con el texto de la documentación.
+    #[cfg(feature = "bezenti")]
+    let is_tenant_quota = common::bezenti::inquilino::is_tenant_quota_error(&err);
+    #[cfg(not(feature = "bezenti"))]
     let is_tenant_quota = false;
-    if err.matches(trc::EventType::Limit(trc::LimitEvent::Quota)) {
+    if err.matches(trc::EventType::Limit(trc::LimitEvent::Quota)) && !is_tenant_quota {
         err.details("Quota exceeded.").code(ResponseCode::OverQuota)
     } else if is_tenant_quota {
         err.details("Organization disk quota exceeded.")

@@ -159,6 +159,9 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
   exacta; todo identificador de objeto de pago es clave ajena.
 - Contextos de expresión: `SpamAiProperties.condition` usa `SPAM_AI_VARIABLE`; `Alert.condition` queda sin
   variables (**TODO fase 5**: las condiciones de alerta se escriben sobre métricas).
+- Fase 2: `indice_campos` (qué campo alimenta cada índice de un objeto nuevo; corrige que el nombre de
+  `x:Tenant` no fuera único) y el campo propio `x:Tenant.bezentiParentTenantId` (`extensiones.json`, revendedores;
+  ver [`multi-inquilino.md`](multi-inquilino.md)).
 - `x:Metric` necesita un enum de variantes que el esquema no nombra: se genera `MetricVariantType`
   (`Counter`, `Gauge`, `Histogram`), porque `MetricType` ya es el enum de métricas de `trc`.
 

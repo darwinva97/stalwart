@@ -25,7 +25,10 @@ cambia fácil. El formato final lo pone `rustfmt`, igual que en el código origi
 | `perfil.py` → `perfil.json` | datos que el esquema no tiene, extraídos del código AGPL de la rama limpia |
 | `decisiones.json` | lo que ni el esquema ni el código libre dicen de lo de pago, decidido y razonado por nosotros |
 | `asignaciones.json` | identificadores numéricos persistidos de lo de pago (no se cambian nunca) |
-| `comprobar.sh` | prueba de fidelidad (la lanza `bezenti/pruebas.sh` en la CI) |
+| `extensiones.json` | campos propios de la edición bezenti que el esquema oficial no tiene (fase 2: `x:Tenant.bezentiParentTenantId`, revendedores); solo en modo bezenti |
+| `gen_inquilino.py` | (fase 2) escribe `crates/registry/src/bezenti/inquilino_gen.rs`: leer/escribir `memberTenantId` de cualquier objeto |
+| `gen_esquema.py` | (fase 2) escribe `resources/schema/schema_bezenti.json.gz` (+ `.sha256`), el esquema que sirve `/api/schema`: completo, sin `x:Enterprise` y con las extensiones |
+| `comprobar.sh` | prueba de fidelidad (la lanza `bezenti/pruebas.sh` en la CI); también comprueba que los archivos de `gen_inquilino.py` y `gen_esquema.py` están al día |
 
 ### El perfil
 
@@ -49,13 +52,22 @@ Lo que no está en el código limpio se genera con las mismas reglas que lo libr
 - **Indicadores de objeto**: las reglas que cumplen todos los objetos libres (singleton, `memberTenantId` →
   `OBJ_FILTER_TENANT`, `accountId` en todas las variantes → `OBJ_FILTER_ACCOUNT`, sin permiso → `OBJ_NO_*`) más
   `decisiones.json`.
-- **Índices, validadores, contextos de expresión**: reglas por formato y tipo, más `decisiones.json`.
+- **Índices, validadores, contextos de expresión**: reglas por formato y tipo, más `decisiones.json`. Para los
+  objetos nuevos, `indice_campos` dice qué campo alimenta cada índice declarado (p. ej. el nombre único de
+  `x:Tenant`).
+- **Extensiones propias** (`extensiones.json`): se añaden al esquema antes de generar, marcadas como de pago, así
+  que siguen las mismas reglas (identificadores en `asignaciones.json`, `cfg(feature = "bezenti")`). Llevan el
+  prefijo `bezenti` para no chocar nunca con un campo futuro del esquema oficial.
 
 ## Uso
 
 ```sh
 # Regenerar los seis archivos (modo bezenti) en crates/registry/src/schema/
 python3 bezenti/generador/generar.py
+
+# Regenerar lo de la fase 2 (accesores de memberTenantId y esquema servido)
+python3 bezenti/generador/gen_inquilino.py
+python3 bezenti/generador/gen_esquema.py
 
 # Prueba de fidelidad completa
 bash bezenti/generador/comprobar.sh

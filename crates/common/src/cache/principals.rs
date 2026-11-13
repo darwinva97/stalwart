@@ -180,6 +180,8 @@ impl Server {
                         .collect(),
                     id: domain_id,
                     // [fragmento SEL eliminado: 8 líneas]
+                    #[cfg(feature = "bezenti")]
+                    tenant_id: domain.member_tenant_id.map(|id| id.document_id()),
                     catch_all: domain.catch_all_address.map(|s| s.into_boxed_str()),
                     sub_addressing_custom,
                     flags,
@@ -325,6 +327,8 @@ impl Server {
                 id: RECOVERY_ADMIN_ID,
                 addresses: Default::default(),
                 // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(feature = "bezenti")]
+                tenant_id: None,
                 id_member_of: Default::default(),
                 quota_disk: Default::default(),
                 description: Some("Recovery admin account".into()),
@@ -423,6 +427,8 @@ impl Server {
                             )
                             .collect(),
                             // [fragmento SEL eliminado: 6 líneas]
+                            #[cfg(feature = "bezenti")]
+                            tenant_id: account.member_tenant_id.map(|id| id.document_id()),
                             id_member_of: account
                                 .member_group_ids
                                 .into_iter()
@@ -486,6 +492,8 @@ impl Server {
                             )
                             .collect(),
                             // [fragmento SEL eliminado: 6 líneas]
+                            #[cfg(feature = "bezenti")]
+                            tenant_id: account.member_tenant_id.map(|id| id.document_id()),
                             id_member_of: Default::default(),
                             quota_disk,
                             description: account.description.map(Into::into),

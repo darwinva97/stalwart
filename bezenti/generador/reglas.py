@@ -108,6 +108,9 @@ class Reglas:
                 break
         if r not in dec.get("solo_clave_ajena", []):
             ops += dec.get("indice", [])
+        # Índices de campos concretos de un objeto nuevo (p. ej. el nombre único de x:Tenant), que el
+        # esquema declara en la lista pero no dice cómo se indexa cada campo (decisiones.json).
+        ops += self.decisiones.get("objetos", {}).get(r, {}).get("indice_campos", {}).get(c["json"], [])
         return ops
 
     def referido_por_indice(self, r):

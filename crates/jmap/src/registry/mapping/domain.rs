@@ -221,7 +221,13 @@ fn is_issuable_name(name: &str, domain: &Domain) -> bool {
 
 // [fragmento SEL eliminado: 8 líneas]
 
-#[cfg(not(feature = "enterprise"))]
+/// bezenti: inquilino del dominio (un dominio de inquilino solo puede pedir certificados para sus nombres).
+#[cfg(feature = "bezenti")]
+fn tenant_id(domain: &Domain) -> Option<Id> {
+    domain.member_tenant_id
+}
+
+#[cfg(not(feature = "bezenti"))]
 fn tenant_id(_domain: &Domain) -> Option<Id> {
     None
 }

@@ -61,12 +61,18 @@ impl RegistryGet for Server {
 
         let object_flags = object_type.flags();
         // [fragmento SEL eliminado: 7 líneas]
+        // bezenti: ámbito de inquilino (y tipos de objeto prohibidos a los usuarios de un inquilino).
+        #[cfg(feature = "bezenti")]
+        let tenant =
+            crate::registry::bezenti::TenantAccess::new(self, access_token, object_type).await?;
         let is_account_filtered = (object_flags & OBJ_FILTER_ACCOUNT) != 0
             && !access_token.has_permission(Permission::Impersonate);
         let (ids, not_found_ids) = request.unwrap_ids(self.core.jmap.get_max_objects)?;
         let has_properties = request.properties.is_some();
         let mut get = RegistryGetResponse {
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            tenant,
             server: self,
             account_id: request.account_id.document_id(),
             object_type,
@@ -190,6 +196,9 @@ impl RegistryGet for Server {
             | ObjectType::PublicKey
             | ObjectType::DkimSignature
             | ObjectType::Domain => registry_object_get(get).await,
+            // bezenti: inquilinos (fase 2).
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => registry_object_get(get).await,
             // [fragmento SEL eliminado: 13 líneas]
             ObjectType::QueuedMessage => {
                 queued_message_get(get).await.map(|get| get.into_response())
@@ -226,7 +235,6 @@ impl RegistryGet for Server {
             | ObjectType::Metric
             | ObjectType::MetricsStore
             | ObjectType::SpamAi
-            | ObjectType::Tenant
             | ObjectType::Trace
             | ObjectType::TracingStore => Ok(get.not_found_any().into_response()),
         }
@@ -248,9 +256,40 @@ async fn registry_object_get(
 
     let query = RegistryQuery::new(object_type);
     // [fragmento SEL eliminado: 6 líneas]
+    // bezenti: sin ids, solo los objetos del ámbito del inquilino.
+    #[cfg(feature = "bezenti")]
+    let query = get.tenant.restrict_query(query);
     let ids = if let Some(ids) = get.ids.take() {
         ids
     } else {
+        #[cfg(feature = "bezenti")]
+        if get.tenant.needs_post_filter(object_type) {
+            let visible = get
+                .tenant
+                .visible_ids(server, object_type)
+                .await?
+                .unwrap_or_default();
+            server
+                .registry()
+                .query::<Vec<Id>>(query.with_account(get.account_id))
+                .await
+                .caused_by(trc::location!())?
+                .into_iter()
+                .filter(|id| visible.contains(id.document_id()))
+                .take(server.core.jmap.get_max_objects)
+                .collect()
+        } else {
+            server
+                .registry()
+                .query::<Vec<Id>>(
+                    query
+                        .with_account(get.account_id)
+                        .with_limit(server.core.jmap.get_max_objects),
+                )
+                .await
+                .caused_by(trc::location!())?
+        }
+        #[cfg(not(feature = "bezenti"))]
         server
             .registry()
             .query::<Vec<Id>>(
@@ -271,7 +310,9 @@ async fn registry_object_get(
             .caused_by(trc::location!())?
         {
             // [fragmento SEL eliminado: 7 líneas]
-            #[cfg(not(feature = "enterprise"))]
+            #[cfg(feature = "bezenti")]
+            let is_tenant_mismatch = !get.tenant.can_see(object_type, id, &object);
+            #[cfg(not(feature = "bezenti"))]
             let is_tenant_mismatch = false;
             if is_tenant_mismatch
                 || (is_account_filtered
@@ -287,6 +328,16 @@ async fn registry_object_get(
             get.not_found(id);
             continue;
         };
+
+        // bezenti: uso de disco del inquilino (suma de sus cuentas y descendientes), calculado al leer.
+        #[cfg(feature = "bezenti")]
+        let mut object = object;
+        #[cfg(feature = "bezenti")]
+        if let ObjectInner::Tenant(tenant) = &mut object.inner
+            && (get.properties.is_empty() || get.properties.contains(&Property::UsedDiskQuota))
+        {
+            tenant.used_disk_quota = crate::registry::bezenti::tenant_used_disk(server, id).await?;
+        }
 
         let mut extra_properties: VecMap<Property, _> = VecMap::new();
         match &object.inner {

@@ -175,6 +175,8 @@ impl<T: AsRef<[BroadcastEvent]>> BroadcastBatch<T> {
                             CacheInvalidation::Account(id) => (3u8, *id),
                             CacheInvalidation::DkimSignature(id) => (4u8, *id),
                             // [fragmento SEL eliminado: 6 líneas]
+                            #[cfg(feature = "bezenti")]
+                            CacheInvalidation::Tenant(id) => (5u8, *id),
                             CacheInvalidation::Role(id) => (6u8, *id),
                             CacheInvalidation::List(id) => (7u8, *id),
                             CacheInvalidation::DomainLogo(id) => (8u8, *id),
@@ -352,6 +354,8 @@ impl BroadcastBatch<&[u8]> {
                             3 => CacheInvalidation::Account(id),
                             4 => CacheInvalidation::DkimSignature(id),
                             // [fragmento SEL eliminado: 6 líneas]
+                            #[cfg(feature = "bezenti")]
+                            5 => CacheInvalidation::Tenant(id),
                             6 => CacheInvalidation::Role(id),
                             7 => CacheInvalidation::List(id),
                             8 => CacheInvalidation::DomainLogo(id),

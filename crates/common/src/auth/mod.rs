@@ -67,6 +67,9 @@ pub struct DomainCache {
     pub names: Box<[Box<str>]>,
     pub id: u32,
     // [fragmento SEL eliminado: 8 líneas]
+    /// bezenti: inquilino dueño del dominio (`memberTenantId`).
+    #[cfg(feature = "bezenti")]
+    pub tenant_id: Option<u32>,
     pub catch_all: Option<Box<str>>,
     pub sub_addressing_custom: Option<Box<IfBlock>>,
     pub flags: u8,
@@ -83,6 +86,9 @@ pub struct AccountCache {
     pub id: u32,
     pub addresses: Box<[EmailAddress]>,
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: inquilino de la cuenta (`memberTenantId`).
+    #[cfg(feature = "bezenti")]
+    pub tenant_id: Option<u32>,
     pub id_member_of: Box<[u32]>,
     pub quota_disk: u64,
     pub description: Option<Box<str>>,
@@ -158,6 +164,9 @@ pub struct AccessTokenInner {
     pub(crate) account_id: u32,
     pub(crate) obj_size: u32,
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: inquilino de la cuenta autenticada (`None` = operador del servidor).
+    #[cfg(feature = "bezenti")]
+    pub(crate) tenant_id: Option<u32>,
     pub(crate) member_of: Box<[u32]>,
     pub(crate) access_to: Box<[AccessTo]>,
     pub(crate) scopes: Box<[AccessScope]>,
@@ -357,7 +366,15 @@ impl AccountCache {
 
     // [fragmento SEL eliminado: 9 líneas]
 
-    #[cfg(not(feature = "enterprise"))]
+    /// bezenti: ¿es la cuenta del mismo inquilino que quien hace la petición? Un usuario sin inquilino (del
+    /// operador) solo comparte inquilino con cuentas sin inquilino.
+    #[cfg(feature = "bezenti")]
+    #[inline]
+    pub fn is_same_tenant(&self, access_token: &AccessToken) -> bool {
+        self.tenant_id == access_token.tenant_id()
+    }
+
+    #[cfg(not(feature = "bezenti"))]
     #[inline]
     pub fn is_same_tenant(&self, _access_token: &AccessToken) -> bool {
         true
@@ -371,7 +388,14 @@ impl DomainCache {
 
     // [fragmento SEL eliminado: 9 líneas]
 
-    #[cfg(not(feature = "enterprise"))]
+    /// bezenti: ¿son los dos dominios del mismo inquilino? (un alias solo puede usar dominios de su inquilino).
+    #[cfg(feature = "bezenti")]
+    #[inline]
+    pub fn is_same_tenant(&self, other: &DomainCache) -> bool {
+        self.tenant_id == other.tenant_id
+    }
+
+    #[cfg(not(feature = "bezenti"))]
     #[inline]
     pub fn is_same_tenant(&self, _other: &DomainCache) -> bool {
         true

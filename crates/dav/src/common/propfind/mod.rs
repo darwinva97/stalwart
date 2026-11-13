@@ -260,6 +260,9 @@ impl PropFindRequestHandler for Server {
                     // Return all principals
                     let query = RegistryQuery::new(ObjectType::Account);
                     // [fragmento SEL eliminado: 6 líneas]
+                    // bezenti: un usuario de inquilino solo lista las cuentas de su inquilino.
+                    #[cfg(feature = "bezenti")]
+                    let query = query.with_tenant(access_token.tenant_id());
                     self.registry()
                         .query::<RoaringBitmap>(query)
                         .await
@@ -664,6 +667,16 @@ impl PropFindRequestHandler for Server {
             (account.quota_disk > 0).then(|| account.quota_disk.saturating_sub(used));
 
         // [fragmento SEL eliminado: 21 líneas]
+        // bezenti: lo que queda en la cuota de disco del inquilino también cuenta.
+        #[cfg(feature = "bezenti")]
+        if let Some(tenant_id) = account.tenant_id
+            && let Some(tenant_available) = self
+                .tenant_disk_available(tenant_id)
+                .await
+                .caused_by(trc::location!())?
+        {
+            available = Some(available.map_or(tenant_available, |a| a.min(tenant_available)));
+        }
 
         Ok(PropFindAccountQuota { used, available })
     }

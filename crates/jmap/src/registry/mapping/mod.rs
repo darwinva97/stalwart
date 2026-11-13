@@ -47,6 +47,9 @@ pub mod tls;
 pub(crate) struct RegistryGetResponse<'x> {
     pub server: &'x Server,
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: ámbito de inquilino de quien hace la petición.
+    #[cfg(feature = "bezenti")]
+    pub tenant: crate::registry::bezenti::TenantAccess,
     pub account_id: u32,
     pub ids: Option<Vec<Id>>,
     pub properties: AHashSet<Property>,
@@ -68,6 +71,9 @@ pub(crate) struct RegistrySetResponse<'x> {
     pub response: SetResponse<Registry>,
     pub object_type: ObjectType,
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: ámbito de inquilino de quien hace la petición.
+    #[cfg(feature = "bezenti")]
+    pub tenant: crate::registry::bezenti::TenantAccess,
     pub is_account_filtered: bool,
 }
 

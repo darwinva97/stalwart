@@ -96,8 +96,14 @@ impl Server {
         };
 
         // [fragmento SEL eliminado: 13 líneas]
-        #[cfg(not(feature = "enterprise"))]
+        #[cfg(not(feature = "bezenti"))]
         let permissions = self.effective_permissions(permissions, role_ids).await?;
+        // bezenti: con el techo del inquilino de la cuenta destino (bezenti/inquilino.rs).
+        #[cfg(feature = "bezenti")]
+        let permissions = {
+            let _ = (permissions, role_ids);
+            self.account_permissions(account).await?
+        };
 
         Ok(access_token.can_grant_permissions(permissions.finalize()))
     }
@@ -148,6 +154,9 @@ pub struct DefaultPermissions {
     pub user: Vec<Permission>,
     pub group: Vec<Permission>,
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti: rol «Tenant Administrator» (documentación pública, roles por defecto).
+    #[cfg(feature = "bezenti")]
+    pub tenant_admin: Vec<Permission>,
     pub superuser: Vec<Permission>,
 }
 
@@ -194,6 +203,8 @@ impl Default for DefaultPermissions {
             user: Default::default(),
             group: Default::default(),
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            tenant_admin: Default::default(),
             superuser: Default::default(),
         };
 
@@ -203,6 +214,8 @@ impl Default for DefaultPermissions {
                     default.user.push(permission);
                     default.superuser.push(permission);
                     // [fragmento SEL eliminado: 6 líneas]
+                    #[cfg(feature = "bezenti")]
+                    default.tenant_admin.push(permission);
                 }
                 // [fragmento SEL eliminado: 10 líneas]
                 Permission::Impersonate
@@ -218,6 +231,8 @@ impl Default for DefaultPermissions {
                 Permission::LiveDeliveryTest => {
                     default.superuser.push(permission);
                     // [fragmento SEL eliminado: 6 líneas]
+                    #[cfg(feature = "bezenti")]
+                    default.tenant_admin.push(permission);
                 }
                 permission => {
                     let name = permission.as_str();
@@ -260,8 +275,20 @@ impl Default for DefaultPermissions {
                         || name.starts_with("sysQueuedMessage")
                     {
                         // [fragmento SEL eliminado: 6 líneas]
+                        #[cfg(feature = "bezenti")]
+                        default.tenant_admin.push(permission);
                         default.superuser.push(permission);
                     } else {
+                        // bezenti: los informes externos de sus dominios y la IA también son del
+                        // administrador de inquilino (documentación pública, rol Tenant Administrator).
+                        #[cfg(feature = "bezenti")]
+                        if name.starts_with("sysArfExternalReport")
+                            || name.starts_with("sysDmarcExternalReport")
+                            || name.starts_with("sysTlsExternalReport")
+                            || name == "interactAi"
+                        {
+                            default.tenant_admin.push(permission);
+                        }
                         default.superuser.push(permission);
                     }
                 }

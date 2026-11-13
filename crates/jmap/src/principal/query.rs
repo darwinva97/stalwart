@@ -57,6 +57,9 @@ impl PrincipalQuery for Server {
 
         let query = RegistryQuery::new(ObjectType::Account);
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: un usuario de inquilino solo ve las cuentas de su inquilino.
+        #[cfg(feature = "bezenti")]
+        let query = query.with_tenant(access_token.tenant_id());
         let principal_ids = if request.filter.is_empty()
             || request.filter.iter().any(|cond| {
                 matches!(
@@ -111,6 +114,9 @@ impl PrincipalQuery for Server {
                     PrincipalFilter::Text(text) => {
                         let query = RegistryQuery::new(ObjectType::Account);
                         // [fragmento SEL eliminado: 6 líneas]
+                        // bezenti: un usuario de inquilino solo ve las cuentas de su inquilino.
+                        #[cfg(feature = "bezenti")]
+                        let query = query.with_tenant(access_token.tenant_id());
                         filters.push(SearchFilter::is_in_set(
                             self.registry()
                                 .query::<RoaringBitmap>(query.text(Property::Text, text))
@@ -130,6 +136,9 @@ impl PrincipalQuery for Server {
 
                         let query = RegistryQuery::new(ObjectType::Account);
                         // [fragmento SEL eliminado: 6 líneas]
+                        // bezenti: un usuario de inquilino solo ve las cuentas de su inquilino.
+                        #[cfg(feature = "bezenti")]
+                        let query = query.with_tenant(access_token.tenant_id());
                         filters.push(SearchFilter::is_in_set(
                             self.registry()
                                 .query::<RoaringBitmap>(query.equal(Property::Type, typ.to_id()))

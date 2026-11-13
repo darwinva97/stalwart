@@ -16,7 +16,9 @@ use trc::AddContext;
 
 pub fn is_superuser(access_token: &AccessToken) -> bool {
     // [fragmento SEL eliminado: 6 líneas]
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(feature = "bezenti")]
+    let is_tenant_member = access_token.tenant_id().is_some();
+    #[cfg(not(feature = "bezenti"))]
     let is_tenant_member = false;
     !is_tenant_member && access_token.has_permission(Permission::Impersonate)
 }

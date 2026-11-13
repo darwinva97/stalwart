@@ -705,6 +705,7 @@
  "propiedad:ArchivedAt": 69,
  "propiedad:ArchivedItemType": 961,
  "propiedad:ArchivedUntil": 70,
+ "propiedad:BezentiParentTenantId": 1056,
  "propiedad:Body": 52,
  "propiedad:BreakerCooldown": 842,
  "propiedad:BreakerThreshold": 843,
