@@ -1,0 +1,111 @@
+{
+ "_comentario": "Decisiones de la edición bezenti para lo que el esquema no dice (ver especificaciones/modelo.md). Las reglas generales están en modelo.py; aquí solo van las excepciones razonadas.",
+ "objetos": {
+  "Tenant": {
+   "_por_que": "Los inquilinos son entidades del directorio como las cuentas y los dominios, que usan ids secuenciales. La lista de inquilinos filtra por texto; el nombre es único.",
+   "flags_extra": [
+    "OBJ_SEQ_ID"
+   ],
+   "indices": [
+    [
+     "Text",
+     "Search",
+     "Text"
+    ],
+    [
+     "Name",
+     "Unique",
+     "Keyword"
+    ]
+   ]
+  },
+  "MaskedEmail": {
+   "_por_que": "La lista filtra por cuenta y la dirección enmascarada no puede repetirse.",
+   "indices": [
+    [
+     "AccountId",
+     "Search",
+     "Id"
+    ],
+    [
+     "Email",
+     "Unique",
+     "Keyword"
+    ]
+   ]
+  },
+  "AiModel": {
+   "_por_que": "Como el resto de objetos de configuración con nombre (rutas, colas, reglas), el nombre es único.",
+   "indices": [
+    [
+     "Name",
+     "Unique",
+     "Keyword"
+    ]
+   ]
+  },
+  "ArchivedItem": {
+   "_por_que": "Los elementos archivados se leen del almacén de blobs/datos con su propia lógica (fase 3), no del registro.",
+   "flags_extra": [
+    "OBJ_NOT_STORED"
+   ]
+  },
+  "Metric": {
+   "_por_que": "Las métricas viven en el almacén de métricas (x:MetricsStore), no en el registro.",
+   "flags_extra": [
+    "OBJ_NOT_STORED"
+   ]
+  },
+  "Trace": {
+   "_por_que": "Las trazas viven en el almacén de trazas (x:TracingStore), no en el registro.",
+   "flags_extra": [
+    "OBJ_NOT_STORED"
+   ]
+  }
+ },
+ "contextos": {
+  "_por_que": "Variables y constantes permitidas en las expresiones de pago. SPAM_AI_VARIABLE ya existe en el código libre (enums.rs) para la condición de la IA antispam. La condición de las alertas se escribe sobre métricas, no sobre variables de sesión: queda sin variables hasta la fase 5 (TODO).",
+  "SpamAiProperties.condition": [
+   "SPAM_AI_VARIABLE",
+   "&[]"
+  ],
+  "Alert.condition": [
+   "&[]",
+   "&[]"
+  ]
+ },
+ "campos": {
+  "_por_que": "Índices de los campos de pago de los objetos libres. Las listas del esquema filtran por memberTenantId (objectId → x:Tenant) en todos los objetos que lo tienen, así que se indexa como búsqueda por Id (igual que domainId o accountId en el código libre) y es clave ajena de x:Tenant. externalId (SCIM) se busca por valor exacto. Las claves ajenas de los demás identificadores se deducen solas (regla: todo objectId de pago es clave ajena). Los informes externos (ARF, DMARC, TLS) solo llevan la clave ajena: el código libre no les declara índices de búsqueda.",
+  "memberTenantId": {
+   "indice": [
+    [
+     "search",
+     "MemberTenantId"
+    ]
+   ],
+   "esquema_indice": [
+    "MemberTenantId",
+    "Search",
+    "Id"
+   ],
+   "solo_clave_ajena": [
+    "ArfExternalReport",
+    "DmarcExternalReport",
+    "TlsExternalReport"
+   ]
+  },
+  "externalId": {
+   "indice": [
+    [
+     "search",
+     "ExternalId"
+    ]
+   ],
+   "esquema_indice": [
+    "ExternalId",
+    "Search",
+    "Keyword"
+   ]
+  }
+ }
+}
