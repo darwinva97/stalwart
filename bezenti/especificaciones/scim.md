@@ -264,7 +264,9 @@ el código de esta fase es nuevo, en el crate `crates/bezenti-scim` (AGPL-3.0-on
 ## 9. ETag y versión
 
 - [doc] `meta.version` y cabecera `ETag` = `W/"<huella>"`, derivada del contenido (para grupos incluye los
-  miembros). [bezenti] Huella = xxh3 de la representación completa serializada (sin `meta.version`).
+  miembros). [bezenti] Huella = xxh3 de la representación serializada (sin `meta.version`); en los grupos entra la
+  lista de **ids** de los miembros (no sus nombres), así la versión es la misma con o sin `members` en la salida y
+  se calcula sin leer cada miembro.
 - [doc] `If-None-Match` en GET → `304` si no cambió. `If-Match` en PUT/PATCH/DELETE → `412` si cambió. Sin
   cabeceras, sin condición. [bezenti] `If-Match: *` siempre se cumple si el recurso existe.
 

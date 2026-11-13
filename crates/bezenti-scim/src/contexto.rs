@@ -29,7 +29,7 @@ use registry::{
     types::EnumImpl,
 };
 use serde_json::{Map, Value, json};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Mutex};
 use store::{registry::RegistryQuery, roaring::RoaringBitmap};
 use trc::AddContext;
 use types::id::Id;
@@ -51,6 +51,8 @@ pub struct Contexto<'x> {
     pub ambito: Option<TenantScope>,
     /// Dominios abiertos a SCIM dentro del ámbito.
     pub dominios: HashMap<u32, DominioScim>,
+    /// Usuarios visibles (se calcula una vez por petición y se olvida tras cada escritura).
+    usuarios: Mutex<Option<RoaringBitmap>>,
 }
 
 /// Una cuenta leída del registro.
@@ -140,7 +142,33 @@ impl<'x> Contexto<'x> {
             base,
             ambito,
             dominios,
+            usuarios: Mutex::new(None),
         })
+    }
+
+    /// Usuarios visibles (en caché durante la petición).
+    pub async fn usuarios_visibles(&self) -> ScimResult<RoaringBitmap> {
+        if let Some(ids) = self.usuarios.lock().ok().and_then(|g| g.clone()) {
+            return Ok(ids);
+        }
+        let ids = self.ids_visibles(Tipo::Usuario).await?;
+        if let Ok(mut g) = self.usuarios.lock() {
+            *g = Some(ids.clone());
+        }
+        Ok(ids)
+    }
+
+    fn olvida_usuarios(&self) {
+        if let Ok(mut g) = self.usuarios.lock() {
+            *g = None;
+        }
+    }
+
+    /// Usuarios visibles miembros de un grupo, ordenados por id (sin leer cada cuenta).
+    pub async fn ids_miembros_visibles(&self, grupo: u32) -> ScimResult<Vec<u32>> {
+        let mut ids = self.ids_miembros(grupo).await?;
+        ids &= self.usuarios_visibles().await?;
+        Ok(ids.into_iter().collect())
     }
 
     pub fn exige(&self, permiso: Permission) -> ScimResult<()> {
@@ -333,6 +361,7 @@ impl<'x> Contexto<'x> {
         if let Some(destroy) = destroy {
             peticion["destroy"] = json!(destroy);
         }
+        self.olvida_usuarios();
         let texto = peticion.to_string();
         let request: SetRequest<'_, Registry> = serde_json::from_str(&texto).map_err(|err| {
             ScimError::internal(format!("Failed to build the registry request: {err}"))

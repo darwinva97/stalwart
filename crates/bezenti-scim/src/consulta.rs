@@ -451,10 +451,20 @@ pub async fn lista(ctx: &Contexto<'_>, tipos: &[Tipo], p: Parametros) -> ScimRes
         }
         (total, pagina)
     } else {
+        // Los miembros (una lectura por miembro) solo si el filtro o la salida los necesitan.
+        let filtra_miembros = p
+            .filtro
+            .as_ref()
+            .is_some_and(|f| f.rutas().iter().any(|r| r.nombre == "members"));
+        let modo = if quiere_miembros || filtra_miembros {
+            Miembros::Todos
+        } else {
+            Miembros::Excluidos
+        };
         let mut encontrados: Vec<(Tipo, u32, Value)> = Vec::new();
         for (tipo, id) in todos {
             if let Some(leida) = ctx.cuenta(id, Some(tipo)).await? {
-                let doc = representa(ctx, &leida, Miembros::Todos).await?;
+                let doc = representa(ctx, &leida, modo).await?;
                 if p.filtro.as_ref().is_none_or(|f| f.evalua(&doc)) {
                     encontrados.push((tipo, id, doc));
                 }

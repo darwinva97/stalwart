@@ -150,30 +150,36 @@ pub async fn representa(
             if let Some(external_id) = &grupo.external_id {
                 doc["externalId"] = Value::from(external_id.as_str());
             }
-            let lista = miembros_visibles(ctx, leida.id).await?;
-            if miembros == Miembros::Limitados && lista.len() > MAX_MIEMBROS {
+            // La versión cubre la pertenencia (ids de los miembros), no sus nombres: así es la misma con o sin
+            // `members` en la salida y no hace falta leer cada miembro para calcularla.
+            let ids = ctx.ids_miembros_visibles(leida.id).await?;
+            if miembros == Miembros::Limitados && ids.len() > MAX_MIEMBROS {
                 return Err(ScimError::too_many(format!(
                     "The group has more than {MAX_MIEMBROS} members; request it with excludedAttributes=members"
                 )));
             }
-            let mut out = Vec::with_capacity(lista.len());
-            for miembro in &lista {
-                out.push(json!({
-                    "value": id_texto(miembro.id),
-                    "$ref": format!("{}/Users/{}", ctx.base, id_texto(miembro.id)),
-                    "display": nombre_visible(miembro),
-                    "type": "User",
-                }));
-            }
-            if !out.is_empty() {
-                doc["members"] = Value::Array(out);
+            if !ids.is_empty() {
+                doc["members"] =
+                    Value::Array(ids.iter().map(|id| Value::from(id_texto(*id))).collect());
             }
             let mut doc = con_meta(ctx, Tipo::Grupo, leida.id, &grupo.created_at, doc);
-            if miembros == Miembros::Excluidos
-                && let Some(map) = doc.as_object_mut()
-            {
-                // La versión ya incluye a los miembros; solo se omiten en la salida.
-                map.remove("members");
+            let Some(mapa) = doc.as_object_mut() else {
+                return Err(ScimError::internal("Invalid resource representation"));
+            };
+            mapa.remove("members");
+            if miembros != Miembros::Excluidos && !ids.is_empty() {
+                let mut out = Vec::with_capacity(ids.len());
+                for id in ids {
+                    if let Some(miembro) = ctx.cuenta(id, Some(Tipo::Usuario)).await? {
+                        out.push(json!({
+                            "value": id_texto(id),
+                            "$ref": format!("{}/Users/{}", ctx.base, id_texto(id)),
+                            "display": nombre_visible(&miembro),
+                            "type": "User",
+                        }));
+                    }
+                }
+                mapa.insert("members".into(), Value::Array(out));
             }
             Ok(doc)
         }
@@ -194,17 +200,6 @@ pub fn nombre_visible(leida: &CuentaLeida) -> String {
             .filter(|d| !d.is_empty())
             .unwrap_or_else(|| g.name.clone()),
     }
-}
-
-/// Usuarios visibles miembros de un grupo, por id.
-pub async fn miembros_visibles(ctx: &Contexto<'_>, grupo: u32) -> ScimResult<Vec<CuentaLeida>> {
-    let mut out = Vec::new();
-    for id in ctx.ids_miembros(grupo).await? {
-        if let Some(usuario) = ctx.cuenta(id, Some(Tipo::Usuario)).await? {
-            out.push(usuario);
-        }
-    }
-    Ok(out)
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -888,11 +883,8 @@ pub async fn escribe_grupo(
         }
         Some(e) => {
             nombre_grupo_libre(ctx, &entrada.descripcion, e.inquilino(), Some(e.id)).await?;
-            let actuales: BTreeSet<u32> = miembros_visibles(ctx, e.id)
-                .await?
-                .into_iter()
-                .map(|m| m.id)
-                .collect();
+            let actuales: BTreeSet<u32> =
+                ctx.ids_miembros_visibles(e.id).await?.into_iter().collect();
             let altas: BTreeSet<u32> = miembros.difference(&actuales).copied().collect();
             let bajas: BTreeSet<u32> = actuales.difference(&miembros).copied().collect();
             if !altas.is_empty() || !bajas.is_empty() {
