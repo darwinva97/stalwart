@@ -65,15 +65,55 @@ impl PostgresStore {
 
         // [fragmento SEL eliminado: 26 líneas]
 
-        let primary = Store::PostgreSQL(Arc::new(PostgresStore {
+        // bezenti (fase 6): una piscina por réplica de lectura, con los mismos ajustes que la del primario
+        // salvo servidor, base, usuario, contraseña y opciones (ver backend/bezenti/replicas.rs).
+        #[cfg(feature = "bezenti")]
+        let mut replicas = Vec::with_capacity(config.read_replicas.len());
+        #[cfg(feature = "bezenti")]
+        for replica in config.read_replicas.into_iter() {
+            let mut rcfg = cfg.clone();
+            let nombre = format!("{}:{}/{}", replica.host, replica.port, replica.database);
+            rcfg.dbname = replica.database.into();
+            rcfg.host = replica.host.into();
+            rcfg.user = replica.auth_username;
+            rcfg.password = replica.auth_secret.secret().await?.map(|v| v.into_owned());
+            rcfg.port = (replica.port as u16).into();
+            rcfg.options = replica.options;
+            let pool = create_pool(
+                &rcfg,
+                config.use_tls,
+                config.allow_invalid_certs,
+                response_timeout,
+            )?;
+            replicas.push((
+                nombre,
+                crate::backend::bezenti::replicas::MiembroSql::Postgres(Arc::new(PostgresStore {
+                    conn_pool: pool,
+                    ts_configs: ts_configs.clone(),
+                    sql: sql.clone(),
+                })),
+            ));
+        }
+
+        let primary = Arc::new(PostgresStore {
             conn_pool: primary_pool,
             ts_configs,
             sql,
-        }));
+        });
 
         // [fragmento SEL eliminado: 8 líneas]
 
-        Ok(primary)
+        #[cfg(feature = "bezenti")]
+        if !replicas.is_empty() {
+            return Ok(Store::Replicas(
+                crate::backend::bezenti::replicas::ReplicasSql::nuevo(
+                    crate::backend::bezenti::replicas::MiembroSql::Postgres(primary),
+                    replicas,
+                ),
+            ));
+        }
+
+        Ok(Store::PostgreSQL(primary))
     }
 
     pub(crate) async fn create_storage_tables(&self) -> trc::Result<()> {

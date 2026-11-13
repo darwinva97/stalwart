@@ -181,7 +181,7 @@ impl InMemorySwapStore {
     }
 
     #[cfg_attr(
-        not(all(feature = "enterprise", feature = "redis")),
+        not(all(any(feature = "enterprise", feature = "bezenti"), feature = "redis")),
         allow(unused_variables)
     )]
     fn chunk_store(&self, route: &[u8]) -> trc::Result<ChunkStore<'_>> {
@@ -191,6 +191,12 @@ impl InMemorySwapStore {
             #[cfg(feature = "keep")]
             CacheSwapStore::Keep(client) => Ok(ChunkStore::Keep(client)),
             // [fragmento SEL eliminado: 9 líneas]
+            // bezenti (fase 6): cada instantánea va al Redis que le toca por su ruta (mismo reparto que el
+            // almacén en memoria repartido).
+            #[cfg(all(feature = "bezenti", feature = "redis"))]
+            CacheSwapStore::Repartido(stores) => Ok(ChunkStore::Redis(
+                &stores[store::backend::bezenti::fragmento(route, stores.len())],
+            )),
             #[allow(unreachable_patterns)]
             _ => Err(unsupported()),
         }

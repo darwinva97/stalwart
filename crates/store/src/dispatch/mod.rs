@@ -66,6 +66,8 @@ impl Store {
             Self::RocksDb(_) => "rocksdb",
             Self::Ephemeral(_) => "ephemeral",
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.primario_store().id(),
             Self::None => "none",
         }
     }
@@ -79,6 +81,8 @@ impl Store {
             #[cfg(feature = "rocks")]
             Self::RocksDb(_) => ROCKSDB_SCAN_GAP,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.primario_store().scan_gap(),
             _ => MAX_SCAN_GAP,
         }
     }
@@ -92,6 +96,8 @@ impl Store {
             #[cfg(feature = "foundation")]
             Self::FoundationDb(_) => ReadShape::Ranges(POINT_SCAN_GAP),
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.primario_store().read_shape(),
             _ => ReadShape::Ranges(self.scan_gap()),
         }
     }

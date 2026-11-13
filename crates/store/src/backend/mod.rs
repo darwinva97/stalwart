@@ -6,6 +6,9 @@
 
 #[cfg(feature = "azure")]
 pub mod azure;
+// bezenti (fase 6): réplicas de lectura y almacenes repartidos.
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod elastic;
 pub mod ephemeral;
 #[cfg(feature = "foundation")]

@@ -23,6 +23,8 @@ zenoh = ["dep:zenoh"]
 kafka = ["rdkafka", "futures"]
 redis = ["dep:redis", "dep:deadpool", "futures", "store/redis"]
 keep = ["dep:hashify", "store/keep"]
+# bezenti: edición bezenti (ver bezenti/README.md): coordinador sobre un almacén en memoria repartido (fase 6).
+bezenti = ["store/bezenti", "registry/bezenti"]
 enterprise = ["store/enterprise", "registry/enterprise", "utils?/enterprise", "trc/enterprise"]
 
 [lints]

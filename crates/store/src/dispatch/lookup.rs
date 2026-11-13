@@ -55,6 +55,8 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_set(&kv.key, &kv.value, kv.expires).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => store.key_set(kv).await,
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -66,7 +68,7 @@ impl InMemoryStore {
         self.key_incr_at(kv, now()).await
     }
 
-    async fn key_incr_at(&self, kv: KeyValue<i64>, now: u64) -> trc::Result<i64> {
+    pub(crate) async fn key_incr_at(&self, kv: KeyValue<i64>, now: u64) -> trc::Result<i64> {
         #[cfg(stalwart_tests)]
         crate::dispatch::StoreOps::count_in_memory(self).await;
 
@@ -77,6 +79,8 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_incr(&kv.key, kv.value, kv.expires).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => store.key_incr_at(kv, now).await,
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -95,6 +99,11 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_delete(key.into().as_bytes()).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                let key = key.into();
+                store.key_delete(key).await
+            }
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -118,6 +127,11 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_delete(key.into().as_bytes()).await.map(|_| ()),
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                let key = key.into();
+                store.counter_delete(key).await
+            }
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -139,6 +153,8 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_delete_prefix(prefix).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => store.key_delete_prefix(prefix).await,
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -160,6 +176,11 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_get(key.into().as_bytes()).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                let key = key.into();
+                store.key_get(key).await
+            }
             InMemoryStore::Static(store) => Ok(match store.as_ref() {
                 StaticMemoryStore::Map(map) => map
                     .get(key.into().as_str())
@@ -191,6 +212,11 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.key_exists(key.into().as_bytes()).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                let key = key.into();
+                store.key_exists(key).await
+            }
             InMemoryStore::Static(store) => Ok(match store.as_ref() {
                 StaticMemoryStore::Map(map) => map.get(key.into().as_str()).is_some(),
                 StaticMemoryStore::Set(set) => set.contains(key.into().as_str()),
@@ -251,6 +277,11 @@ impl InMemoryStore {
                     .await
             }
             // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                let ruta = KeyValue::<()>::build_key(prefix, key);
+                store.try_lock(&ruta, prefix, key, duration).await
+            }
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -278,6 +309,11 @@ impl InMemoryStore {
                     .await
             }
             // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                let ruta = KeyValue::<()>::build_key(prefix, key);
+                store.renew_lock(&ruta, prefix, key, duration).await
+            }
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -302,6 +338,8 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.try_lease(&key, token, duration).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => store.try_lease(&key, prefix, token, duration).await,
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -326,6 +364,10 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.renew_lease(&key, token, duration).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => {
+                store.renew_lease(&key, prefix, token, duration).await
+            }
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -344,6 +386,8 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(store) => store.release_lease(&key, token).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => store.release_lease(&key, prefix, token).await,
             InMemoryStore::Sql(_) | InMemoryStore::Static(_) | InMemoryStore::Http(_) => {
                 Err(trc::StoreEvent::NotSupported.into_err())
             }
@@ -386,6 +430,8 @@ impl InMemoryStore {
             #[cfg(feature = "keep")]
             InMemoryStore::Keep(_) => true,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            InMemoryStore::Repartido(store) => store.miembros.iter().all(|m| m.is_remote()),
             _ => false,
         }
     }

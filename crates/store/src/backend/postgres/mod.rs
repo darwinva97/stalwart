@@ -20,6 +20,8 @@ use utils::error_chain;
 
 use self::sql::SqlStatements;
 
+#[cfg(feature = "bezenti")]
+pub(crate) mod bezenti;
 pub mod blob;
 pub(crate) mod connect;
 pub mod lookup;

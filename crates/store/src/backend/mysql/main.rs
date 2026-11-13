@@ -58,14 +58,47 @@ impl MysqlStore {
         let sql = Arc::new(SqlStatements::new());
         // [fragmento SEL eliminado: 20 líneas]
 
-        let primary = Store::MySQL(Arc::new(MysqlStore {
+        // bezenti (fase 6): una piscina por réplica de lectura, con los mismos ajustes que la del primario
+        // salvo servidor, puerto, base, usuario y contraseña (ver backend/bezenti/replicas.rs).
+        #[cfg(feature = "bezenti")]
+        let mut replicas = Vec::with_capacity(config.read_replicas.len());
+        #[cfg(feature = "bezenti")]
+        for replica in config.read_replicas.into_iter() {
+            let nombre = format!("{}:{}/{}", replica.host, replica.port, replica.database);
+            let ropts = opts
+                .clone()
+                .ip_or_hostname(replica.host)
+                .tcp_port(replica.port as u16)
+                .user(replica.auth_username)
+                .pass(replica.auth_secret.secret().await?.map(|v| v.into_owned()))
+                .db_name(Some(replica.database));
+            replicas.push((
+                nombre,
+                crate::backend::bezenti::replicas::MiembroSql::Mysql(Arc::new(MysqlStore {
+                    conn_pool: Pool::new(ropts),
+                    sql: sql.clone(),
+                })),
+            ));
+        }
+
+        let primary = Arc::new(MysqlStore {
             conn_pool: Pool::new(opts),
             sql,
-        }));
+        });
 
         // [fragmento SEL eliminado: 8 líneas]
 
-        Ok(primary)
+        #[cfg(feature = "bezenti")]
+        if !replicas.is_empty() {
+            return Ok(Store::Replicas(
+                crate::backend::bezenti::replicas::ReplicasSql::nuevo(
+                    crate::backend::bezenti::replicas::MiembroSql::Mysql(primary),
+                    replicas,
+                ),
+            ));
+        }
+
+        Ok(Store::MySQL(primary))
     }
 
     pub(crate) async fn create_storage_tables(&self) -> trc::Result<()> {

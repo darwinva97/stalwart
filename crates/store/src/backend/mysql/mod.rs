@@ -16,6 +16,8 @@ use std::{fmt::Display, sync::Arc};
 
 use self::sql::SqlStatements;
 
+#[cfg(feature = "bezenti")]
+pub(crate) mod bezenti;
 pub mod blob;
 pub mod lookup;
 pub mod main;

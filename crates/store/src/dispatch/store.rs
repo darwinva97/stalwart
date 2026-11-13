@@ -34,6 +34,8 @@ impl Store {
             Self::RocksDb(store) => store.get_value(key).await,
             Self::Ephemeral(store) => store.get_value(key).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.get_value(key).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -60,6 +62,8 @@ impl Store {
             Self::RocksDb(store) => store.get_value(key).await,
             Self::Ephemeral(store) => store.get_value(key).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.get_value(key).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!());
@@ -88,6 +92,8 @@ impl Store {
                 result
             }
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.get_value_fresh(key).await.caused_by(trc::location!()),
             _ => self.get_value(key).await,
         }
     }
@@ -112,6 +118,8 @@ impl Store {
             Self::RocksDb(store) => store.key_exists(key).await,
             Self::Ephemeral(store) => store.key_exists(key).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.key_exists(key).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -150,6 +158,8 @@ impl Store {
             Self::RocksDb(store) => store.iterate(params, cb).await,
             Self::Ephemeral(store) => store.iterate(params, cb).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.iterate(params, cb).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!());
@@ -216,6 +226,8 @@ impl Store {
             Self::RocksDb(store) => store.iterate_many(ranges, cb).await,
             Self::Ephemeral(store) => store.iterate_many(ranges, cb).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.iterate_many(ranges, cb).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!());
@@ -257,6 +269,8 @@ impl Store {
             Self::RocksDb(store) => store.get_counter(key).await,
             Self::Ephemeral(store) => store.get_counter(key).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.get_counter(key.into()).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -276,6 +290,8 @@ impl Store {
             Self::PostgreSQL(store) => store.sql_query(query, &params).await,
             #[cfg(feature = "mysql")]
             Self::MySQL(store) => store.sql_query(query, &params).await,
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.sql_query(query, &params).await,
             _ => Err(trc::StoreEvent::NotSupported.into_err()),
         };
 
@@ -334,6 +350,8 @@ impl Store {
             Self::RocksDb(store) => store.write(batch, assigned_ids).await,
             Self::Ephemeral(store) => store.write(batch, assigned_ids).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.write(batch, assigned_ids).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         };
 
@@ -363,6 +381,8 @@ impl Store {
             Self::RocksDb(store) => store.purge_store().await,
             Self::Ephemeral(store) => store.purge_store().await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.purge_store().await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -385,6 +405,8 @@ impl Store {
             Self::RocksDb(store) => store.delete_range(from, to).await,
             Self::Ephemeral(store) => store.delete_range(from, to).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.delete_range(from, to).await,
             Self::None => Err(trc::StoreEvent::NotConfigured.into()),
         }
         .caused_by(trc::location!())
@@ -462,6 +484,8 @@ impl Store {
             #[cfg(feature = "mysql")]
             Self::MySQL(store) => store.create_storage_tables().await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => store.create_tables().await,
             _ => Ok(()),
         }
     }

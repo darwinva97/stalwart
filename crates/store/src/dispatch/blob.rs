@@ -75,6 +75,8 @@ impl BlobStore {
                 Store::RocksDb(store) => store.get_blob(key, 0..usize::MAX).await,
                 Store::Ephemeral(store) => store.get_blob(key, 0..usize::MAX).await,
                 // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+                Store::Replicas(store) => store.get_blob(key).await,
                 Store::None => Err(trc::StoreEvent::NotConfigured.into()),
             },
             BlobStore::Fs(store) => store.get_blob(key, 0..usize::MAX).await,
@@ -83,6 +85,8 @@ impl BlobStore {
             #[cfg(feature = "azure")]
             BlobStore::Azure(store) => store.get_blob(key, 0..usize::MAX).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            BlobStore::Repartido(store) => store.get_raw_blob(key).await,
         }
     }
 
@@ -106,15 +110,24 @@ impl BlobStore {
         }
     }
 
-    #[cfg_attr(not(feature = "enterprise"), allow(unused_variables))]
+    #[cfg_attr(
+        not(any(feature = "enterprise", feature = "bezenti")),
+        allow(unused_variables)
+    )]
     fn shard_for(&self, key: &[u8]) -> &BlobStore {
         match self {
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            BlobStore::Repartido(store) => store.miembro(key).shard_for(key),
             store => store,
         }
     }
 
-    async fn write_blob(&self, key: &[u8], data: trc::Result<Vec<u8>>) -> trc::Result<()> {
+    pub(crate) async fn write_blob(
+        &self,
+        key: &[u8],
+        data: trc::Result<Vec<u8>>,
+    ) -> trc::Result<()> {
         let data = data?;
         #[cfg(stalwart_tests)]
         {
@@ -138,6 +151,8 @@ impl BlobStore {
                 Store::RocksDb(store) => store.put_blob(key, data).await,
                 Store::Ephemeral(store) => store.put_blob(key, &data).await,
                 // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+                Store::Replicas(store) => store.put_blob(key, &data).await,
                 Store::None => Err(trc::StoreEvent::NotConfigured.into()),
             },
             BlobStore::Fs(store) => store.put_blob(key, &data).await,
@@ -146,6 +161,8 @@ impl BlobStore {
             #[cfg(feature = "azure")]
             BlobStore::Azure(store) => store.put_blob(key, data).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            BlobStore::Repartido(store) => store.escribir(key, data).await,
         }
         .caused_by(trc::location!());
 
@@ -178,6 +195,8 @@ impl BlobStore {
                 Store::RocksDb(store) => store.delete_blob(key).await,
                 Store::Ephemeral(store) => store.delete_blob(key).await,
                 // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+                Store::Replicas(store) => store.delete_blob(key).await,
                 Store::None => Err(trc::StoreEvent::NotConfigured.into()),
             },
             BlobStore::Fs(store) => store.delete_blob(key).await,
@@ -186,6 +205,8 @@ impl BlobStore {
             #[cfg(feature = "azure")]
             BlobStore::Azure(store) => store.delete_blob(key).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            BlobStore::Repartido(store) => store.delete_blob(key).await,
         }
         .caused_by(trc::location!());
 
@@ -207,6 +228,8 @@ impl BlobStore {
             #[cfg(feature = "s3")]
             BlobStore::S3(store) => delete_blobs_timed(keys, store.delete_blobs(keys)).await,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            BlobStore::Repartido(store) => store.delete_blobs(keys).await,
             _ => {
                 for key in keys {
                     self.delete_blob(key).await?;

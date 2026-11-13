@@ -38,9 +38,23 @@ impl LdapDirectory {
             .set_conn_timeout(timeout)
             .set_starttls(config.use_tls)
             .set_no_tls_verify(config.allow_invalid_certs);
-        #[cfg_attr(not(feature = "enterprise"), allow(unused_mut))]
+        #[cfg_attr(
+            not(any(feature = "enterprise", feature = "bezenti")),
+            allow(unused_mut)
+        )]
         let mut urls = vec![config.url];
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti (fase 6): servidores de respaldo, probados en orden cuando el principal no responde
+        // (la lógica de conmutación ya está en `failover.rs`).
+        #[cfg(feature = "bezenti")]
+        urls.extend(
+            config
+                .url_failover
+                .into_inner()
+                .into_iter()
+                .map(|u| u.trim().to_string())
+                .filter(|u| !u.is_empty()),
+        );
         let servers = Arc::new(LdapServers::new(urls.into_boxed_slice()));
         let bind_manager = config
             .bind_authentication

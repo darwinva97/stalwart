@@ -44,6 +44,11 @@ impl InMemoryStore {
                     .map(InMemoryStore::from)
             }
             // [fragmento SEL eliminado: 8 líneas]
+            // bezenti (fase 6): almacén en memoria repartido entre varios Redis.
+            #[cfg(feature = "bezenti")]
+            structs::InMemoryStore::Sharded(sharded) => {
+                crate::backend::bezenti::reparto::MemoriaRepartida::abrir(bp, sharded).await
+            }
             _ => Err("Binary was not compiled with the selected in-memory backend".to_string()),
         };
 

@@ -40,6 +40,11 @@ impl BlobStore {
                 FsStore::open(file_system_store).await
             }
             // [fragmento SEL eliminado: 7 líneas]
+            // bezenti (fase 6): almacén de blobs repartido.
+            #[cfg(feature = "bezenti")]
+            structs::BlobStore::Sharded(sharded) => {
+                crate::backend::bezenti::reparto::BlobRepartido::abrir(sharded).await
+            }
             _ => Err("Binary was not compiled with the selected blob store backend".to_string()),
         };
 

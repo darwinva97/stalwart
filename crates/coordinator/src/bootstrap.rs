@@ -22,6 +22,13 @@ impl Coordinator {
                 #[cfg(feature = "keep")]
                 InMemoryStore::Keep(keep) => Ok(Coordinator::Keep(keep.clone())),
                 // [fragmento SEL eliminado: 13 líneas]
+                // bezenti (fase 6): con un almacén en memoria repartido, los mensajes van por el PRIMER
+                // miembro, para que todos los nodos usen el mismo Redis.
+                #[cfg(all(feature = "bezenti", feature = "redis"))]
+                InMemoryStore::Repartido(repartido) => match repartido.miembros.first() {
+                    Some(InMemoryStore::Redis(redis)) => Ok(Coordinator::Redis(redis.clone())),
+                    _ => Err(default_coordinator_error()),
+                },
                 _ => Err(default_coordinator_error()),
             },
             #[cfg(feature = "kafka")]

@@ -10,6 +10,7 @@ use crate::{LookupStores, registry::bootstrap::Bootstrap};
     feature = "mysql",
     feature = "sqlite",
     feature = "enterprise",
+    feature = "bezenti",
     feature = "redis",
     feature = "keep"
 ))]
@@ -51,6 +52,11 @@ impl LookupStores {
                         .map(crate::InMemoryStore::Sql)
                 }
                 // [fragmento SEL eliminado: 11 líneas]
+                // bezenti (fase 6): almacén de búsqueda repartido entre varios Redis.
+                #[cfg(feature = "bezenti")]
+                LookupStore::Sharded(sharded) => {
+                    crate::backend::bezenti::reparto::MemoriaRepartida::abrir(bp, sharded).await
+                }
                 #[cfg(feature = "redis")]
                 LookupStore::Redis(redis_store) => {
                     crate::backend::redis::RedisStore::open_single(redis_store).await

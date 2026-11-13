@@ -121,6 +121,17 @@ impl TryFrom<InMemoryStore> for CacheSwapStore {
             #[cfg(feature = "redis")]
             InMemoryStore::Redis(store) => Ok(CacheSwapStore::Redis(store)),
             // [fragmento SEL eliminado: 8 líneas]
+            // bezenti (fase 6): un almacén repartido sirve si todos sus miembros son Redis.
+            #[cfg(all(feature = "bezenti", feature = "redis"))]
+            InMemoryStore::Repartido(store) => store
+                .miembros
+                .iter()
+                .map(|m| match m {
+                    InMemoryStore::Redis(r) => Ok(r.clone()),
+                    _ => Err(NO_CHUNKED_KEYS.to_string()),
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map(|r| CacheSwapStore::Repartido(r.into())),
             _ => Err(NO_CHUNKED_KEYS.to_string()),
         }
     }

@@ -22,6 +22,15 @@ impl SearchStore {
                     #[cfg(feature = "mysql")]
                     crate::Store::MySQL(store) => SearchStore::MySQL(store),
                     // [fragmento SEL eliminado: 9 líneas]
+                    // bezenti (fase 6): la búsqueda de texto va siempre al primario.
+                    #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+                    crate::Store::Replicas(store) => match store.primario_store() {
+                        #[cfg(feature = "postgres")]
+                        crate::Store::PostgreSQL(store) => SearchStore::PostgreSQL(store),
+                        #[cfg(feature = "mysql")]
+                        crate::Store::MySQL(store) => SearchStore::MySQL(store),
+                        store => SearchStore::Store(store),
+                    },
                     store => SearchStore::Store(store),
                 });
             }
@@ -44,6 +53,14 @@ impl SearchStore {
                     .map(|store| match store {
                         crate::Store::PostgreSQL(store) => SearchStore::PostgreSQL(store),
                         // [fragmento SEL eliminado: 6 líneas]
+                        #[cfg(all(
+                            feature = "bezenti",
+                            any(feature = "postgres", feature = "mysql")
+                        ))]
+                        crate::Store::Replicas(store) => match store.primario_store() {
+                            crate::Store::PostgreSQL(store) => SearchStore::PostgreSQL(store),
+                            _ => unreachable!(),
+                        },
                         _ => unreachable!(),
                     })
             }
@@ -54,6 +71,14 @@ impl SearchStore {
                     .map(|store| match store {
                         crate::Store::MySQL(store) => SearchStore::MySQL(store),
                         // [fragmento SEL eliminado: 6 líneas]
+                        #[cfg(all(
+                            feature = "bezenti",
+                            any(feature = "postgres", feature = "mysql")
+                        ))]
+                        crate::Store::Replicas(store) => match store.primario_store() {
+                            crate::Store::MySQL(store) => SearchStore::MySQL(store),
+                            _ => unreachable!(),
+                        },
                         _ => unreachable!(),
                     })
             }

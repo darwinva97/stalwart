@@ -379,6 +379,9 @@ pub enum Store {
     RocksDb(Arc<backend::rocksdb::RocksDbStore>),
     Ephemeral(Arc<EphemeralStore>),
     // [fragmento SEL eliminado: 6 líneas]
+    // bezenti (fase 6): PostgreSQL o MySQL con réplicas de lectura (`readReplicas`).
+    #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+    Replicas(Arc<backend::bezenti::replicas::ReplicasSql>),
     #[default]
     None,
 }
@@ -392,6 +395,9 @@ pub enum BlobStore {
     #[cfg(feature = "azure")]
     Azure(Arc<backend::azure::AzureStore>),
     // [fragmento SEL eliminado: 6 líneas]
+    // bezenti (fase 6): almacén de blobs repartido (`BlobStore.Sharded`).
+    #[cfg(feature = "bezenti")]
+    Repartido(Arc<backend::bezenti::reparto::BlobRepartido>),
 }
 
 #[derive(Clone)]
@@ -417,6 +423,9 @@ pub enum InMemoryStore {
     Http(Arc<HttpStore>),
     Static(Arc<StaticMemoryStore>),
     // [fragmento SEL eliminado: 6 líneas]
+    // bezenti (fase 6): almacén en memoria o de búsqueda repartido (`InMemoryStore.Sharded`).
+    #[cfg(feature = "bezenti")]
+    Repartido(Arc<backend::bezenti::reparto::MemoriaRepartida>),
 }
 
 #[derive(Clone)]
@@ -426,6 +435,9 @@ pub enum CacheSwapStore {
     #[cfg(feature = "keep")]
     Keep(backend::keep::swap::KeepSwapClient),
     // [fragmento SEL eliminado: 6 líneas]
+    // bezenti (fase 6): instantáneas repartidas entre varios Redis (almacén en memoria repartido).
+    #[cfg(all(feature = "bezenti", feature = "redis"))]
+    Repartido(Arc<[Arc<backend::redis::RedisStore>]>),
 }
 
 #[derive(Clone)]
@@ -890,6 +902,8 @@ impl Store {
             #[cfg(feature = "postgres")]
             Store::PostgreSQL(store) => store.is_responsive(),
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Store::Replicas(store) => store.primario_store().is_responsive(),
             _ => true,
         }
     }
@@ -917,6 +931,8 @@ impl Store {
             (Store::Ephemeral(a), Store::Ephemeral(b)) => Arc::ptr_eq(a, b),
             #[cfg(all(feature = "enterprise", any(feature = "postgres", feature = "mysql")))]
             (Store::SQLReadReplica(a), Store::SQLReadReplica(b)) => Arc::ptr_eq(a, b),
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            (Store::Replicas(a), Store::Replicas(b)) => Arc::ptr_eq(a, b),
             (Store::None, Store::None) => true,
             _ => false,
         }
@@ -932,6 +948,8 @@ impl Store {
             #[cfg(feature = "mysql")]
             Store::MySQL(_) => true,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Store::Replicas(_) => true,
             _ => false,
         }
     }
@@ -943,6 +961,8 @@ impl Store {
             Store::MySQL(_) => true,
             #[cfg(feature = "postgres")]
             Store::PostgreSQL(_) => true,
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Store::Replicas(_) => true,
             _ => false,
         }
     }
@@ -973,6 +993,8 @@ impl Store {
             #[cfg(feature = "postgres")]
             Store::PostgreSQL(_) => true,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Store::Replicas(store) => store.primario_store().is_postgresql(),
             _ => false,
         }
     }
@@ -1001,6 +1023,12 @@ impl std::fmt::Debug for Store {
             Self::Ephemeral(_) => f.debug_tuple("Ephemeral").finish(),
 
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(all(feature = "bezenti", any(feature = "postgres", feature = "mysql")))]
+            Self::Replicas(store) => f
+                .debug_tuple("Replicas")
+                .field(&store.primario_store())
+                .field(&store.replicas.len())
+                .finish(),
             Self::None => f.debug_tuple("None").finish(),
         }
     }

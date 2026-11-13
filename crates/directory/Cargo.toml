@@ -35,6 +35,8 @@ parking_lot = "0.13.0"
 tokio = { version = "1.54", features = ["full"] }
 
 [features]
+# bezenti: edición bezenti (ver bezenti/README.md): servidores LDAP de respaldo, `urlFailover` (fase 6).
+bezenti = ["store/bezenti", "registry/bezenti"]
 enterprise = ["utils/enterprise", "store/enterprise", "trc/enterprise", "registry/enterprise"]
 mysql = []
 postgres = []

@@ -51,7 +51,7 @@ tikv-jemallocator = { version = "0.7", features = ["unprefixed_malloc_on_support
 
 [features]
 # bezenti: funciones de la edición Enterprise reimplementadas como AGPL (ver bezenti/README.md). Se irá llenando por fases.
-bezenti = ["registry/bezenti", "store/bezenti", "common/bezenti", "smtp/bezenti", "services/bezenti", "jmap/bezenti", "imap/bezenti", "dav/bezenti", "http/bezenti", "email/bezenti", "spam-filter/bezenti", "trc/bezenti"]
+bezenti = ["registry/bezenti", "store/bezenti", "common/bezenti", "smtp/bezenti", "services/bezenti", "jmap/bezenti", "imap/bezenti", "dav/bezenti", "http/bezenti", "email/bezenti", "spam-filter/bezenti", "trc/bezenti", "coordinator/bezenti", "directory/bezenti"]
 #default = ["sqlite", "postgres", "mysql", "rocks", "s3", "redis", "azure", "nats", "enterprise", "zenoh", "kafka"]
 #default = ["sqlite", "postgres", "mysql", "rocks", "s3", "redis", "azure", "nats", "enterprise"]
 default = ["rocks", "enterprise", "keep"]
