@@ -17,6 +17,8 @@
 //!   `x:Account/set` del registro, con todas sus reglas (ver `contexto.rs`).
 
 #![warn(clippy::large_futures)]
+// Con Redis compilado, comprobar que los futuros son `Send` pasa del límite por defecto (igual que en `jmap`).
+#![recursion_limit = "256"]
 
 pub mod bulk;
 pub mod consulta;

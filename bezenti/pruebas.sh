@@ -105,7 +105,8 @@ echo "### Fase 7: conformidad con una herramienta pública (scim2-tester, python
 SITIO="${SCIM2_TESTER_SITE:-}"
 if [ -z "$SITIO" ] && [ -n "${CI:-}" ]; then
   SITIO="$(mktemp -d)"
-  python3 -m pip install -q --disable-pip-version-check --target "$SITIO" 'scim2-tester[httpx2]'
+  python3 -m pip install -q --disable-pip-version-check --target "$SITIO" 'scim2-tester[httpx2]' \
+    || python3 -m pip install -q --disable-pip-version-check --break-system-packages --target "$SITIO" 'scim2-tester[httpx2]'
 fi
 if [ -n "$SITIO" ]; then
   python3 -I bezenti/pruebas/scim_conformidad.py "$BIN" "$SITIO"
