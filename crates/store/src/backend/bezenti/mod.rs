@@ -9,8 +9,8 @@
 //! Especificación: `bezenti/especificaciones/replicas-y-reparto.md`. Todo este módulo es código propio, escrito
 //! desde la documentación pública y el esquema; no deriva de ningún código de la edición Enterprise.
 
-#[cfg(all(test, feature = "postgres"))]
-mod pruebas_postgres;
+#[cfg(all(test, any(feature = "postgres", feature = "mysql")))]
+mod pruebas_reales;
 pub mod reparto;
 #[cfg(any(feature = "postgres", feature = "mysql"))]
 pub mod replicas;

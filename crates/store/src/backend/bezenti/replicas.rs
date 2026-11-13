@@ -354,6 +354,8 @@ pub struct ReplicasSql {
     inicio: Instant,
     lecturas_primario: AtomicU64,
     reintentos: AtomicU64,
+    /// Ya se avisó de que el primario no da posición (se avisa una sola vez).
+    avisado_sin_posicion: AtomicBool,
 }
 
 /// Una observación del primario: (época de este nodo, posición, milisegundos desde el arranque).
@@ -380,6 +382,7 @@ impl ReplicasSql {
             inicio: Instant::now(),
             lecturas_primario: AtomicU64::new(0),
             reintentos: AtomicU64::new(0),
+            avisado_sin_posicion: AtomicBool::new(false),
         });
         if !almacen.replicas.is_empty() {
             let debil = Arc::downgrade(&almacen);
@@ -668,6 +671,9 @@ impl ReplicasSql {
                 historial.push_back((epoca, posicion, ahora));
             }
             Ok(Ok(None)) => {
+                if self.avisado_sin_posicion.swap(true, Ordering::Relaxed) {
+                    return;
+                }
                 trc::event!(
                     Store(trc::StoreEvent::PoolError),
                     Details = "bezenti: el primario no da posición de replicación (¿MySQL sin GTID, MariaDB sin binlog?); no se usan las réplicas",

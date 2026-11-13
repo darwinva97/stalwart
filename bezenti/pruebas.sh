@@ -54,24 +54,37 @@ echo "### Fase 5: integración de la telemetría con historial y alertas (SQLite
 python3 -I bezenti/pruebas/telemetria.py "$BIN"
 
 echo "### Fase 6: PostgreSQL primario + réplica física reales (sin root) para las pruebas de réplicas"
-PGDIR=""
-if bash bezenti/pruebas/postgres_replica.sh arrancar "$(mktemp -d)/pg" > /tmp/bezenti-pg.txt 2>&1; then
+PGDIR=""; MYDIR=""
+parar_bases() {
+  [ -z "$PGDIR" ] || bash bezenti/pruebas/postgres_replica.sh parar "$PGDIR" || true
+  [ -z "$MYDIR" ] || bash bezenti/pruebas/mariadb_replica.sh parar "$MYDIR" || true
+}
+trap parar_bases EXIT
+PGDIR="$(mktemp -d)/pg"
+if bash bezenti/pruebas/postgres_replica.sh arrancar "$PGDIR" > /tmp/bezenti-pg.txt 2>&1; then
   cat /tmp/bezenti-pg.txt
-  PGDIR=$(sed -n 's/.*(\(.*\))$/\1/p' /tmp/bezenti-pg.txt)
-  trap 'bash bezenti/pruebas/postgres_replica.sh parar "$PGDIR"' EXIT
 elif [ -n "${CI:-}" ]; then
   cat /tmp/bezenti-pg.txt; echo "en la CI hacen falta los binarios de PostgreSQL"; exit 1
 else
   cat /tmp/bezenti-pg.txt; echo "sin PostgreSQL local: se omiten las pruebas con réplicas reales"
+  bash bezenti/pruebas/postgres_replica.sh parar "$PGDIR" >/dev/null 2>&1 || true; PGDIR=""
+fi
+
+echo "### Fase 6: MariaDB primario + réplica GTID reales (opcional: solo si hay binarios de MariaDB)"
+MYDIR="$(mktemp -d)/my"
+if bash bezenti/pruebas/mariadb_replica.sh arrancar "$MYDIR" > /tmp/bezenti-my.txt 2>&1; then
+  cat /tmp/bezenti-my.txt
+else
+  cat /tmp/bezenti-my.txt; echo "sin MariaDB: se omite la prueba de réplicas MySQL/MariaDB reales"
+  bash bezenti/pruebas/mariadb_replica.sh parar "$MYDIR" >/dev/null 2>&1 || true; MYDIR=""
 fi
 
 echo "### Fase 6: pruebas unitarias y de integración del almacén (réplicas, reparto de blobs y de memoria)"
 (
   [ -n "$PGDIR" ] && . "$PGDIR/entorno.sh"
-  cargo test "${JOBS[@]}" -p store --features "postgres sqlite bezenti" --lib backend::bezenti -- --nocapture
+  [ -n "$MYDIR" ] && . "$MYDIR/entorno.sh"
+  cargo test "${JOBS[@]}" -p store --features "postgres mysql sqlite bezenti" --lib backend::bezenti -- --nocapture
 )
-echo "### Fase 6: el código de réplicas de MySQL/MariaDB compila"
-cargo check "${JOBS[@]}" -p store --features "mysql bezenti"
 
 echo "### Fase 6: integración con el servidor real (blobs repartidos; datos en PostgreSQL con réplica)"
 if [ -n "$PGDIR" ]; then

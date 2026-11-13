@@ -155,12 +155,14 @@ Garantía y límites (documentados a propósito):
   GTID de MySQL y de MariaDB); blobs repartidos en tres directorios (cada blob en su fragmento y solo en él,
   reparto razonable, borrado suelto y en bloque, añadir un cuarto fragmento y seguir leyendo y borrando lo
   viejo); memoria repartida (cada clave en su miembro, contadores, prefijos, cerrojos, arriendos y ritmo).
-- Integración con PostgreSQL real (`bezenti/pruebas/postgres_replica.sh` levanta un primario y una réplica
-  física sin root; `pruebas_postgres.rs`): 150 escrituras seguidas de lectura nunca ven un valor viejo y van al
-  primario; luego las lecturas, recorridos y blobs van a la réplica; con la replicación en pausa lo escrito por
-  este nodo se sigue leyendo bien, lo escrito por otro nodo se ve viejo (prueba de que leyó la réplica) hasta
-  que pasan los 5 s y entonces va al primario; al reanudar, vuelve a la réplica; con la réplica parada todo
-  sigue funcionando con el primario y, al arrancarla, vuelve a usarse.
+- Integración con servidores reales (`pruebas_reales.rs`; `bezenti/pruebas/postgres_replica.sh` levanta un
+  PostgreSQL primario y una réplica física sin root, y `bezenti/pruebas/mariadb_replica.sh` un MariaDB primario y
+  una réplica GTID, también sin root; el mismo escenario para los dos): 150 escrituras seguidas de lectura nunca
+  ven un valor viejo y van al primario; luego las lecturas, recorridos y blobs van a la réplica; con la
+  replicación en pausa lo escrito por este nodo se sigue leyendo bien, lo escrito por otro nodo se ve viejo
+  (prueba de que leyó la réplica) hasta que pasan los 5 s y entonces va al primario; al reanudar, vuelve a la
+  réplica; con la réplica parada todo sigue funcionando con el primario y, al arrancarla, vuelve a usarse. En la
+  CI corre la de PostgreSQL (la de MariaDB, donde haya binarios de MariaDB).
 - Servidor completo (`bezenti/pruebas/replicas_reparto.py`): almacén de blobs repartido en tres directorios
   (30 correos por SMTP leídos íntegros por IMAP y JMAP, reparto entre los tres, ningún blob repetido, siguen
   tras reiniciar) y, con `--pg`, almacén de datos PostgreSQL con réplica (correo leído al momento, marcas JMAP
@@ -169,6 +171,6 @@ Garantía y límites (documentados a propósito):
 
 ## 6. Pendiente
 
-- Probar MySQL/MariaDB con réplicas reales (el código compila y la comparación de GTID tiene pruebas unitarias).
+- Probar MySQL (no MariaDB) con réplicas reales: la posición por `gtid_executed` solo tiene pruebas unitarias.
 - Probar el almacén en memoria repartido con varios Redis reales (las pruebas usan miembros locales).
 - Un registro de escrituras compartido entre nodos (hoy la garantía de 2.2 es por nodo).
