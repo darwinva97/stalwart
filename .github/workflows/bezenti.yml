@@ -1,0 +1,78 @@
+# Edición bezenti: comprobaciones de la sala limpia, compilación, pruebas y publicación.
+name: bezenti
+
+on:
+  push:
+    branches: [bezenti]
+    tags: ["bezenti-v*"]
+  pull_request:
+    branches: [bezenti]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FEATURES: "postgres s3 sqlite rocks redis bezenti"
+  TARGET: x86_64-unknown-linux-gnu
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+
+jobs:
+  sala-limpia:
+    name: Sala limpia (sin código SEL, código nuevo AGPL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: No queda código SEL en el árbol
+        run: python3 -I bezenti/sala-limpia.py --comprobar .
+      - name: Nunca se activa la feature enterprise
+        run: |
+          ! grep -rnE -- '--features[^\n]*enterprise|features *= *\[[^]]*"enterprise"' .github/ Dockerfile* 2>/dev/null
+      - name: Todo archivo .rs nuevo respecto a limpio-upstream es AGPL-3.0-only
+        run: |
+          git fetch -q origin limpio-upstream:limpio-upstream || true
+          nuevos=$(git diff --name-only --diff-filter=A limpio-upstream...HEAD -- '*.rs' || true)
+          mal=""
+          for f in $nuevos; do
+            head -8 "$f" | grep -q "SPDX-License-Identifier: AGPL-3.0-only$" || mal="$mal $f"
+          done
+          [ -z "$mal" ] || { echo "Sin cabecera AGPL-3.0-only:$mal"; exit 1; }
+          echo "archivos nuevos revisados: $(echo $nuevos | wc -w)"
+
+  compilar:
+    name: Compilar y probar
+    needs: sala-limpia
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends build-essential clang cmake pkg-config libssl-dev protobuf-compiler
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Compilar (release)
+        run: cargo build --release --manifest-path crates/main/Cargo.toml --no-default-features --features "$FEATURES"
+      - name: Pruebas de la edición bezenti
+        run: |
+          # Cada fase añade aquí sus crates/pruebas. Fase 0: solo que compila.
+          if [ -f bezenti/pruebas.sh ]; then bash bezenti/pruebas.sh; else echo "sin pruebas propias todavía"; fi
+      - name: Empaquetar
+        if: startsWith(github.ref, 'refs/tags/bezenti-v') || github.event_name == 'workflow_dispatch'
+        run: |
+          tar czf stalwart-bezenti-$TARGET.tar.gz -C target/release stalwart
+          sha256sum stalwart-bezenti-$TARGET.tar.gz > stalwart-bezenti-$TARGET.tar.gz.sha256
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/bezenti-v')
+        with:
+          prerelease: true
+          name: Stalwart edición bezenti ${{ github.ref_name }}
+          body: |
+            Stalwart 100 % AGPL-3.0, sin código SEL, con funciones Enterprise reimplementadas desde cero (ver bezenti/README.md).
+            Features: `${{ env.FEATURES }}`.
+          files: |
+            stalwart-bezenti-${{ env.TARGET }}.tar.gz
+            stalwart-bezenti-${{ env.TARGET }}.tar.gz.sha256

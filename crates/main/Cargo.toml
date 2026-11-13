@@ -29,7 +29,7 @@ common = { path = "../common" }
 email = { path = "../email" }
 directory = { path = "../directory" }
 http = { path = "../http" }
-scim = { path = "../scim" }
+scim = { path = "../scim", optional = true }   # bezenti: su código era 100 % SEL y está vacío; nuestra versión SCIM será otro crate
 dav = { path = "../dav" }
 groupware = { path = "../groupware" }
 services = { path = "../services" }
@@ -50,6 +50,8 @@ tikv-jemallocator = "0.7"
 tikv-jemallocator = { version = "0.7", features = ["unprefixed_malloc_on_supported_platforms"] }
 
 [features]
+# bezenti: funciones de la edición Enterprise reimplementadas como AGPL (ver bezenti/README.md). Se irá llenando por fases.
+bezenti = []
 #default = ["sqlite", "postgres", "mysql", "rocks", "s3", "redis", "azure", "nats", "enterprise", "zenoh", "kafka"]
 #default = ["sqlite", "postgres", "mysql", "rocks", "s3", "redis", "azure", "nats", "enterprise"]
 default = ["rocks", "enterprise", "keep"]
