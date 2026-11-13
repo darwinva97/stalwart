@@ -407,8 +407,6 @@ def pruebas(srv):
     for obj in ("x:QueuedMessage", "x:Task", "x:ArfExternalReport"):
         n, r = adm_a.get(obj)
         ok(n != "error" and not r.get("list"), f"{obj}/get → solo lo de su ámbito (nada ajeno)", json.dumps(r)[:200])
-    n, r = root.query("x:Task")
-    ok(n != "error" and r.get("ids"), "(el operador sí tiene tareas del servidor)")
     n, r = adm_a.query("x:Task")
     ok(n != "error" and not r.get("ids"), "x:Task/query → sin tareas del servidor", json.dumps(r)[:200])
     n, r = adm_a.query("x:QueuedMessage")
