@@ -72,12 +72,16 @@ impl RegistryQuery for Server {
             | ObjectType::DmarcExternalReport
             | ObjectType::TlsExternalReport
             | ObjectType::DmarcInternalReport
-            | ObjectType::TlsInternalReport => report_query(RegistryQueryResponse {
-                server: self,
-                access_token,
-                object_type,
-                request,
-            })
+            | ObjectType::TlsInternalReport => report_query(
+                RegistryQueryResponse {
+                    server: self,
+                    access_token,
+                    object_type,
+                    request,
+                },
+                #[cfg(feature = "bezenti")]
+                &tenant,
+            )
             .await
             .and_then(|response| response.build()),
 
@@ -91,12 +95,16 @@ impl RegistryQuery for Server {
             .await
             .and_then(|response| response.build()),
 
-            ObjectType::QueuedMessage => queued_message_query(RegistryQueryResponse {
-                server: self,
-                access_token,
-                object_type,
-                request,
-            })
+            ObjectType::QueuedMessage => queued_message_query(
+                RegistryQueryResponse {
+                    server: self,
+                    access_token,
+                    object_type,
+                    request,
+                },
+                #[cfg(feature = "bezenti")]
+                &tenant,
+            )
             .await
             .and_then(|response| response.build()),
 
@@ -129,6 +137,21 @@ impl RegistryQuery for Server {
             .await
             .and_then(|response| response.build()),
 
+            // bezenti (fase 8): un usuario de inquilino solo ve las cuentas borradas de su ámbito.
+            #[cfg(feature = "bezenti")]
+            ObjectType::Task if tenant.scope.is_some() => {
+                crate::registry::archivo::tenant_task_query(
+                    RegistryQueryResponse {
+                        server: self,
+                        access_token,
+                        object_type,
+                        request,
+                    },
+                    tenant.scope.as_ref().unwrap(),
+                )
+                .await
+                .and_then(|response| response.build())
+            }
             ObjectType::Task => task_query(RegistryQueryResponse {
                 server: self,
                 access_token,

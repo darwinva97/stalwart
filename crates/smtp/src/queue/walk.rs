@@ -113,6 +113,26 @@ pub async fn walk_queues(
     walk: QueueWalk,
     mut visit: impl FnMut(&QueueEvent) -> WalkStep + Sync + Send,
 ) -> trc::Result<()> {
+    walk_events(store, walk, false, |event, _| visit(event)).await
+}
+
+/// bezenti (fase 8): como [`walk_queues`], pero también da el valor de cada evento (el inquilino del mensaje, que
+/// usa el reparto justo de la cola).
+#[cfg(feature = "bezenti")]
+pub async fn walk_queues_with_values(
+    store: &Store,
+    walk: QueueWalk,
+    visit: impl FnMut(&QueueEvent, &[u8]) -> WalkStep + Sync + Send,
+) -> trc::Result<()> {
+    walk_events(store, walk, true, visit).await
+}
+
+async fn walk_events(
+    store: &Store,
+    walk: QueueWalk,
+    with_values: bool,
+    mut visit: impl FnMut(&QueueEvent, &[u8]) -> WalkStep + Sync + Send,
+) -> trc::Result<()> {
     let mut bound = Some(walk.start());
     while let Some(position) = bound.take() {
         let (from, to) = if walk.ascending {
@@ -124,35 +144,35 @@ pub async fn walk_queues(
         let mut last = None;
         let mut next = None;
         let mut is_stopped = false;
+        let mut params = IterateParams::new(key(from), key(to))
+            .set_ascending(walk.ascending)
+            .limit(walk.read_limit);
+        if !with_values {
+            params = params.no_values();
+        }
         store
-            .iterate(
-                IterateParams::new(key(from), key(to))
-                    .set_ascending(walk.ascending)
-                    .no_values()
-                    .limit(walk.read_limit),
-                |key, _| {
-                    let current = QueueEvent::deserialize(key)?;
-                    rows += 1;
-                    if let Some(skip) = walk.outside_window(&current) {
-                        next = Some(skip);
-                        return Ok(false);
+            .iterate(params, |key, value| {
+                let current = QueueEvent::deserialize(key)?;
+                rows += 1;
+                if let Some(skip) = walk.outside_window(&current) {
+                    next = Some(skip);
+                    return Ok(false);
+                }
+                match visit(&current, value) {
+                    WalkStep::Continue => {
+                        last = Some(current);
+                        Ok(true)
                     }
-                    match visit(&current) {
-                        WalkStep::Continue => {
-                            last = Some(current);
-                            Ok(true)
-                        }
-                        WalkStep::NextQueue => {
-                            next = Some(walk.next_queue(current.queue_name));
-                            Ok(false)
-                        }
-                        WalkStep::Stop => {
-                            is_stopped = true;
-                            Ok(false)
-                        }
+                    WalkStep::NextQueue => {
+                        next = Some(walk.next_queue(current.queue_name));
+                        Ok(false)
                     }
-                },
-            )
+                    WalkStep::Stop => {
+                        is_stopped = true;
+                        Ok(false)
+                    }
+                }
+            })
             .await
             .caused_by(trc::location!())?;
 

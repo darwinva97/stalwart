@@ -352,6 +352,11 @@ impl<T: SessionStream> Session<T> {
                                     (b"451 4.3.5 Unable to forward DSN, try again later.\r\n"[..])
                                         .into()
                                 }
+                                #[cfg(feature = "bezenti")]
+                                QueueOutcome::RateLimited => {
+                                    (b"451 4.7.1 Sending rate exceeded, try again later.\r\n"[..])
+                                        .into()
+                                }
                             };
                         }
                     }
@@ -924,7 +929,8 @@ impl<T: SessionStream> Session<T> {
                     .with_dkim2_verified(dkim2_verified)
                     .with_exploded(sieve_redirected)
                     .with_quotas(quotas)
-                    .with_metadata(origin.metadata()),
+                    .with_metadata(origin.metadata())
+                    .with_metadata(self.bezenti_tenant_metadata()),
             )
             .await
         {
@@ -941,7 +947,29 @@ impl<T: SessionStream> Session<T> {
             QueueOutcome::Failed => {
                 (b"451 4.3.5 Unable to accept message at this time.\r\n"[..]).into()
             }
+            // bezenti (fase 8): ritmo de envío del inquilino.
+            #[cfg(feature = "bezenti")]
+            QueueOutcome::RateLimited => {
+                (b"451 4.7.1 Sending rate exceeded for your organization, try again later.\r\n"[..])
+                    .into()
+            }
         }
+    }
+
+    /// bezenti (fase 8): el inquilino de la cuenta autenticada (SMTP AUTH o envío JMAP) se apunta en el mensaje.
+    #[cfg(feature = "bezenti")]
+    fn bezenti_tenant_metadata(&self) -> Option<Metadata> {
+        crate::queue::bezenti::tenant_metadata(
+            self.data
+                .authenticated_as
+                .as_ref()
+                .and_then(|account| account.account.tenant_id),
+        )
+    }
+
+    #[cfg(not(feature = "bezenti"))]
+    fn bezenti_tenant_metadata(&self) -> Option<Metadata> {
+        None
     }
 
     pub async fn build_message(

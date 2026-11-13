@@ -25,7 +25,7 @@ cambia fácil. El formato final lo pone `rustfmt`, igual que en el código origi
 | `perfil.py` → `perfil.json` | datos que el esquema no tiene, extraídos del código AGPL de la rama limpia |
 | `decisiones.json` | lo que ni el esquema ni el código libre dicen de lo de pago, decidido y razonado por nosotros |
 | `asignaciones.json` | identificadores numéricos persistidos de lo de pago (no se cambian nunca) |
-| `extensiones.json` | campos propios de la edición bezenti que el esquema oficial no tiene (fase 2: `x:Tenant.bezentiParentTenantId`, revendedores); solo en modo bezenti |
+| `extensiones.json` | campos propios de la edición bezenti que el esquema oficial no tiene (fase 2: `x:Tenant.bezentiParentTenantId`, revendedores; fase 8: `bezentiMaxQueuedMessages`, `bezentiMessageRate`, `bezentiRecipientRate`, límites de cola y de envío); solo en modo bezenti |
 | `gen_inquilino.py` | (fase 2) escribe `crates/registry/src/bezenti/inquilino_gen.rs`: leer/escribir `memberTenantId` de cualquier objeto |
 | `gen_esquema.py` | (fase 2) escribe `resources/schema/schema_bezenti.json.gz` (+ `.sha256`), el esquema que sirve `/api/schema`: completo, sin `x:Enterprise` y con las extensiones |
 | `comprobar.sh` | prueba de fidelidad (la lanza `bezenti/pruebas.sh` en la CI); también comprueba que los archivos de `gen_inquilino.py` y `gen_esquema.py` están al día |

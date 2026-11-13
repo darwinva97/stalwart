@@ -94,6 +94,46 @@ pub struct ElementoArchivado {
     pub cabeceras: Option<String>,
     #[serde(rename = "bo", default)]
     pub cuerpo: usize,
+    /// Fase 8: nombres de recurso (WebDAV) del elemento en cada contenedor de `contenedores` (eventos, contactos)
+    /// o su nombre de archivo, para restaurarlo con el mismo nombre si está libre.
+    #[serde(rename = "dn", default, skip_serializing_if = "Vec::is_empty")]
+    pub nombres: Vec<String>,
+}
+
+/// Fase 8: contenido de un elemento que se archiva.
+pub enum ContenidoArchivado {
+    /// Un blob que ya está en el almacén (archivo WebDAV, guion Sieve): solo se enlaza.
+    Blob { hash: BlobHash, tamano: u64 },
+    /// Un contenido que no vive en un blob (evento iCalendar, contacto vCard): se guarda como blob nuevo.
+    Datos(Vec<u8>),
+}
+
+tokio::task_local! {
+    /// Fase 8: ¿se archivan los borrados de esta tarea? Lo ponen las órdenes de borrar de los usuarios (WebDAV
+    /// `DELETE`, JMAP `/set` y ManageSieve `DELETESCRIPT`), no los movimientos ni las limpiezas del servidor, que
+    /// usan las mismas funciones de borrado por debajo.
+    static ARCHIVAR_BORRADOS: bool;
+}
+
+/// Fase 8: ejecuta `fut` archivando los archivos, eventos, contactos y guiones que borre.
+pub async fn con_archivo<F: std::future::Future>(fut: F) -> F::Output {
+    ARCHIVAR_BORRADOS.scope(true, fut).await
+}
+
+/// Fase 8: ¿hay que archivar lo que se borra ahora?
+pub fn archivar_borrados() -> bool {
+    ARCHIVAR_BORRADOS.try_with(|v| *v).unwrap_or(false)
+}
+
+/// Fase 8: primera línea de una propiedad de texto (iCalendar o vCard, p. ej. `SUMMARY` o `FN`), sin parámetros.
+pub fn propiedad_texto(texto: &str, nombre: &str) -> Option<String> {
+    texto.lines().find_map(|linea| {
+        let (clave, valor) = linea.split_once(':')?;
+        let clave = clave.split(';').next()?;
+        clave
+            .eq_ignore_ascii_case(nombre)
+            .then(|| valor.trim().replace("\\,", ",").replace("\\;", ";"))
+    })
 }
 
 /// Lo que se apunta al borrar un mensaje y se pierde con el borrado: dónde estaba y con qué etiquetas.
@@ -133,6 +173,15 @@ impl ElementoArchivado {
         self.cabeceras = Some(STANDARD.encode(cabeceras));
         self.cuerpo = cuerpo;
         self
+    }
+
+    /// Fase 8: las cabeceras completas guardadas aparte (las del blob más las que añadió el servidor), si las hay.
+    /// El mensaje íntegro es `cabeceras + blob[cuerpo..]`.
+    pub fn cabeceras_servidor(&self) -> Option<Vec<u8>> {
+        use encodify::base64::STANDARD;
+        self.cabeceras
+            .as_deref()
+            .and_then(|c| STANDARD.decode(c).ok())
     }
 
     /// El mensaje íntegro a partir del blob archivado.
@@ -411,6 +460,47 @@ impl Server {
         let item_id = self.registry().assign_id();
         item.escribir(batch, item_id);
         Ok(item_id)
+    }
+
+    /// Fase 8: archiva en `batch` un archivo, evento, contacto o guion que se borra (si el archivo está activado y
+    /// quien borra es un usuario, ver [`con_archivo`]). `item` lleva el tipo, la cuenta, el nombre y lo necesario
+    /// para restaurarlo; aquí se ponen las fechas, el tamaño y el blob.
+    pub async fn archive_deleted_item(
+        &self,
+        batch: &mut BatchBuilder,
+        mut item: ElementoArchivado,
+        contenido: ContenidoArchivado,
+    ) -> trc::Result<()> {
+        let Some(retention) = self.archive_retention().filter(|_| archivar_borrados()) else {
+            return Ok(());
+        };
+        let ahora = store::write::now();
+        item.archivado = ahora;
+        item.hasta = ahora + retention;
+        match contenido {
+            ContenidoArchivado::Blob { hash, tamano } => {
+                item.tamano = tamano;
+                item = item.con_hash(&hash);
+            }
+            ContenidoArchivado::Datos(datos) => {
+                // El blob se reserva unos minutos y se confirma con el borrado: si el borrado falla, se purga solo.
+                let (hash, reserva) = self
+                    .hold_blob(
+                        item.account_id,
+                        BlobHash::generate(&datos),
+                        &datos,
+                        600,
+                        &self.core.blob.file,
+                    )
+                    .await
+                    .caused_by(trc::location!())?;
+                item.tamano = datos.len() as u64;
+                item = item.con_hash(&hash);
+                reserva.release(batch);
+            }
+        }
+        self.archive_item_create(batch, item).await?;
+        Ok(())
     }
 
     /// Lee y borra (en `batch`) el «pendiente de archivar» de un mensaje.

@@ -291,6 +291,16 @@ impl AnalyzeReport for Server {
                                 report: report.into(),
                             };
                             // [fragmento SEL eliminado: 15 líneas]
+                            // bezenti (fase 8): el informe es del inquilino del dominio al que se refiere.
+                            #[cfg(feature = "bezenti")]
+                            {
+                                report.member_tenant_id = crate::reporting::bezenti::report_tenant(
+                                    &core,
+                                    report.domains().map(str::to_string).collect(),
+                                    report.to.as_slice(),
+                                )
+                                .await;
+                            }
                             report.write_ops(&mut batch, item_id, true);
                         }
                         Format::Tls(report) => {
@@ -308,6 +318,16 @@ impl AnalyzeReport for Server {
                                 report: report.into(),
                             };
                             // [fragmento SEL eliminado: 15 líneas]
+                            // bezenti (fase 8): el informe es del inquilino del dominio al que se refiere.
+                            #[cfg(feature = "bezenti")]
+                            {
+                                report.member_tenant_id = crate::reporting::bezenti::report_tenant(
+                                    &core,
+                                    report.domains().map(str::to_string).collect(),
+                                    report.to.as_slice(),
+                                )
+                                .await;
+                            }
                             report.write_ops(&mut batch, item_id, true);
                         }
                         Format::Arf(report) => {
@@ -325,6 +345,16 @@ impl AnalyzeReport for Server {
                                 report: report.into(),
                             };
                             // [fragmento SEL eliminado: 15 líneas]
+                            // bezenti (fase 8): el informe es del inquilino del dominio al que se refiere.
+                            #[cfg(feature = "bezenti")]
+                            {
+                                report.member_tenant_id = crate::reporting::bezenti::report_tenant(
+                                    &core,
+                                    report.domains().map(str::to_string).collect(),
+                                    report.to.as_slice(),
+                                )
+                                .await;
+                            }
                             report.write_ops(&mut batch, item_id, true);
                         }
                     }

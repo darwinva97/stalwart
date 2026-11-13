@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
+#[cfg(not(feature = "bezenti"))]
+use super::walk::walk_queues;
 use super::{
     Message, QueueId, QueuedMessage, Status,
-    walk::{QueueWalk, WalkStep, walk_queues},
+    walk::{QueueWalk, WalkStep},
 };
 use crate::queue::{
     Recipient,
@@ -61,6 +63,9 @@ struct Tracked {
     due: u64,
     revision: u64,
     state: TrackedState,
+    /// bezenti (fase 8): grupo de reparto (inquilino del mensaje).
+    #[cfg(feature = "bezenti")]
+    group: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -85,6 +90,10 @@ struct ScanCursor {
     taken: usize,
     last_due: u64,
     end: ScanEnd,
+    /// bezenti (fase 8): mensajes listos encontrados que aún no se siguen; al acabar se eligen por turnos entre
+    /// inquilinos (`bezenti_select`).
+    #[cfg(feature = "bezenti")]
+    candidates: Vec<(u64, QueueId, u32)>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -169,7 +178,14 @@ impl Queue {
                             let now = now();
                             for event in events {
                                 virtual_queue(&mut self.queues, event.queue_name, &server)
-                                    .add_event(event.queue_id, event.due, self.revision, now);
+                                    .add_event(
+                                        event.queue_id,
+                                        event.due,
+                                        self.revision,
+                                        now,
+                                        #[cfg(feature = "bezenti")]
+                                        event.group,
+                                    );
                             }
                         }
                         QueueEvent::Refresh(QueueRefresh::Queues(names)) => {
@@ -309,41 +325,51 @@ impl Queue {
         let queues = &mut self.queues;
         let mut walked = vec![false; queues.len()];
         let mut current: Option<(usize, Option<ScanCursor>)> = None;
-        let result = walk_queues(server.store(), QueueWalk::ascending(read_limit), |event| {
-            let name = QueueName::from(event.queue_name);
-            if current
-                .as_ref()
-                .is_none_or(|(idx, _)| queues[*idx].name != name)
-            {
-                if let Some((idx, Some(cursor))) = current.take() {
-                    let queue = &mut queues[idx];
-                    queue.end_scan(cursor, now, now_timestamp);
-                    queue.fill(server);
-                }
-                let idx = queue_index(queues, name, server);
-                walked.resize(queues.len(), false);
-                walked[idx] = true;
-                current = Some((idx, queues[idx].begin_scan(revision, now)));
-            }
-
-            match &mut current {
-                Some((idx, cursor @ Some(_))) => {
-                    let queue = &mut queues[*idx];
-                    if let Some(open) = cursor
-                        && queue.visit(open, event, now_timestamp)
-                    {
-                        WalkStep::Continue
-                    } else {
-                        if let Some(open) = cursor.take() {
-                            queue.end_scan(open, now, now_timestamp);
-                            queue.fill(server);
-                        }
-                        WalkStep::NextQueue
+        #[cfg(feature = "bezenti")]
+        let read_limit = read_limit + super::bezenti::scan_window() * queues.len().max(1);
+        #[cfg(feature = "bezenti")]
+        let walk_fn = super::walk::walk_queues_with_values;
+        #[cfg(not(feature = "bezenti"))]
+        let walk_fn = walk_with_empty_values;
+        let result = walk_fn(
+            server.store(),
+            QueueWalk::ascending(read_limit),
+            |event, value| {
+                let name = QueueName::from(event.queue_name);
+                if current
+                    .as_ref()
+                    .is_none_or(|(idx, _)| queues[*idx].name != name)
+                {
+                    if let Some((idx, Some(cursor))) = current.take() {
+                        let queue = &mut queues[idx];
+                        queue.end_scan(cursor, now, now_timestamp);
+                        queue.fill(server);
                     }
+                    let idx = queue_index(queues, name, server);
+                    walked.resize(queues.len(), false);
+                    walked[idx] = true;
+                    current = Some((idx, queues[idx].begin_scan(revision, now)));
                 }
-                _ => WalkStep::NextQueue,
-            }
-        })
+
+                match &mut current {
+                    Some((idx, cursor @ Some(_))) => {
+                        let queue = &mut queues[*idx];
+                        if let Some(open) = cursor
+                            && queue.visit(open, event, value, now_timestamp)
+                        {
+                            WalkStep::Continue
+                        } else {
+                            if let Some(open) = cursor.take() {
+                                queue.end_scan(open, now, now_timestamp);
+                                queue.fill(server);
+                            }
+                            WalkStep::NextQueue
+                        }
+                    }
+                    _ => WalkStep::NextQueue,
+                }
+            },
+        )
         .await;
 
         let is_failed = match result {
@@ -379,6 +405,15 @@ impl Queue {
             self.walk_at = now + SCAN_RETRY_INTERVAL;
         }
     }
+}
+
+#[cfg(not(feature = "bezenti"))]
+async fn walk_with_empty_values(
+    store: &store::Store,
+    walk: QueueWalk,
+    mut visit: impl FnMut(&store::write::QueueEvent, &[u8]) -> WalkStep + Sync + Send,
+) -> trc::Result<()> {
+    walk_queues(store, walk, |event| visit(event, &[])).await
 }
 
 fn queue_index(queues: &mut Vec<VirtualQueueState>, name: QueueName, server: &Server) -> usize {
@@ -489,8 +524,19 @@ impl VirtualQueueState {
         }
     }
 
-    fn add_event(&mut self, queue_id: QueueId, due: u64, revision: u64, now: u64) {
+    fn add_event(
+        &mut self,
+        queue_id: QueueId,
+        due: u64,
+        revision: u64,
+        now: u64,
+        #[cfg(feature = "bezenti")] group: u32,
+    ) {
         let has_room = self.ready.len() < self.ready_capacity();
+        // bezenti (fase 8): un mensaje de un inquilino que no tiene nada en marcha en esta cola entra aunque la
+        // cola esté llena de mensajes de otro, para que un envío masivo no retrase a los demás.
+        #[cfg(feature = "bezenti")]
+        let has_room = has_room || !self.bezenti_group_is_active(group);
         if due > now {
             self.next_due = self.next_due.min(due);
         } else if let Entry::Vacant(entry) = self.tracked.entry(queue_id) {
@@ -499,6 +545,8 @@ impl VirtualQueueState {
                     due,
                     revision,
                     state: TrackedState::Ready,
+                    #[cfg(feature = "bezenti")]
+                    group,
                 });
                 if self.ready.is_empty() {
                     self.ready_at = Instant::now();
@@ -574,15 +622,25 @@ impl VirtualQueueState {
 
     fn fill(&mut self, server: &Server) {
         let mut rng = rand::rng();
+        // bezenti (fase 8): de los listos sale primero el del inquilino con menos entregas en marcha.
+        #[cfg(feature = "bezenti")]
+        let mut in_flight_by_group = self.bezenti_in_flight_by_group();
         while self.in_flight < self.max_in_flight && !self.ready.is_empty() {
-            let queue_id = self
-                .ready
-                .swap_remove(rng.random_range(0..self.ready.len()));
+            #[cfg(feature = "bezenti")]
+            let pos =
+                self.bezenti_next_ready(&in_flight_by_group, rng.random_range(0..self.ready.len()));
+            #[cfg(not(feature = "bezenti"))]
+            let pos = rng.random_range(0..self.ready.len());
+            let queue_id = self.ready.swap_remove(pos);
             if let Some(tracked) = self.tracked.get_mut(&queue_id)
                 && tracked.state == TrackedState::Ready
             {
                 tracked.state = TrackedState::InFlight;
                 self.in_flight += 1;
+                #[cfg(feature = "bezenti")]
+                {
+                    *in_flight_by_group.entry(tracked.group).or_default() += 1;
+                }
                 QueuedMessage {
                     due: tracked.due,
                     queue_id,
@@ -617,7 +675,8 @@ impl VirtualQueueState {
             self.ready_at = now;
         }
 
-        Some(ScanCursor {
+        #[cfg_attr(not(feature = "bezenti"), allow(unused_mut))]
+        let mut cursor = ScanCursor {
             revision,
             want,
             limit: self.tracked.len() + want + 1,
@@ -625,13 +684,22 @@ impl VirtualQueueState {
             taken: 0,
             last_due: 0,
             end: ScanEnd::Exhausted,
-        })
+            #[cfg(feature = "bezenti")]
+            candidates: Vec::new(),
+        };
+        // bezenti (fase 8): se mira más allá para encontrar mensajes de otros inquilinos detrás de un envío masivo.
+        #[cfg(feature = "bezenti")]
+        {
+            cursor.limit += super::bezenti::scan_window();
+        }
+        Some(cursor)
     }
 
     fn visit(
         &mut self,
         cursor: &mut ScanCursor,
         event: &store::write::QueueEvent,
+        #[cfg_attr(not(feature = "bezenti"), allow(unused_variables))] value: &[u8],
         now_timestamp: u64,
     ) -> bool {
         cursor.rows += 1;
@@ -654,6 +722,17 @@ impl VirtualQueueState {
                     _ => false,
                 }
             }
+            // bezenti (fase 8): los nuevos se apuntan como candidatos y se eligen al final por turnos.
+            #[cfg(feature = "bezenti")]
+            Entry::Vacant(_) => {
+                cursor.candidates.push((
+                    event.due,
+                    event.queue_id,
+                    super::bezenti::event_group(value),
+                ));
+                false
+            }
+            #[cfg(not(feature = "bezenti"))]
             Entry::Vacant(entry) => {
                 entry.insert(Tracked {
                     due: event.due,
@@ -680,8 +759,19 @@ impl VirtualQueueState {
         true
     }
 
-    fn end_scan(&mut self, cursor: ScanCursor, now: Instant, now_timestamp: u64) {
+    fn end_scan(
+        &mut self,
+        #[cfg_attr(not(feature = "bezenti"), allow(unused_mut))] mut cursor: ScanCursor,
+        now: Instant,
+        now_timestamp: u64,
+    ) {
+        #[cfg(feature = "bezenti")]
+        let has_leftovers = self.bezenti_select(&mut cursor);
         self.finish_scan(cursor.end, cursor.revision, now, now_timestamp);
+        #[cfg(feature = "bezenti")]
+        if has_leftovers {
+            self.has_more = true;
+        }
     }
 
     async fn scan(&mut self, server: &Server, revision: u64, now: Instant, now_timestamp: u64) {
@@ -705,18 +795,18 @@ impl VirtualQueueState {
             },
         )));
 
+        let params = IterateParams::new(from_key, to_key)
+            .ascending()
+            .limit(cursor.limit);
+        // bezenti (fase 8): el valor de cada evento lleva el inquilino del mensaje.
+        #[cfg(not(feature = "bezenti"))]
+        let params = params.no_values();
         let result = server
             .store()
-            .iterate(
-                IterateParams::new(from_key, to_key)
-                    .ascending()
-                    .no_values()
-                    .limit(cursor.limit),
-                |key, _| {
-                    let event = store::write::QueueEvent::deserialize(key)?;
-                    Ok(self.visit(&mut cursor, &event, now_timestamp))
-                },
-            )
+            .iterate(params, |key, value| {
+                let event = store::write::QueueEvent::deserialize(key)?;
+                Ok(self.visit(&mut cursor, &event, value, now_timestamp))
+            })
             .await;
 
         if let Err(err) = result {
@@ -777,6 +867,111 @@ impl VirtualQueueState {
             self.ready.retain(|queue_id| tracked.contains_key(queue_id));
         }
         self.wake_at = wake_at;
+    }
+}
+
+/// bezenti (fase 8): reparto justo de los hilos de entrega de cada cola virtual entre inquilinos
+/// (`bezenti/especificaciones/multi-inquilino.md`, §5).
+#[cfg(feature = "bezenti")]
+impl VirtualQueueState {
+    /// ¿Tiene el grupo algún mensaje listo o en entrega en esta cola?
+    fn bezenti_group_is_active(&self, group: u32) -> bool {
+        self.tracked.values().any(|tracked| {
+            tracked.group == group
+                && matches!(tracked.state, TrackedState::Ready | TrackedState::InFlight)
+        })
+    }
+
+    fn bezenti_in_flight_by_group(&self) -> AHashMap<u32, usize> {
+        let mut counts = AHashMap::new();
+        for tracked in self.tracked.values() {
+            if tracked.state == TrackedState::InFlight {
+                *counts.entry(tracked.group).or_default() += 1;
+            }
+        }
+        counts
+    }
+
+    /// Posición en `ready` del siguiente a entregar: el del grupo con menos entregas en marcha (empezando a mirar en
+    /// `start`, que es aleatorio, para no favorecer siempre al mismo dentro de un grupo).
+    fn bezenti_next_ready(&self, in_flight: &AHashMap<u32, usize>, start: usize) -> usize {
+        let len = self.ready.len();
+        let mut best = (start, usize::MAX);
+        for offset in 0..len {
+            let pos = (start + offset) % len;
+            let group = self
+                .tracked
+                .get(&self.ready[pos])
+                .map_or(super::bezenti::NO_TENANT, |tracked| tracked.group);
+            let count = in_flight.get(&group).copied().unwrap_or(0);
+            if count < best.1 {
+                best = (pos, count);
+                if count == 0 {
+                    break;
+                }
+            }
+        }
+        best.0
+    }
+
+    /// Elige entre los candidatos de una búsqueda los que pasan a estar listos, por turnos entre grupos y
+    /// empezando por el que menos tiene ya en marcha (dentro de cada grupo, por orden de vencimiento). Devuelve
+    /// si han quedado candidatos sin elegir.
+    fn bezenti_select(&mut self, cursor: &mut ScanCursor) -> bool {
+        if cursor.candidates.is_empty() {
+            return false;
+        }
+        let mut active: AHashMap<u32, usize> = AHashMap::new();
+        for tracked in self.tracked.values() {
+            if matches!(tracked.state, TrackedState::Ready | TrackedState::InFlight) {
+                *active.entry(tracked.group).or_default() += 1;
+            }
+        }
+        let mut by_group: AHashMap<u32, std::collections::VecDeque<(u64, QueueId)>> =
+            AHashMap::new();
+        for (due, queue_id, group) in cursor.candidates.drain(..) {
+            by_group
+                .entry(group)
+                .or_default()
+                .push_back((due, queue_id));
+        }
+        let want = cursor.want.saturating_sub(cursor.taken);
+        let mut taken = 0;
+        while taken < want {
+            let Some(group) = by_group
+                .iter()
+                .filter(|(_, pending)| !pending.is_empty())
+                .min_by_key(|(group, pending)| {
+                    (
+                        active.get(*group).copied().unwrap_or(0),
+                        pending.front().map(|(due, _)| *due),
+                    )
+                })
+                .map(|(group, _)| *group)
+            else {
+                break;
+            };
+            let Some((due, queue_id)) = by_group.get_mut(&group).and_then(|p| p.pop_front()) else {
+                break;
+            };
+            self.tracked.insert(
+                queue_id,
+                Tracked {
+                    due,
+                    revision: cursor.revision,
+                    state: TrackedState::Ready,
+                    group,
+                },
+            );
+            if self.ready.is_empty() {
+                self.ready_at = Instant::now();
+            }
+            self.ready.push(queue_id);
+            *active.entry(group).or_default() += 1;
+            taken += 1;
+        }
+        cursor.taken += taken;
+        by_group.values().any(|pending| !pending.is_empty())
     }
 }
 

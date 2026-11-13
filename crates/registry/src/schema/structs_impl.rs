@@ -69189,6 +69189,20 @@ impl ObjectImpl for Tenant {
                 errors.push(ValidationError::required(Property::BezentiParentTenantId));
             }
         }
+        if let Some(value) = &self.bezenti_max_queued_messages {
+            if *value < 1 {
+                errors.push(ValidationError::min_value(
+                    Property::BezentiMaxQueuedMessages,
+                    1,
+                ));
+            }
+        }
+        if let Some(value) = &self.bezenti_message_rate {
+            value.validate(errors);
+        }
+        if let Some(value) = &self.bezenti_recipient_rate {
+            value.validate(errors);
+        }
         errors.len() == neb
     }
 
@@ -69213,7 +69227,16 @@ impl Pickle for Tenant {
         if self.bezenti_parent_tenant_id.is_some() {
             bitmap |= 1 << 1;
         }
-        let block = crate::pickle::begin_block(out, 8, 2, bitmap);
+        if self.bezenti_max_queued_messages.is_some() {
+            bitmap |= 1 << 2;
+        }
+        if self.bezenti_message_rate.is_some() {
+            bitmap |= 1 << 3;
+        }
+        if self.bezenti_recipient_rate.is_some() {
+            bitmap |= 1 << 4;
+        }
+        let block = crate::pickle::begin_block(out, 11, 5, bitmap);
         self.name.pickle(out);
         self.created_at.pickle(out);
         self.used_disk_quota.pickle(out);
@@ -69224,6 +69247,15 @@ impl Pickle for Tenant {
         self.permissions.pickle(out);
         self.quotas.pickle(out);
         if let Some(value) = &self.bezenti_parent_tenant_id {
+            value.pickle(out);
+        }
+        if let Some(value) = &self.bezenti_max_queued_messages {
+            value.pickle(out);
+        }
+        if let Some(value) = &self.bezenti_message_rate {
+            value.pickle(out);
+        }
+        if let Some(value) = &self.bezenti_recipient_rate {
             value.pickle(out);
         }
         crate::pickle::end_block(out, block);
@@ -69282,6 +69314,33 @@ impl Pickle for Tenant {
         } else {
             Default::default()
         };
+        let field8: Option<u64> = if block.has(8) {
+            if block.flag(2) {
+                Some(Pickle::unpickle(stream)?)
+            } else {
+                None
+            }
+        } else {
+            Default::default()
+        };
+        let field9: Option<Rate> = if block.has(9) {
+            if block.flag(3) {
+                Some(Pickle::unpickle(stream)?)
+            } else {
+                None
+            }
+        } else {
+            Default::default()
+        };
+        let field10: Option<Rate> = if block.has(10) {
+            if block.flag(4) {
+                Some(Pickle::unpickle(stream)?)
+            } else {
+                None
+            }
+        } else {
+            Default::default()
+        };
         stream.close_block(block);
         Some(Self {
             name: field0,
@@ -69292,6 +69351,9 @@ impl Pickle for Tenant {
             permissions: field5,
             quotas: field6,
             bezenti_parent_tenant_id: field7,
+            bezenti_max_queued_messages: field8,
+            bezenti_message_rate: field9,
+            bezenti_recipient_rate: field10,
         })
     }
 }
@@ -69308,6 +69370,9 @@ impl Default for Tenant {
             permissions: Default::default(),
             quotas: Default::default(),
             bezenti_parent_tenant_id: Default::default(),
+            bezenti_max_queued_messages: Default::default(),
+            bezenti_message_rate: Default::default(),
+            bezenti_recipient_rate: Default::default(),
         }
     }
 }
@@ -69319,7 +69384,7 @@ impl IntoValue for Tenant {
     }
 
     fn into_value_with(self, opts: ValueOptions) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(10);
+        let mut map = jmap_tools::Map::with_capacity(13);
         map.insert_unchecked(Property::Name, self.name.into_value_with(opts));
         map.insert_unchecked(Property::CreatedAt, self.created_at.into_value_with(opts));
         map.insert_unchecked(
@@ -69336,6 +69401,18 @@ impl IntoValue for Tenant {
         map.insert_unchecked(
             Property::BezentiParentTenantId,
             self.bezenti_parent_tenant_id.into_value_with(opts),
+        );
+        map.insert_unchecked(
+            Property::BezentiMaxQueuedMessages,
+            self.bezenti_max_queued_messages.into_value_with(opts),
+        );
+        map.insert_unchecked(
+            Property::BezentiMessageRate,
+            self.bezenti_message_rate.into_value_with(opts),
+        );
+        map.insert_unchecked(
+            Property::BezentiRecipientRate,
+            self.bezenti_recipient_rate.into_value_with(opts),
         );
         JmapValue::Object(map)
     }
@@ -69358,6 +69435,13 @@ impl RegistryJsonPropertyPatch for Tenant {
             Some(Property::Quotas) => self.quotas.patch(pointer, value),
             Some(Property::BezentiParentTenantId) => {
                 self.bezenti_parent_tenant_id.patch(pointer, value)
+            }
+            Some(Property::BezentiMaxQueuedMessages) => {
+                self.bezenti_max_queued_messages.patch(pointer, value)
+            }
+            Some(Property::BezentiMessageRate) => self.bezenti_message_rate.patch(pointer, value),
+            Some(Property::BezentiRecipientRate) => {
+                self.bezenti_recipient_rate.patch(pointer, value)
             }
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,

@@ -398,12 +398,21 @@ def pruebas(srv):
     n, r = adm_a.set("x:Domain", update={dom_a: {"logo": "https://127.0.0.1/x.png"}})
     # (la URL se acepta como dato; al servirla se aplica PublicOnly y no se descarga: ver la prueba del logo)
 
-    for obj in ("x:NetworkListener", "x:SystemSettings", "x:DataStore", "x:Tracer", "x:QueuedMessage", "x:Task", "x:Log",
-                "x:ArfExternalReport", "x:Authentication", "x:Application"):
+    for obj in ("x:NetworkListener", "x:SystemSettings", "x:DataStore", "x:Tracer", "x:Log",
+                "x:Authentication", "x:Application", "x:DmarcInternalReport"):
         n, r = adm_a.get(obj)
         ok(error_tipo(n, r, "forbidden"), f"{obj}/get (configuración del servidor) → forbidden", json.dumps(r)[:200])
+    # Fase 8: la cola, las cuentas borradas (x:Task) y los informes externos sí los ve, pero solo lo de su ámbito:
+    # aquí no hay nada suyo, así que no ve nada (ni las tareas ni la cola del servidor).
+    for obj in ("x:QueuedMessage", "x:Task", "x:ArfExternalReport"):
+        n, r = adm_a.get(obj)
+        ok(n != "error" and not r.get("list"), f"{obj}/get → solo lo de su ámbito (nada ajeno)", json.dumps(r)[:200])
+    n, r = root.query("x:Task")
+    ok(n != "error" and r.get("ids"), "(el operador sí tiene tareas del servidor)")
+    n, r = adm_a.query("x:Task")
+    ok(n != "error" and not r.get("ids"), "x:Task/query → sin tareas del servidor", json.dumps(r)[:200])
     n, r = adm_a.query("x:QueuedMessage")
-    ok(error_tipo(n, r, "forbidden"), "x:QueuedMessage/query → forbidden")
+    ok(n != "error" and not r.get("ids"), "x:QueuedMessage/query → sin mensajes ajenos", json.dumps(r)[:200])
     n, r = adm_a.set("x:NetworkListener", create={"x": {"name": "puerta", "protocol": "http", "bind": {"0.0.0.0:9": True}}})
     ok(n == "error" or "x" in (r.get("notCreated") or {}), "crear un listener → rechazado")
     n, r = adm_a.set("x:Action", create={"x": {"@type": "InvalidateCaches"}})

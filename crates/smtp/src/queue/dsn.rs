@@ -709,9 +709,17 @@ impl MessageWrapper {
         dsn_message
             .expand_and_add_recipient(self.message.return_path.as_ref(), server)
             .await;
+        // bezenti (fase 8): el aviso de entrega de un mensaje de un inquilino también es de ese inquilino.
+        #[cfg(feature = "bezenti")]
+        let tenant = super::bezenti::tenant_metadata(self.message.tenant_id());
+        #[cfg(not(feature = "bezenti"))]
+        let tenant = None;
         Some(
             dsn_message
-                .queue(signing.apply(QueueParams::new(&dsn, self.span_id, server)))
+                .queue(
+                    signing
+                        .apply(QueueParams::new(&dsn, self.span_id, server).with_metadata(tenant)),
+                )
                 .await,
         )
     }

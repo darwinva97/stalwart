@@ -332,7 +332,7 @@ impl Historial {
                 let abierto = tokio::select! {
                     lote = rx.recv() => match lote {
                         Some(lote) => {
-                            agrupador.procesar(lote, &mut listas);
+                            agrupador.procesar(lote);
                             true
                         }
                         None => false,
@@ -341,10 +341,8 @@ impl Historial {
                 };
                 let ahora = Instant::now();
                 // Al cerrar el suscriptor (recarga o parada) se guardan ya las sesiones terminadas.
-                agrupador.cerrar_vencidas(
-                    if abierto { ahora } else { ahora + GRACIA },
-                    &mut listas,
-                );
+                agrupador
+                    .cerrar_vencidas(if abierto { ahora } else { ahora + GRACIA }, &mut listas);
                 if !listas.is_empty() && (listas.len() >= LOTE || ahora >= proximo || !abierto) {
                     volcar(&self.store, std::mem::take(&mut listas)).await;
                 }
@@ -373,8 +371,11 @@ impl Historial {
 #[derive(Default)]
 struct Agrupador {
     abiertas: AHashMap<(u64, u8), EnCurso>,
-    huerfanos: AHashMap<u64, (u64, Vec<Arc<Event<EventDetails>>>)>,
+    huerfanos: AHashMap<u64, (u64, Eventos)>,
 }
+
+/// Eventos de una sesión.
+type Eventos = Vec<Arc<Event<EventDetails>>>;
 
 /// Huérfanos como mucho: sesiones distintas, eventos por sesión y segundos de espera.
 const MAX_HUERFANOS: usize = 4096;
@@ -404,9 +405,9 @@ fn tipo_fin(typ: EventType) -> Option<Tipo> {
 }
 
 impl Agrupador {
-    fn procesar(&mut self, lote: EventBatch, listas: &mut Vec<Lista>) {
+    fn procesar(&mut self, lote: EventBatch) {
         for evento in lote {
-            self.evento(evento, listas);
+            self.evento(evento);
         }
     }
 
@@ -438,7 +439,7 @@ impl Agrupador {
         self.huerfanos.retain(|_, (llegada, _)| *llegada >= limite);
     }
 
-    fn evento(&mut self, evento: Arc<Event<EventDetails>>, listas: &mut Vec<Lista>) {
+    fn evento(&mut self, evento: Arc<Event<EventDetails>>) {
         let Some(span) = evento.span_id() else {
             return;
         };
@@ -473,7 +474,7 @@ impl Agrupador {
                     self.huerfanos.insert(span, (llegada, ajenos));
                 }
                 for e in mios {
-                    self.evento(e, listas);
+                    self.evento(e);
                 }
             }
             return;
@@ -1094,17 +1095,14 @@ mod tests {
         let mut agrupador = Agrupador::default();
         let mut listas = Vec::new();
         // El encolado y el cierre llegan antes que el inicio (hilos distintos).
-        agrupador.procesar(
-            vec![
-                ev(EventType::Queue(QueueEvent::MessageQueued), k()),
-                ev(EventType::Smtp(SmtpEvent::ConnectionEnd), k()),
-                ev(EventType::Smtp(SmtpEvent::ConnectionStart), k()),
-            ],
-            &mut listas,
-        );
+        agrupador.procesar(vec![
+            ev(EventType::Queue(QueueEvent::MessageQueued), k()),
+            ev(EventType::Smtp(SmtpEvent::ConnectionEnd), k()),
+            ev(EventType::Smtp(SmtpEvent::ConnectionStart), k()),
+        ]);
         assert!(listas.is_empty(), "se espera la gracia antes de cerrar");
         // Un evento tardío (de otro hilo) tras el cierre todavía entra.
-        agrupador.procesar(vec![ev(EventType::Smtp(SmtpEvent::Ehlo), k())], &mut listas);
+        agrupador.procesar(vec![ev(EventType::Smtp(SmtpEvent::Ehlo), k())]);
         agrupador.cerrar_vencidas(Instant::now() + GRACIA, &mut listas);
         assert_eq!(listas.len(), 1);
         assert_eq!(listas[0].eventos.len(), 4);
@@ -1118,10 +1116,7 @@ mod tests {
         );
         assert!(agrupador.abiertas.is_empty() && agrupador.huerfanos.is_empty());
         // Los huérfanos que nadie adopta se olvidan.
-        agrupador.procesar(
-            vec![ev(EventType::Smtp(SmtpEvent::MailFrom), k())],
-            &mut listas,
-        );
+        agrupador.procesar(vec![ev(EventType::Smtp(SmtpEvent::MailFrom), k())]);
         assert_eq!(agrupador.huerfanos.len(), 1);
         agrupador.limpiar(50 + ESPERA_HUERFANOS + 1);
         assert!(agrupador.huerfanos.is_empty());
@@ -1143,67 +1138,64 @@ mod tests {
         let span = 0x1234_5678_9abc_def0u64;
         let mut agrupador = Agrupador::default();
         let mut listas = Vec::new();
-        agrupador.procesar(
-            vec![
-                ev(
-                    EventType::Smtp(SmtpEvent::ConnectionStart),
-                    100,
-                    vec![(Key::SpanId, Value::UInt(span))],
-                ),
-                ev(
-                    EventType::Queue(QueueEvent::MessageQueued),
-                    101,
-                    vec![
-                        (Key::SpanId, Value::UInt(span)),
-                        (Key::QueueId, Value::UInt(42)),
-                        (Key::From, Value::String("x@ext.test".into())),
-                        (
-                            Key::To,
-                            Value::Array(vec![Value::String("ana@a.test".into())]),
-                        ),
-                        (Key::Size, Value::UInt(321)),
-                    ],
-                ),
-                // Un intento de entrega con el mismo spanId que la sesión abierta (generadores distintos).
-                ev(
-                    EventType::Delivery(DeliveryEvent::AttemptStart),
-                    101,
-                    vec![(Key::SpanId, Value::UInt(span))],
-                ),
-                ev(
-                    EventType::Delivery(DeliveryEvent::Completed),
-                    101,
-                    vec![(Key::SpanId, Value::UInt(span))],
-                ),
-                ev(
-                    EventType::Smtp(SmtpEvent::Ehlo),
-                    101,
-                    vec![(Key::SpanId, Value::UInt(span))],
-                ),
-                ev(
-                    EventType::Delivery(DeliveryEvent::AttemptEnd),
-                    101,
-                    vec![(Key::SpanId, Value::UInt(span))],
-                ),
-                ev(
-                    EventType::Smtp(SmtpEvent::ConnectionEnd),
-                    102,
-                    vec![(Key::SpanId, Value::UInt(span))],
-                ),
-                // Sesión sin mensajes: no se guarda.
-                ev(
-                    EventType::Smtp(SmtpEvent::ConnectionStart),
-                    103,
-                    vec![(Key::SpanId, Value::UInt(5))],
-                ),
-                ev(
-                    EventType::Smtp(SmtpEvent::ConnectionEnd),
-                    104,
-                    vec![(Key::SpanId, Value::UInt(5))],
-                ),
-            ],
-            &mut listas,
-        );
+        agrupador.procesar(vec![
+            ev(
+                EventType::Smtp(SmtpEvent::ConnectionStart),
+                100,
+                vec![(Key::SpanId, Value::UInt(span))],
+            ),
+            ev(
+                EventType::Queue(QueueEvent::MessageQueued),
+                101,
+                vec![
+                    (Key::SpanId, Value::UInt(span)),
+                    (Key::QueueId, Value::UInt(42)),
+                    (Key::From, Value::String("x@ext.test".into())),
+                    (
+                        Key::To,
+                        Value::Array(vec![Value::String("ana@a.test".into())]),
+                    ),
+                    (Key::Size, Value::UInt(321)),
+                ],
+            ),
+            // Un intento de entrega con el mismo spanId que la sesión abierta (generadores distintos).
+            ev(
+                EventType::Delivery(DeliveryEvent::AttemptStart),
+                101,
+                vec![(Key::SpanId, Value::UInt(span))],
+            ),
+            ev(
+                EventType::Delivery(DeliveryEvent::Completed),
+                101,
+                vec![(Key::SpanId, Value::UInt(span))],
+            ),
+            ev(
+                EventType::Smtp(SmtpEvent::Ehlo),
+                101,
+                vec![(Key::SpanId, Value::UInt(span))],
+            ),
+            ev(
+                EventType::Delivery(DeliveryEvent::AttemptEnd),
+                101,
+                vec![(Key::SpanId, Value::UInt(span))],
+            ),
+            ev(
+                EventType::Smtp(SmtpEvent::ConnectionEnd),
+                102,
+                vec![(Key::SpanId, Value::UInt(span))],
+            ),
+            // Sesión sin mensajes: no se guarda.
+            ev(
+                EventType::Smtp(SmtpEvent::ConnectionStart),
+                103,
+                vec![(Key::SpanId, Value::UInt(5))],
+            ),
+            ev(
+                EventType::Smtp(SmtpEvent::ConnectionEnd),
+                104,
+                vec![(Key::SpanId, Value::UInt(5))],
+            ),
+        ]);
         agrupador.cerrar_vencidas(Instant::now() + GRACIA, &mut listas);
         assert!(agrupador.abiertas.is_empty());
         assert_eq!(listas.len(), 2);

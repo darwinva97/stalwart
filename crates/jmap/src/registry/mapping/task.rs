@@ -270,7 +270,23 @@ pub(crate) async fn task_set(
             continue;
         };
 
-        if !set.access_token.has_permission(task.permission()) {
+        // bezenti (fase 8): un usuario de inquilino solo recupera las cuentas borradas de su ámbito (para él, lo
+        // demás no existe); el permiso es el de crear cuentas (comprobado al entrar).
+        #[cfg(feature = "bezenti")]
+        let is_tenant_recovery = match &set.tenant.scope {
+            Some(scope) => {
+                if !crate::registry::archivo::tenant_can_see_task(set.server, scope, &task).await? {
+                    set.response.not_destroyed.append(id, SetError::not_found());
+                    continue;
+                }
+                true
+            }
+            None => false,
+        };
+        #[cfg(not(feature = "bezenti"))]
+        let is_tenant_recovery = false;
+
+        if !is_tenant_recovery && !set.access_token.has_permission(task.permission()) {
             set.response.not_destroyed.append(
                 id,
                 SetError::forbidden().with_description(format!(
@@ -397,6 +413,19 @@ pub(crate) async fn task_get(
     let ids = if let Some(ids) = get.ids.take() {
         ids
     } else {
+        // bezenti (fase 8): un usuario de inquilino solo ve las cuentas borradas de su ámbito.
+        #[cfg(feature = "bezenti")]
+        if let Some(scope) = &get.tenant.scope {
+            crate::registry::archivo::tenant_destroyed_accounts(get.server, scope)
+                .await?
+                .into_iter()
+                .take(get.server.core.jmap.get_max_objects)
+                .map(|(_, id)| Id::from(id))
+                .collect()
+        } else {
+            task_ids(get.server, get.server.core.jmap.get_max_objects).await?
+        }
+        #[cfg(not(feature = "bezenti"))]
         task_ids(get.server, get.server.core.jmap.get_max_objects).await?
     };
     let has_due_field = get.properties.is_empty() || get.properties.contains(&Property::Due);
@@ -412,6 +441,13 @@ pub(crate) async fn task_get(
             )))
             .await?
         {
+            #[cfg(feature = "bezenti")]
+            if let Some(scope) = &get.tenant.scope
+                && !crate::registry::archivo::tenant_can_see_task(get.server, scope, &task).await?
+            {
+                get.not_found(id);
+                continue;
+            }
             let due = task.due_timestamp();
             let mut task = task.into_value();
             if has_due_field && due != u64::MAX {

@@ -51,6 +51,9 @@ pub(crate) enum QueueOutcome {
     Queued,
     QuotaExceeded,
     Failed,
+    /// bezenti (fase 8): el inquilino del remitente ha pasado su ritmo de envío.
+    #[cfg(feature = "bezenti")]
+    RateLimited,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -408,6 +411,13 @@ pub(crate) struct QueueParams<'x, 'y> {
 impl MessageWrapper {
     #[must_use]
     pub(crate) async fn queue<'x, 'y>(mut self, mut params: QueueParams<'x, 'y>) -> QueueOutcome {
+        // bezenti (fase 8): inquilino del mensaje, ritmos de envío y contador de mensajes en cola por inquilino.
+        #[cfg(feature = "bezenti")]
+        match super::bezenti::admit(params.server, &self, &mut params.metadata).await {
+            Ok(reservations) => params.quotas.extend(reservations),
+            Err(_) => return QueueOutcome::RateLimited,
+        }
+
         // Encrypt and sign the copies of recipients with a known key
         let mut encryption = if params.server.core.email.gateway_outbound_enabled() {
             match Box::pin(params.server.encrypt_recipients(&self, &params)).await {
@@ -554,11 +564,19 @@ impl MessageWrapper {
 
         let mut events = QueuedEvents::new();
         for (queue_name, due) in self.message.next_events() {
-            batch.set(self.event_class(queue_name, due), Vec::new());
+            batch.set(
+                self.event_class(queue_name, due),
+                event_value(&self.message),
+            );
             events.push(QueuedEvent {
                 queue_name,
                 due,
                 queue_id: self.queue_id,
+                #[cfg(feature = "bezenti")]
+                group: self
+                    .message
+                    .tenant_id()
+                    .unwrap_or(super::bezenti::NO_TENANT),
             });
         }
         if !encryption.rejected.is_empty() {
@@ -859,7 +877,10 @@ impl MessageWrapper {
                 *due = std::cmp::min(*due, retry_at);
             }
             for (queue_name, due) in next_events {
-                batch.set(queue_event_class(queue_id, queue_name, due), Vec::new());
+                batch.set(
+                    queue_event_class(queue_id, queue_name, due),
+                    event_value(write.message()),
+                );
             }
             match &write {
                 QueuedWrite::Set { archiver, .. } => {
@@ -998,6 +1019,8 @@ impl MessageWrapper {
                     });
                 }
                 Metadata::Headers { .. } | Metadata::Submission { .. } => {}
+                #[cfg(feature = "bezenti")]
+                Metadata::Tenant { .. } => {}
             }
         }
 
@@ -1037,7 +1060,10 @@ impl MessageWrapper {
             batch.clear(self.event_class(queue_name, due));
         }
         for (queue_name, due) in self.message.next_events() {
-            batch.set(self.event_class(queue_name, due), Vec::new());
+            batch.set(
+                self.event_class(queue_name, due),
+                event_value(&self.message),
+            );
         }
 
         let queue_id = self.queue_id;
@@ -1136,6 +1162,8 @@ impl MessageWrapper {
                     });
                 }
                 Metadata::Headers { .. } | Metadata::Submission { .. } => {}
+                #[cfg(feature = "bezenti")]
+                Metadata::Tenant { .. } => {}
             }
         }
 
@@ -1336,6 +1364,17 @@ enum QueuedWrite {
 struct SaveMerge {
     message: Message,
     released: ReleasedQuota,
+}
+
+/// Valor de la clave de un evento de la cola. bezenti (fase 8): el inquilino del mensaje, para el reparto justo.
+#[cfg(feature = "bezenti")]
+fn event_value(message: &Message) -> Vec<u8> {
+    super::bezenti::event_value(message)
+}
+
+#[cfg(not(feature = "bezenti"))]
+fn event_value(_: &Message) -> Vec<u8> {
+    Vec::new()
 }
 
 fn queue_event_class(queue_id: QueueId, queue_name: QueueName, due: u64) -> ValueClass {

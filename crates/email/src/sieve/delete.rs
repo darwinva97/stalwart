@@ -47,6 +47,9 @@ impl SieveScriptDelete for Server {
             let script = obj_
                 .to_unarchived::<SieveScript>()
                 .caused_by(trc::location!())?;
+            // bezenti (fase 8): el guion que borra un usuario se archiva.
+            #[cfg(feature = "bezenti")]
+            crate::bezenti::archive_sieve_script(self, batch, account_id, script.inner).await?;
             batch
                 .with_account_id(account_id)
                 .with_collection(Collection::SieveScript);

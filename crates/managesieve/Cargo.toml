@@ -22,6 +22,8 @@ compact_str = "0.10.0"
 
 [features]
 enterprise = ["imap/enterprise", "jmap_proto/enterprise", "directory/enterprise", "common/enterprise", "store/enterprise", "email/enterprise", "trc/enterprise", "registry/enterprise"]
+# bezenti: edición bezenti (ver bezenti/README.md). Fase 8: los guiones borrados con DELETESCRIPT se archivan.
+bezenti = ["common/bezenti", "email/bezenti"]
 
 [lints]
 workspace = true

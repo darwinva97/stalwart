@@ -163,6 +163,8 @@ impl ReleasedQuota {
                     );
                 }
                 Metadata::Headers { .. } | Metadata::Submission { .. } | Metadata::Blob(_) => {}
+                #[cfg(feature = "bezenti")]
+                Metadata::Tenant { .. } => {}
             }
         }
     }

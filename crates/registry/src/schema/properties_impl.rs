@@ -683,7 +683,10 @@ impl EnumImpl for Property {
             b"baseDn" => Property::BaseDn,
             b"bearerToken" => Property::BearerToken,
             b"beta" => Property::Beta,
+            b"bezentiMaxQueuedMessages" => Property::BezentiMaxQueuedMessages,
+            b"bezentiMessageRate" => Property::BezentiMessageRate,
             b"bezentiParentTenantId" => Property::BezentiParentTenantId,
+            b"bezentiRecipientRate" => Property::BezentiRecipientRate,
             b"bind" => Property::Bind,
             b"bindAuthentication" => Property::BindAuthentication,
             b"bindDn" => Property::BindDn,
@@ -2790,7 +2793,13 @@ impl EnumImpl for Property {
             Property::BearerToken => "bearerToken",
             Property::Beta => "beta",
             #[cfg(feature = "bezenti")]
+            Property::BezentiMaxQueuedMessages => "bezentiMaxQueuedMessages",
+            #[cfg(feature = "bezenti")]
+            Property::BezentiMessageRate => "bezentiMessageRate",
+            #[cfg(feature = "bezenti")]
             Property::BezentiParentTenantId => "bezentiParentTenantId",
+            #[cfg(feature = "bezenti")]
+            Property::BezentiRecipientRate => "bezentiRecipientRate",
             Property::Bind => "bind",
             Property::BindAuthentication => "bindAuthentication",
             Property::BindDn => "bindDn",
@@ -3952,7 +3961,13 @@ impl EnumImpl for Property {
             482 => Some(Property::BearerToken),
             465 => Some(Property::Beta),
             #[cfg(feature = "bezenti")]
+            1078 => Some(Property::BezentiMaxQueuedMessages),
+            #[cfg(feature = "bezenti")]
+            1079 => Some(Property::BezentiMessageRate),
+            #[cfg(feature = "bezenti")]
             1056 => Some(Property::BezentiParentTenantId),
+            #[cfg(feature = "bezenti")]
+            1080 => Some(Property::BezentiRecipientRate),
             681 => Some(Property::Bind),
             555 => Some(Property::BindAuthentication),
             553 => Some(Property::BindDn),
@@ -4995,7 +5010,7 @@ impl EnumImpl for Property {
         }
     }
 
-    const COUNT: usize = 1078;
+    const COUNT: usize = 1081;
 }
 
 impl serde::Serialize for Property {

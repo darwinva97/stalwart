@@ -436,7 +436,7 @@ pub fn http_error(provider: Provider, status: u16, body: &[u8]) -> AiError {
         || lower.contains("billing")
         || lower.contains("credit balance")
         || lower.contains("spending limit");
-    let kind = if matches!(status, 401 | 402 | 403) || (billing && status != 503 && status != 529) {
+    let kind = if matches!(status, 401..=403) || (billing && status != 503 && status != 529) {
         AiErrorKind::Auth(status)
     } else {
         AiErrorKind::Http(status)

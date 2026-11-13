@@ -396,6 +396,17 @@ impl DestroyArchive<Archive<&ArchivedContactCard>> {
                     Some(content) => Some(content),
                     None => card_content(server, account_id, document_id).await?,
                 };
+                // bezenti (fase 8): un contacto que borra un usuario se archiva.
+                #[cfg(feature = "bezenti")]
+                crate::bezenti::archive_contact(
+                    server,
+                    batch,
+                    account_id,
+                    document_id,
+                    card.inner,
+                    content_.as_ref(),
+                )
+                .await?;
                 server
                     .release_or_read(
                         cleanup,
@@ -463,6 +474,16 @@ impl DestroyArchive<Archive<&ArchivedContactCard>> {
             Some(content) => Some(content),
             None => card_content(server, account_id, document_id).await?,
         };
+        #[cfg(feature = "bezenti")]
+        crate::bezenti::archive_contact(
+            server,
+            batch,
+            account_id,
+            document_id,
+            self.0.inner,
+            content_.as_ref(),
+        )
+        .await?;
         server
             .release_or_read(
                 cleanup,

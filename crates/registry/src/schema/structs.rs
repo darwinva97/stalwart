@@ -6110,6 +6110,12 @@ pub struct Tenant {
     pub quotas: VecMap<TenantStorageQuota, u64>,
     #[serde(rename = "bezentiParentTenantId")]
     pub bezenti_parent_tenant_id: Option<Id>,
+    #[serde(rename = "bezentiMaxQueuedMessages")]
+    pub bezenti_max_queued_messages: Option<u64>,
+    #[serde(rename = "bezentiMessageRate")]
+    pub bezenti_message_rate: Option<Rate>,
+    #[serde(rename = "bezentiRecipientRate")]
+    pub bezenti_recipient_rate: Option<Rate>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

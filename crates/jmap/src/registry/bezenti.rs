@@ -78,6 +78,13 @@ pub(crate) fn is_tenant_accessible(object_type: ObjectType) -> bool {
             // Historial de telemetría, filtrado por ámbito (fase 5, telemetria.md §5).
             | ObjectType::Trace
             | ObjectType::Metric
+            // Fase 8: la cola de salida (solo los mensajes de su ámbito), los informes externos de sus dominios y
+            // las cuentas borradas pendientes de destrucción (tareas `DestroyAccount` de su ámbito).
+            | ObjectType::QueuedMessage
+            | ObjectType::ArfExternalReport
+            | ObjectType::DmarcExternalReport
+            | ObjectType::TlsExternalReport
+            | ObjectType::Task
     )
 }
 
@@ -114,6 +121,50 @@ impl TenantAccess {
         } else {
             OutboundPolicy::PublicOnly
         }
+    }
+
+    /// Fase 8: ¿puede ver un mensaje de la cola cuyo inquilino es `tenant_id`? Los mensajes sin inquilino (correo
+    /// entrante, avisos del servidor) son solo del operador.
+    pub fn can_see_queued(&self, tenant_id: Option<u32>) -> bool {
+        match &self.scope {
+            None => true,
+            Some(scope) => tenant_id.is_some_and(|tenant_id| scope.contains(tenant_id)),
+        }
+    }
+
+    /// Fase 8: ¿puede ver este informe externo? (los de su ámbito; sin inquilino, solo el operador).
+    pub fn can_see_report(&self, report: &ObjectInner) -> bool {
+        match &self.scope {
+            None => true,
+            Some(scope) => report
+                .member_tenant_id()
+                .is_some_and(|tenant_id| scope.contains(tenant_id.document_id())),
+        }
+    }
+
+    /// Fase 8: ids de los informes externos de un tipo que están en el ámbito (sus ids son de 64 bits).
+    pub async fn visible_report_ids(
+        &self,
+        server: &Server,
+        object_type: ObjectType,
+    ) -> trc::Result<store::ahash::AHashSet<u64>> {
+        let mut ids = store::ahash::AHashSet::new();
+        if let Some(scope) = &self.scope {
+            for tenant_id in scope.ids() {
+                ids.extend(
+                    server
+                        .registry()
+                        .query::<Vec<Id>>(
+                            RegistryQuery::new(object_type).with_tenant(Some(*tenant_id)),
+                        )
+                        .await
+                        .caused_by(trc::location!())?
+                        .into_iter()
+                        .map(|id| id.id()),
+                );
+            }
+        }
+        Ok(ids)
     }
 
     /// ¿Puede ver este objeto? Los objetos de cuenta los filtra el código libre por `accountId`.

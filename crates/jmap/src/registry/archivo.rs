@@ -145,7 +145,18 @@ pub(crate) async fn archived_item_get<'x>(
 
     for id in ids {
         match elemento_visible(server, &vista, propia, id).await? {
-            Some(item) => get.insert(id, item.a_objeto().into_value()),
+            Some(item) => {
+                let mut objeto = item.a_objeto();
+                // Fase 8: un guion Sieve archivado enseña su texto (`contents` del esquema).
+                if let registry::schema::structs::ArchivedItem::SieveScript(guion) = &mut objeto
+                    && let Some(texto) = server
+                        .get_blob(item.blob_hash().as_slice(), 0..usize::MAX)
+                        .await?
+                {
+                    guion.contents = String::from_utf8_lossy(&texto).into_owned();
+                }
+                get.insert(id, objeto.into_value())
+            }
             None => get.not_found(id),
         }
     }
@@ -347,6 +358,22 @@ pub(crate) async fn recover_account(
         .await?
         .and_then(|domain| domain.tenant_id)
         .map(Id::from);
+    // Fase 8: la cuenta recuperada vuelve a contar para las cuotas de su inquilino (y de sus revendedores).
+    if let Some(tenant_id) = tenant_id {
+        let quota = match task.account_type {
+            AccountType::User => registry::schema::enums::TenantStorageQuota::MaxAccounts,
+            AccountType::Group => registry::schema::enums::TenantStorageQuota::MaxGroups,
+        };
+        if let Err(exceeded) = server
+            .check_tenant_object_quota(tenant_id.document_id(), quota, 1)
+            .await?
+        {
+            return Ok(Err(SetError::new(
+                jmap_proto::error::set::SetErrorType::OverQuota,
+            )
+            .with_description(exceeded.description())));
+        }
+    }
     let account = match task.account_type {
         AccountType::User => Account::User(UserAccount {
             name: task.account_name.clone(),
@@ -390,4 +417,111 @@ pub(crate) async fn recover_account(
             "Account recovery failed: the account could not be re-created (is its name in use?)",
         ))),
     }
+}
+
+/// Fase 8: ¿es esta tarea una cuenta borrada (tarea `DestroyAccount`) del ámbito del inquilino? El ámbito se mira
+/// por el dominio de la cuenta (la cuenta ya no existe; al recuperarla vuelve al inquilino de su dominio).
+pub(crate) async fn tenant_can_see_task(
+    server: &Server,
+    scope: &TenantScope,
+    task: &Task,
+) -> trc::Result<bool> {
+    let Task::DestroyAccount(task) = task else {
+        return Ok(false);
+    };
+    Ok(server
+        .domain_by_id(task.account_domain_id.document_id())
+        .await?
+        .and_then(|domain| domain.tenant_id)
+        .is_some_and(|tenant_id| scope.contains(tenant_id)))
+}
+
+/// Fase 8: las tareas `DestroyAccount` del ámbito del inquilino, `(vencimiento, id)` por orden de vencimiento.
+pub(crate) async fn tenant_destroyed_accounts(
+    server: &Server,
+    scope: &TenantScope,
+) -> trc::Result<Vec<(u64, u64)>> {
+    use registry::schema::enums::TaskType;
+    use store::{
+        IterateParams, ValueKey,
+        write::{TaskDue, TaskId, TaskQueueClass, ValueClass},
+    };
+    let mut due_ids = Vec::new();
+    server
+        .store()
+        .iterate(
+            IterateParams::new(
+                ValueKey::from(ValueClass::TaskQueue(TaskQueueClass::Due {
+                    id: TaskId::Assigned(0),
+                    typ: TaskType::DestroyAccount,
+                    due: 0,
+                })),
+                ValueKey::from(ValueClass::TaskQueue(TaskQueueClass::Due {
+                    id: TaskId::Assigned(u64::MAX),
+                    typ: TaskType::DestroyAccount,
+                    due: u64::MAX,
+                })),
+            )
+            .ascending()
+            .no_values(),
+            |key, _| {
+                let TaskDue { due, id, typ } = TaskDue::deserialize(key)?;
+                if typ == TaskType::DestroyAccount {
+                    due_ids.push((due, id));
+                }
+                Ok(true)
+            },
+        )
+        .await
+        .caused_by(trc::location!())?;
+    let mut visible = Vec::with_capacity(due_ids.len());
+    let mut seen = store::ahash::AHashSet::new();
+    for (due, id) in due_ids {
+        if !seen.insert(id) {
+            continue;
+        }
+        if let Some(task) = server
+            .store()
+            .get_value::<Task>(ValueKey::from(ValueClass::TaskQueue(
+                TaskQueueClass::Task {
+                    id: TaskId::Assigned(id),
+                },
+            )))
+            .await
+            .caused_by(trc::location!())?
+            && tenant_can_see_task(server, scope, &task).await?
+        {
+            visible.push((due, id));
+        }
+    }
+    Ok(visible)
+}
+
+/// Fase 8: `x:Task/query` de un usuario de inquilino: solo las cuentas borradas de su ámbito, por vencimiento.
+pub(crate) async fn tenant_task_query(
+    req: RegistryQueryResponse<'_>,
+    scope: &TenantScope,
+) -> trc::Result<QueryResponseBuilder> {
+    let mut entries = tenant_destroyed_accounts(req.server, scope).await?;
+    let descending = req
+        .request
+        .sort
+        .as_ref()
+        .and_then(|sort| sort.first())
+        .is_some_and(|comp| !comp.is_ascending);
+    if descending {
+        entries.reverse();
+    }
+    let mut response = QueryResponseBuilder::new(
+        entries.len(),
+        req.server.core.jmap.query_max_results,
+        State::Initial,
+        &req.request,
+    );
+    for (_, id) in entries {
+        if !response.add_id(Id::from(id)) {
+            break;
+        }
+    }
+    Ok(response)
 }

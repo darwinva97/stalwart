@@ -31,6 +31,8 @@ icu_datetime = { version = "~2.4", features = ["unstable_jiff_0_2"] }
 
 [features]
 enterprise = ["utils/enterprise", "store/enterprise", "common/enterprise", "trc/enterprise", "registry/enterprise"]
+# bezenti: edición bezenti (ver bezenti/README.md). Fase 8: archivo de archivos, eventos y contactos borrados.
+bezenti = ["common/bezenti", "registry/bezenti"]
 
 [dev-dependencies]
 

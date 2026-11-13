@@ -38,12 +38,21 @@ impl<T: SessionStream> Session<T> {
 
         let active_script_id = self.server.sieve_script_get_active_id(account_id).await?;
         if active_script_id != Some(document_id) {
-            if self
+            // bezenti (fase 8): el guion borrado se archiva.
+            #[cfg(feature = "bezenti")]
+            let deleted = common::bezenti::archivo::con_archivo(self.server.sieve_script_delete(
+                account_id,
+                document_id,
+                access_token,
+                &mut batch,
+            ))
+            .await;
+            #[cfg(not(feature = "bezenti"))]
+            let deleted = self
                 .server
                 .sieve_script_delete(account_id, document_id, access_token, &mut batch)
-                .await
-                .caused_by(trc::location!())?
-            {
+                .await;
+            if deleted.caused_by(trc::location!())? {
                 if !batch.is_empty() {
                     self.server
                         .commit_batch(batch)

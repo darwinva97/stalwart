@@ -164,6 +164,9 @@ impl DestroyArchive<Archive<&ArchivedFileNode>> {
         path: String,
         cleanup: &ContainerCleanup,
     ) -> trc::Result<()> {
+        // bezenti (fase 8): un archivo que borra un usuario se archiva.
+        #[cfg(feature = "bezenti")]
+        crate::bezenti::archive_file(server, batch, account_id, self.0.inner).await?;
         server
             .release_or_read(
                 cleanup,
@@ -250,6 +253,8 @@ impl DestroyArchive<Vec<u32>> {
                 let node = node_
                     .to_unarchived::<FileNode>()
                     .caused_by(trc::location!())?;
+                #[cfg(feature = "bezenti")]
+                crate::bezenti::archive_file(server, batch, account_id, node.inner).await?;
                 server
                     .release_or_read(
                         cleanup,

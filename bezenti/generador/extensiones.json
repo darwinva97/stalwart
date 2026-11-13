@@ -1,5 +1,5 @@
 {
- "_comentario": "Extensiones propias de la edición bezenti que NO están en el esquema de Stalwart. Solo se aplican en modo bezenti (en modo fidelidad no existen). Se usan nombres con el prefijo 'bezenti' para que nunca choquen con un campo futuro del esquema oficial. Ver especificaciones/multi-inquilino.md.",
+ "_comentario": "Extensiones propias de la edición bezenti que NO están en el esquema de Stalwart. Solo se aplican en modo bezenti (en modo fidelidad no existen). Se usan nombres con el prefijo 'bezenti' para que nunca choquen con un campo futuro del esquema oficial. Ver especificaciones/multi-inquilino.md (revendedores, §8; límites de envío y de cola, §5).",
  "campos": {
   "x:Tenant": {
    "bezentiParentTenantId": {
@@ -7,6 +7,37 @@
     "type": {
      "type": "objectId",
      "objectName": "x:Tenant",
+     "nullable": true
+    },
+    "update": "mutable",
+    "enterprise": true
+   },
+   "bezentiMaxQueuedMessages": {
+    "description": "(bezenti) Máximo de mensajes de los usuarios del inquilino que pueden estar a la vez en la cola de salida. Al llegar al límite, los envíos nuevos se aplazan con 452 4.3.1. Cuenta también lo de los inquilinos hijos. null = sin límite",
+    "type": {
+     "type": "number",
+     "format": "unsignedInteger",
+     "min": 1,
+     "nullable": true
+    },
+    "update": "mutable",
+    "enterprise": true
+   },
+   "bezentiMessageRate": {
+    "description": "(bezenti) Mensajes que los usuarios del inquilino pueden enviar por intervalo (envíos autenticados por SMTP o JMAP). Al pasarse, 451 4.7.1. Cuenta también lo de los inquilinos hijos. null = sin límite",
+    "type": {
+     "type": "object",
+     "objectName": "x:Rate",
+     "nullable": true
+    },
+    "update": "mutable",
+    "enterprise": true
+   },
+   "bezentiRecipientRate": {
+    "description": "(bezenti) Destinatarios a los que los usuarios del inquilino pueden enviar por intervalo (suma de los destinatarios de cada mensaje). Al pasarse, 451 4.7.1. Cuenta también lo de los inquilinos hijos. null = sin límite",
+    "type": {
+     "type": "object",
+     "objectName": "x:Rate",
      "nullable": true
     },
     "update": "mutable",

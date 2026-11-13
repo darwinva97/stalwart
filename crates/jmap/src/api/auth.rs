@@ -107,6 +107,15 @@ impl JmapAuthorization for AccessToken {
                     let MethodObject::Registry(object_type) = object else {
                         unreachable!()
                     };
+                    // bezenti (fase 8): un administrador de inquilino ve las cuentas borradas de su ámbito (tareas
+                    // `DestroyAccount`) con los permisos de las cuentas.
+                    #[cfg(feature = "bezenti")]
+                    if is_tenant_task(self, object_type) {
+                        Permission::SysAccountGet
+                    } else {
+                        object_type.get_permission()
+                    }
+                    #[cfg(not(feature = "bezenti"))]
                     object_type.get_permission()
                 }
             },
@@ -306,6 +315,13 @@ impl JmapAuthorization for AccessToken {
                     let MethodObject::Registry(object_type) = object else {
                         unreachable!()
                     };
+                    #[cfg(feature = "bezenti")]
+                    if is_tenant_task(self, object_type) {
+                        Permission::SysAccountQuery
+                    } else {
+                        object_type.query_permission()
+                    }
+                    #[cfg(not(feature = "bezenti"))]
                     object_type.query_permission()
                 }
             },
@@ -359,11 +375,28 @@ fn validate_set<T: JmapObject>(
     )
 }
 
+/// bezenti (fase 8): ¿es una petición de `x:Task` de un usuario de inquilino? Solo puede ver y borrar (recuperar) las
+/// tareas `DestroyAccount` de las cuentas de su ámbito, con los permisos de las cuentas en vez de los de las tareas.
+#[cfg(feature = "bezenti")]
+fn is_tenant_task(access_token: &AccessToken, object_type: ObjectType) -> bool {
+    object_type == ObjectType::Task && access_token.tenant_id().is_some()
+}
+
 fn validate_registry_set<T: JmapObject>(
     set: &SetRequest<'_, T>,
     access_token: &AccessToken,
     object_type: ObjectType,
 ) -> trc::Result<()> {
+    // bezenti (fase 8): recuperar una cuenta borrada es volver a crearla.
+    #[cfg(feature = "bezenti")]
+    if is_tenant_task(access_token, object_type) {
+        return check_set(
+            set,
+            false,
+            false,
+            access_token.has_permission(Permission::SysAccountCreate),
+        );
+    }
     let flags = object_type.flags();
     let can_create =
         flags & OBJ_NO_CREATE == 0 && access_token.has_permission(object_type.create_permission());

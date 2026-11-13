@@ -555,9 +555,14 @@ impl RequestHandler for Server {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
                     access_token.assert_is_member(req.account_id)?;
 
-                    self.sieve_script_set(*req, access_token, session, using)
-                        .await?
-                        .into()
+                    archivar(Box::pin(self.sieve_script_set(
+                        *req,
+                        access_token,
+                        session,
+                        using,
+                    )))
+                    .await?
+                    .into()
                 }
                 SetRequestMethod::VacationResponse(mut req) => {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
@@ -569,25 +574,40 @@ impl RequestHandler for Server {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
                     access_token.assert_has_access(req.account_id, Collection::AddressBook)?;
 
-                    self.address_book_set(*req, access_token, session, using)
-                        .await?
-                        .into()
+                    archivar(Box::pin(self.address_book_set(
+                        *req,
+                        access_token,
+                        session,
+                        using,
+                    )))
+                    .await?
+                    .into()
                 }
                 SetRequestMethod::ContactCard(mut req) => {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
                     access_token.assert_has_access(req.account_id, Collection::ContactCard)?;
 
-                    self.contact_card_set(*req, access_token, session, using)
-                        .await?
-                        .into()
+                    archivar(Box::pin(self.contact_card_set(
+                        *req,
+                        access_token,
+                        session,
+                        using,
+                    )))
+                    .await?
+                    .into()
                 }
                 SetRequestMethod::FileNode(mut req) => {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
                     access_token.assert_has_access(req.account_id, Collection::FileNode)?;
 
-                    self.file_node_set(*req, access_token, session, using)
-                        .await?
-                        .into()
+                    archivar(Box::pin(self.file_node_set(
+                        *req,
+                        access_token,
+                        session,
+                        using,
+                    )))
+                    .await?
+                    .into()
                 }
                 SetRequestMethod::ShareNotification(mut req) => {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
@@ -599,17 +619,27 @@ impl RequestHandler for Server {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
                     access_token.assert_has_access(req.account_id, Collection::Calendar)?;
 
-                    self.calendar_set(*req, access_token, session, using)
-                        .await?
-                        .into()
+                    archivar(Box::pin(self.calendar_set(
+                        *req,
+                        access_token,
+                        session,
+                        using,
+                    )))
+                    .await?
+                    .into()
                 }
                 SetRequestMethod::CalendarEvent(mut req) => {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
                     access_token.assert_has_access(req.account_id, Collection::CalendarEvent)?;
 
-                    self.calendar_event_set(*req, access_token, session, using)
-                        .await?
-                        .into()
+                    archivar(Box::pin(self.calendar_event_set(
+                        *req,
+                        access_token,
+                        session,
+                        using,
+                    )))
+                    .await?
+                    .into()
                 }
                 SetRequestMethod::CalendarEventNotification(mut req) => {
                     resolve_account_id(&mut req.account_id, method_name.obj, access_token)?;
@@ -841,4 +871,16 @@ pub(crate) fn resolve_account_id(
             .into_err()
             .details("The \"accountId\" property is required."))
     }
+}
+
+/// bezenti (fase 8): lo que borra un usuario por JMAP (archivos, eventos, contactos, guiones) se archiva
+/// (archivo.md, §3).
+#[cfg(feature = "bezenti")]
+async fn archivar<F: std::future::Future>(fut: F) -> F::Output {
+    common::bezenti::archivo::con_archivo(fut).await
+}
+
+#[cfg(not(feature = "bezenti"))]
+async fn archivar<F: std::future::Future>(fut: F) -> F::Output {
+    fut.await
 }

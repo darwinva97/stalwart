@@ -16,6 +16,9 @@ use types::{
     metadata::MetadataKinds,
 };
 
+// bezenti (fase 8): archivo y restauración de archivos, eventos y contactos borrados.
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod cache;
 pub mod calendar;
 pub mod contact;

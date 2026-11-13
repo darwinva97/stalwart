@@ -147,6 +147,9 @@ pub trait ExternalReportIndex: ObjectImpl + Pickle {
     fn text(&self) -> impl Iterator<Item = &str>;
 
     // [fragmento SEL eliminado: 6 líneas]
+    /// bezenti (fase 8): inquilino del dominio al que se refiere el informe.
+    #[cfg(feature = "bezenti")]
+    fn member_tenant(&self) -> Option<&types::id::Id>;
 
     fn expires_at(&self) -> u64;
 
@@ -164,6 +167,11 @@ pub trait ExternalReportIndex: ObjectImpl + Pickle {
         }
 
         // [fragmento SEL eliminado: 8 líneas]
+        // bezenti (fase 8): índice por inquilino, para que su administrador vea solo los suyos.
+        #[cfg(feature = "bezenti")]
+        if let Some(tenant_id) = self.member_tenant() {
+            index_builder.search(Property::MemberTenantId, tenant_id);
+        }
 
         let (success_count, fail_count) = self.success_fail_count();
         index_builder.search(Property::TotalSuccessfulSessions, success_count);
@@ -298,6 +306,10 @@ impl ExternalReportIndex for ArfExternalReport {
     }
 
     // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    fn member_tenant(&self) -> Option<&types::id::Id> {
+        self.member_tenant_id.as_ref()
+    }
 
     fn expires_at(&self) -> u64 {
         self.expires_at.timestamp() as u64
@@ -342,6 +354,10 @@ impl ExternalReportIndex for DmarcExternalReport {
     }
 
     // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    fn member_tenant(&self) -> Option<&types::id::Id> {
+        self.member_tenant_id.as_ref()
+    }
 
     fn expires_at(&self) -> u64 {
         self.expires_at.timestamp() as u64
@@ -407,6 +423,10 @@ impl ExternalReportIndex for TlsExternalReport {
     }
 
     // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    fn member_tenant(&self) -> Option<&types::id::Id> {
+        self.member_tenant_id.as_ref()
+    }
 
     fn expires_at(&self) -> u64 {
         self.expires_at.timestamp() as u64

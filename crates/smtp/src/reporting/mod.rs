@@ -13,6 +13,9 @@ use utils::sanitize_email;
 
 pub mod aggregate;
 pub mod analysis;
+// bezenti (fase 8): informes externos por inquilino.
+#[cfg(feature = "bezenti")]
+pub(crate) mod bezenti;
 pub mod dkim;
 pub mod dmarc;
 pub mod inbound;

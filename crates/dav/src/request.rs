@@ -395,24 +395,30 @@ impl DavRequestDispatcher for Server {
                     let access_token =
                         access_token.assert_has_permission(Permission::DavCardDelete)?;
 
-                    self.handle_card_delete_request(&access_token, headers)
-                        .await
+                    archivar(Box::pin(
+                        self.handle_card_delete_request(&access_token, headers),
+                    ))
+                    .await
                 }
                 DavResourceName::Cal => {
                     // Validate permissions
                     let access_token =
                         access_token.assert_has_permission(Permission::DavCalDelete)?;
 
-                    self.handle_calendar_delete_request(&access_token, headers)
-                        .await
+                    archivar(Box::pin(
+                        self.handle_calendar_delete_request(&access_token, headers),
+                    ))
+                    .await
                 }
                 DavResourceName::File => {
                     // Validate permissions
                     let access_token =
                         access_token.assert_has_permission(Permission::DavFileDelete)?;
 
-                    self.handle_file_delete_request(&access_token, headers)
-                        .await
+                    archivar(Box::pin(
+                        self.handle_file_delete_request(&access_token, headers),
+                    ))
+                    .await
                 }
                 DavResourceName::Scheduling => {
                     // Validate permissions
@@ -849,4 +855,15 @@ impl From<trc::Error> for DavError {
     fn from(err: trc::Error) -> Self {
         DavError::Internal(err)
     }
+}
+
+/// bezenti (fase 8): un `DELETE` de un usuario archiva lo que borra (archivo.md, §3).
+#[cfg(feature = "bezenti")]
+async fn archivar<F: std::future::Future>(fut: F) -> F::Output {
+    common::bezenti::archivo::con_archivo(fut).await
+}
+
+#[cfg(not(feature = "bezenti"))]
+async fn archivar<F: std::future::Future>(fut: F) -> F::Output {
+    fut.await
 }

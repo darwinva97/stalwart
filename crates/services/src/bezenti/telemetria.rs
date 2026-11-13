@@ -8,8 +8,9 @@
 //! alertas. Especificación `bezenti/especificaciones/telemetria.md`, §4 y §6.
 //!
 //! Las alertas tienen **histéresis**: se avisa una vez cuando la condición pasa a cumplirse y otra cuando deja de
-//! cumplirse («resuelta»); mientras sigue igual no se repite nada. El estado vive en memoria (tras reiniciar, una
-//! condición que sigue cumpliéndose vuelve a avisar una vez).
+//! cumplirse («resuelta»); mientras sigue igual no se repite nada. Fase 8: el estado se guarda en el almacén de datos
+//! (por nodo), así que un reinicio no repite el aviso de una alerta que sigue disparada, y si se resolvió mientras
+//! el servidor estaba parado se avisa de que está resuelta.
 
 use common::{
     BuildServer, Inner, Server,
@@ -78,13 +79,25 @@ pub fn arrancar(inner: Arc<Inner>) {
     tokio::spawn(async move {
         let intervalo = segundos_env(ENV_INTERVALO_ALERTAS).unwrap_or(INTERVALO_ALERTAS);
         let mut disparadas: AHashMap<u64, bool> = AHashMap::new();
+        // Fase 8: el estado sobrevive a los reinicios (no se repite el aviso de una alerta que sigue disparada).
+        match inner.build_server().alertas_disparadas().await {
+            Ok(ids) => disparadas.extend(ids.into_iter().map(|id| (id, true))),
+            Err(err) => {
+                trc::error!(err.details("No se pudo leer el estado de las alertas"));
+            }
+        }
         let mut arena = Bump::new();
         loop {
             tokio::time::sleep(intervalo).await;
             let server = inner.build_server();
             let alertas = server.core.telemetria.alertas.clone();
+            let antes_de_limpiar = disparadas.len();
             disparadas.retain(|id, _| alertas.iter().any(|a| a.id == *id));
+            let mut cambiado = disparadas.len() != antes_de_limpiar;
             if alertas.is_empty() {
+                if cambiado {
+                    guardar(&server, &disparadas).await;
+                }
                 continue;
             }
             server.inner.refresh_live_gauges();
@@ -99,10 +112,27 @@ pub fn arrancar(inner: Arc<Inner>) {
                 if cumple != antes {
                     disparadas.insert(alerta.id, cumple);
                     avisar(&server, alerta, cumple).await;
+                    cambiado = true;
                 }
+            }
+            if cambiado {
+                guardar(&server, &disparadas).await;
             }
         }
     });
+}
+
+/// Fase 8: guarda qué alertas están disparadas (en el almacén de datos, por nodo).
+async fn guardar(server: &Server, disparadas: &AHashMap<u64, bool>) {
+    let mut ids = disparadas
+        .iter()
+        .filter(|(_, disparada)| **disparada)
+        .map(|(id, _)| *id)
+        .collect::<Vec<_>>();
+    ids.sort_unstable();
+    if let Err(err) = server.guardar_alertas_disparadas(&ids).await {
+        trc::error!(err.details("No se pudo guardar el estado de las alertas"));
+    }
 }
 
 /// Valor de una métrica para los mensajes (`%{queue.count}%`): los histogramas, su media.

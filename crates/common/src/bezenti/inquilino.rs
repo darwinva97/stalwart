@@ -55,6 +55,12 @@ pub struct TenantCache {
     pub ceiling: Permissions,
     pub quotas: VecMap<TenantStorageQuota, u64>,
     pub logo: Option<Box<str>>,
+    /// Fase 8: máximo de mensajes en la cola de salida (`bezentiMaxQueuedMessages`).
+    pub max_queued_messages: Option<u64>,
+    /// Fase 8: mensajes por intervalo (`bezentiMessageRate`).
+    pub message_rate: Option<structs::Rate>,
+    /// Fase 8: destinatarios por intervalo (`bezentiRecipientRate`).
+    pub recipient_rate: Option<structs::Rate>,
 }
 
 impl CacheItemWeight for TenantCache {
@@ -281,6 +287,9 @@ impl Server {
                         ceiling,
                         quotas: tenant.quotas,
                         logo: tenant.logo.map(|l| l.into_boxed_str()),
+                        max_queued_messages: tenant.bezenti_max_queued_messages.filter(|m| *m > 0),
+                        message_rate: tenant.bezenti_message_rate.filter(|r| r.count > 0),
+                        recipient_rate: tenant.bezenti_recipient_rate.filter(|r| r.count > 0),
                     });
                     let _ = guard.insert(cached.clone());
                     Ok(Some(cached))

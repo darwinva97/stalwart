@@ -198,7 +198,7 @@ impl ScimError {
 
 impl From<trc::Error> for ScimError {
     fn from(err: trc::Error) -> Self {
-        let event = err.as_ref().clone();
+        let event = *err.as_ref();
         if matches!(event, trc::EventType::Jmap(trc::JmapEvent::Forbidden))
             || matches!(
                 event,

@@ -75,6 +75,15 @@ pub(crate) async fn queued_message_set(
         };
         let archived_message = archive.to_unarchived::<Message>()?;
         // [fragmento SEL eliminado: 9 líneas]
+        // bezenti (fase 8): un administrador de inquilino solo toca los mensajes de su ámbito.
+        #[cfg(feature = "bezenti")]
+        if !set
+            .tenant
+            .can_see_queued(archived_message.inner.tenant_id())
+        {
+            set.response.not_updated.append(id, SetError::not_found());
+            continue;
+        }
 
         // Process patches
         let mut message = map_message(archived_message.inner, queue_id);
@@ -251,6 +260,11 @@ pub(crate) async fn queued_message_set(
         };
 
         // [fragmento SEL eliminado: 9 líneas]
+        #[cfg(feature = "bezenti")]
+        if !set.tenant.can_see_queued(message.message.tenant_id()) {
+            set.response.not_destroyed.append(id, SetError::not_found());
+            continue;
+        }
 
         let prev_events = message.message.next_events();
         match message
@@ -294,6 +308,14 @@ pub(crate) async fn queued_message_get(
         };
         let message_in = message_archive.unarchive::<Message>()?;
         // [fragmento SEL eliminado: 11 líneas]
+        // bezenti (fase 8): fuera del ámbito del inquilino, el mensaje no existe.
+        #[cfg(feature = "bezenti")]
+        if !get.tenant.can_see_queued(message_in.tenant_id()) {
+            if client_ids {
+                get.not_found(id);
+            }
+            continue;
+        }
         get.insert(id, map_message(message_in, id.id()).into_value());
     }
 
@@ -302,6 +324,7 @@ pub(crate) async fn queued_message_get(
 
 pub(crate) async fn queued_message_query(
     mut req: RegistryQueryResponse<'_>,
+    #[cfg(feature = "bezenti")] tenant: &crate::registry::bezenti::TenantAccess,
 ) -> trc::Result<QueryResponseBuilder> {
     let mut due_from = 0u64;
     let mut due_to = u64::MAX;
@@ -389,6 +412,10 @@ pub(crate) async fn queued_message_query(
         .extract_parameters(req.server.core.jmap.query_max_results, None)?;
 
     let has_filters = filter_text.is_some() || filter_from.is_some() || filter_to.is_some();
+    // bezenti (fase 8): un administrador de inquilino ve solo los mensajes de su ámbito; se recorren los mensajes
+    // (cada uno lleva su inquilino) en vez de los eventos de la cola.
+    #[cfg(feature = "bezenti")]
+    let has_filters = has_filters || !tenant.is_server_wide();
     if has_filters {
         let mut results = Vec::with_capacity(8);
         let mut collect = |key: &[u8], value: &[u8]| {
@@ -398,6 +425,10 @@ pub(crate) async fn queued_message_query(
                 .unarchive::<queue::Message>()
                 .add_context(|ctx| ctx.ctx(trc::Key::Key, key))?;
 
+            #[cfg(feature = "bezenti")]
+            if !tenant.can_see_queued(message.tenant_id()) {
+                return Ok(true);
+            }
             if let Some(due) = message.next_delivery_event(queue_name)
                 && (due_from..=due_to).contains(&due)
                 && queue_name

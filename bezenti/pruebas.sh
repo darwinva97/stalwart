@@ -50,7 +50,7 @@ cargo test "${JOBS[@]}" -p spam-filter --features bezenti --lib bezenti::
 echo "### Fase 4: integración IA contra el servidor real (proveedores falsos: OpenAI, Anthropic, Gemini, Ollama, TypeSafe)"
 python3 -I bezenti/pruebas/ia.py "$BIN"
 
-echo "### Fase 5: integración de la telemetría con historial y alertas (SQLite, JMAP, SMTP, HTTP/SSE, webhook)"
+echo "### Fase 5 (y 8): integración de la telemetría con historial y alertas (SQLite, JMAP, SMTP, HTTP/SSE, webhook; estado de alertas tras reiniciar)"
 python3 -I bezenti/pruebas/telemetria.py "$BIN"
 
 echo "### Fase 6: PostgreSQL primario + réplica física reales (sin root) para las pruebas de réplicas"
@@ -114,6 +114,15 @@ else
   echo "sin scim2-tester (define SCIM2_TESTER_SITE): se omite la prueba de conformidad"
 fi
 
-echo "### Fases 2 a 7: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
-cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0 -p trc -p spam-filter -p smtp -p coordinator -p directory
+echo "### Fase 8: pruebas unitarias de la cola por inquilino (crate smtp, feature bezenti)"
+cargo test "${JOBS[@]}" -p smtp --features bezenti --lib queue::bezenti
+
+echo "### Fase 8: cola SMTP, informes externos y cuentas borradas por inquilino (SQLite, SMTP remoto falso, JMAP)"
+python3 -I bezenti/pruebas/cola_inquilinos.py "$BIN"
+
+echo "### Fase 8: archivo de archivos, eventos, contactos y guiones Sieve (WebDAV, CalDAV, CardDAV, JMAP)"
+python3 -I bezenti/pruebas/archivo_tipos.py "$BIN"
+
+echo "### Fases 2 a 8: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
+cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0 -p trc -p spam-filter -p smtp -p coordinator -p directory -p groupware -p managesieve
 cargo check "${JOBS[@]}" -p store --features "postgres mysql redis s3"

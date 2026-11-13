@@ -139,13 +139,8 @@ async fn restore(server: &Server, task: &TaskRestoreArchivedItem) -> trc::Result
 
     let result = match item.tipo() {
         ArchivedItemType::Email => restore_email(server, account_id, &item).await?,
-        // Esta edición solo archiva mensajes por ahora (especificación, §8); el resto no llega aquí.
-        ArchivedItemType::SieveScript
-        | ArchivedItemType::FileNode
-        | ArchivedItemType::CalendarEvent
-        | ArchivedItemType::ContactCard => {
-            Err("Este tipo de elemento todavía no se puede restaurar en esta edición".to_string())
-        }
+        // Fase 8: archivos, contactos, eventos y guiones Sieve.
+        tipo => restore_other(server, account_id, tipo, &item).await?,
     };
 
     let mut batch = BatchBuilder::new();
@@ -167,6 +162,48 @@ async fn restore(server: &Server, task: &TaskRestoreArchivedItem) -> trc::Result
             server.store().write_batch(&mut batch).await?;
             Ok(Outcome::fatal(reason))
         }
+    }
+}
+
+/// Fase 8: restaura un archivo, contacto, evento o guion Sieve (`bezenti/especificaciones/archivo.md`, §4).
+async fn restore_other(
+    server: &Server,
+    account_id: u32,
+    tipo: ArchivedItemType,
+    item: &ElementoArchivado,
+) -> trc::Result<Result<(), String>> {
+    let hash = item.blob_hash();
+    if tipo == ArchivedItemType::FileNode {
+        // El archivo vuelve con el mismo blob: basta con que siga en el almacén.
+        if !server
+            .store()
+            .blob_exists(&hash)
+            .await
+            .caused_by(trc::location!())?
+        {
+            return Ok(Err("El contenido archivado ya no existe".to_string()));
+        }
+        return groupware::bezenti::restore_file(server, account_id, item, hash).await;
+    }
+    let Some(bytes) = server
+        .get_blob(hash.as_slice(), 0..usize::MAX)
+        .await
+        .caused_by(trc::location!())?
+    else {
+        return Ok(Err("El contenido archivado ya no existe".to_string()));
+    };
+    match tipo {
+        ArchivedItemType::ContactCard => {
+            groupware::bezenti::restore_contact(server, account_id, item, &bytes).await
+        }
+        ArchivedItemType::CalendarEvent => {
+            groupware::bezenti::restore_event(server, account_id, item, &bytes).await
+        }
+        ArchivedItemType::SieveScript => {
+            email::bezenti::restore_sieve_script(server, account_id, &item.nombre, hash, &bytes)
+                .await
+        }
+        ArchivedItemType::Email | ArchivedItemType::FileNode => unreachable!(),
     }
 }
 

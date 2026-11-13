@@ -38,7 +38,12 @@ RAIZ = os.path.abspath(os.path.join(AQUI, "..", ".."))
 
 # Dónde se muestran en los formularios los campos propios: objeto → [(sección, campo, etiqueta)].
 FORMULARIOS = {
-    "x:Tenant": [("Tenant", "bezentiParentTenantId", "Parent tenant (reseller)")],
+    "x:Tenant": [
+        ("Tenant", "bezentiParentTenantId", "Parent tenant (reseller)"),
+        ("Quotas", "bezentiMaxQueuedMessages", "Max messages in queue"),
+        ("Quotas", "bezentiMessageRate", "Sending rate (messages)"),
+        ("Quotas", "bezentiRecipientRate", "Sending rate (recipients)"),
+    ],
 }
 
 

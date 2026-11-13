@@ -406,7 +406,13 @@ pub enum Property {
     BearerToken = 482,
     Beta = 465,
     #[cfg(feature = "bezenti")]
+    BezentiMaxQueuedMessages = 1078,
+    #[cfg(feature = "bezenti")]
+    BezentiMessageRate = 1079,
+    #[cfg(feature = "bezenti")]
     BezentiParentTenantId = 1056,
+    #[cfg(feature = "bezenti")]
+    BezentiRecipientRate = 1080,
     Bind = 681,
     BindAuthentication = 555,
     BindDn = 553,

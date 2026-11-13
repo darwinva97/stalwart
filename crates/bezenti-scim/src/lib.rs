@@ -509,10 +509,10 @@ async fn aplica_patch(
             if let Some(f) = formatted {
                 mapa.insert("displayName".into(), Value::from(f));
             }
-        } else if tocado("displayname") {
-            if let Some(n) = mapa.get_mut("name").and_then(|n| n.as_object_mut()) {
-                n.remove("formatted");
-            }
+        } else if tocado("displayname")
+            && let Some(n) = mapa.get_mut("name").and_then(|n| n.as_object_mut())
+        {
+            n.remove("formatted");
         }
         if tocado("preferredlanguage") && !tocado("locale") {
             let pl = mapa.get("preferredLanguage").cloned();

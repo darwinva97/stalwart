@@ -222,6 +222,7 @@ pub fn resource_type(base: &str, tipo: Tipo) -> Value {
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn atributo(
     nombre: &str,
     tipo: &str,

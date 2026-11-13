@@ -126,6 +126,9 @@ pub(crate) async fn report_set(
             .get_value::<Object>(ValueKey::from(key.clone()))
             .await?;
         // [fragmento SEL eliminado: 8 líneas]
+        // bezenti (fase 8): un administrador de inquilino solo borra los informes de su ámbito.
+        #[cfg(feature = "bezenti")]
+        let report = report.filter(|report| set.tenant.can_see_report(&report.inner));
         if let Some(report) = report {
             match &report.inner {
                 ObjectInner::DmarcExternalReport(report) => {
@@ -184,6 +187,9 @@ pub(crate) async fn report_get(
     // [fragmento SEL eliminado: 10 líneas]
     #[cfg(not(feature = "enterprise"))]
     let external_query = external_query.greater_than(Property::ExpiresAt, 0u64);
+    // bezenti (fase 8): un administrador de inquilino solo ve los informes de su ámbito.
+    #[cfg(feature = "bezenti")]
+    let external_query = get.tenant.restrict_query(external_query);
     let ids = if let Some(ids) = get.ids.take() {
         ids
     } else if matches!(
@@ -222,6 +228,8 @@ pub(crate) async fn report_get(
             })))
             .await?;
         // [fragmento SEL eliminado: 8 líneas]
+        #[cfg(feature = "bezenti")]
+        let report = report.filter(|report| get.tenant.can_see_report(&report.inner));
         if let Some(mut report) = report {
             match &mut report.inner {
                 ObjectInner::DmarcInternalReport(report) => {
@@ -243,8 +251,25 @@ pub(crate) async fn report_get(
 
 pub(crate) async fn report_query(
     mut req: RegistryQueryResponse<'_>,
+    #[cfg(feature = "bezenti")] tenant: &crate::registry::bezenti::TenantAccess,
 ) -> trc::Result<QueryResponseBuilder> {
     let mut query = store::registry::RegistryQuery::new(req.object_type);
+    // bezenti (fase 8): solo los informes del ámbito del inquilino (un filtro si es un solo inquilino; si tiene
+    // inquilinos hijos, se filtra el resultado).
+    #[cfg(feature = "bezenti")]
+    {
+        query = tenant.restrict_query(query);
+    }
+    #[cfg(feature = "bezenti")]
+    let post_filter = if tenant.needs_post_filter(req.object_type) {
+        Some(
+            tenant
+                .visible_report_ids(req.server, req.object_type)
+                .await?,
+        )
+    } else {
+        None
+    };
     // [fragmento SEL eliminado: 8 líneas]
     let is_internal = matches!(
         req.object_type,
@@ -317,6 +342,12 @@ pub(crate) async fn report_query(
             _ => false,
         })?;
 
+    #[cfg(feature = "bezenti")]
+    let params = req.request.extract_parameters(
+        req.server.core.jmap.query_max_results,
+        post_filter.is_none().then_some(Property::Id),
+    )?;
+    #[cfg(not(feature = "bezenti"))]
     let params = req
         .request
         .extract_parameters(req.server.core.jmap.query_max_results, Some(Property::Id))?;
@@ -343,6 +374,14 @@ pub(crate) async fn report_query(
         .await?;
     let position = params.page_position(page.position)?;
     let matches = page.ids;
+    #[cfg(feature = "bezenti")]
+    let matches = match &post_filter {
+        Some(visible) => matches
+            .into_iter()
+            .filter(|id| visible.contains(&id.id()))
+            .collect(),
+        None => matches,
+    };
     let results = match params.sort_by {
         Property::Id => {
             let mut results = matches;

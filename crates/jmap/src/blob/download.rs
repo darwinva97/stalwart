@@ -211,6 +211,26 @@ impl BlobDownload for Server {
             }
         }
 
+        // bezenti (fase 8): un mensaje archivado se descarga íntegro, con las cabeceras que añadió el servidor al
+        // recibirlo (se guardan con el elemento, no en el blob; archivo.md §4).
+        #[cfg(feature = "bezenti")]
+        if let BlobClass::Reserved {
+            account_id,
+            expires,
+        } = &blob_id.class
+            && let Some((_, item)) = self
+                .archived_item_by_link(*account_id, &blob_id.hash, *expires)
+                .await
+                .caused_by(trc::location!())?
+            && let Some(headers) = item.cabeceras_servidor()
+        {
+            return Ok(Some(BlobContents::Message {
+                headers,
+                body_offset: item.cuerpo,
+                blob,
+            }));
+        }
+
         Ok(Some(BlobContents::Plain(blob)))
     }
 
@@ -306,7 +326,25 @@ impl BlobDownload for Server {
                     }
                 }
             }
+            #[cfg(not(feature = "bezenti"))]
             BlobClass::Reserved { account_id, .. } => access_token.is_member(*account_id),
+            // bezenti (fase 8): el administrador de un inquilino también descarga lo archivado de las cuentas de
+            // su ámbito (como ve y restaura esos elementos, archivo.md §6).
+            #[cfg(feature = "bezenti")]
+            BlobClass::Reserved {
+                account_id,
+                expires,
+            } => {
+                access_token.is_member(*account_id)
+                    || bezenti_archived_blob_visible(
+                        self,
+                        access_token,
+                        *account_id,
+                        &blob_id.hash,
+                        *expires,
+                    )
+                    .await?
+            }
             BlobClass::Embedded { .. } => false,
             BlobClass::Queued { queue_id } => {
                 access_token.has_permission(Permission::SysQueuedMessageGet)
@@ -326,7 +364,59 @@ impl BlobDownload for Server {
 
 // [fragmento SEL eliminado: 25 líneas]
 
-#[cfg(not(feature = "enterprise"))]
+/// bezenti (fase 8): un administrador de inquilino solo descarga los mensajes en cola de su ámbito.
+#[cfg(feature = "bezenti")]
+async fn is_queued_blob_visible(
+    server: &Server,
+    access_token: &AccessToken,
+    queue_id: u64,
+) -> trc::Result<bool> {
+    use smtp::queue::{Message, spool::SmtpSpool};
+    let Some(scope) = server.access_token_scope(access_token).await? else {
+        return Ok(true);
+    };
+    let Some(archive) = server.read_message_archive(queue_id).await? else {
+        return Ok(false);
+    };
+    Ok(archive
+        .unarchive::<Message>()?
+        .tenant_id()
+        .is_some_and(|tenant_id| scope.contains(tenant_id)))
+}
+
+/// bezenti (fase 8): ¿es el blob reservado un elemento archivado de una cuenta del ámbito del inquilino de quien lo
+/// pide (con permiso para ver el archivo y las cuentas)?
+#[cfg(feature = "bezenti")]
+async fn bezenti_archived_blob_visible(
+    server: &Server,
+    access_token: &AccessToken,
+    account_id: u32,
+    hash: &types::blob_hash::BlobHash,
+    expires: u64,
+) -> trc::Result<bool> {
+    if !access_token.has_permission(Permission::SysArchivedItemGet)
+        || !access_token.has_permission(Permission::SysAccountGet)
+    {
+        return Ok(false);
+    }
+    let Some(scope) = server.access_token_scope(access_token).await? else {
+        return Ok(false);
+    };
+    if server
+        .archived_item_by_link(account_id, hash, expires)
+        .await?
+        .is_none()
+    {
+        return Ok(false);
+    }
+    Ok(server
+        .try_account(account_id)
+        .await?
+        .and_then(|account| account.tenant_id)
+        .is_some_and(|tenant_id| scope.contains(tenant_id)))
+}
+
+#[cfg(not(any(feature = "enterprise", feature = "bezenti")))]
 async fn is_queued_blob_visible(
     _server: &Server,
     _access_token: &AccessToken,

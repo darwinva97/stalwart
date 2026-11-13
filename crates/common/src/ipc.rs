@@ -235,6 +235,9 @@ pub struct QueuedEvent {
     pub queue_name: QueueName,
     pub due: u64,
     pub queue_id: u64,
+    /// bezenti (fase 8): grupo de reparto del mensaje (su inquilino, o `u32::MAX` si no es de ninguno).
+    #[cfg(feature = "bezenti")]
+    pub group: u32,
 }
 
 #[derive(Debug)]

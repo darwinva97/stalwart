@@ -741,6 +741,18 @@ impl DestroyArchive<Archive<&ArchivedCalendarEvent>> {
             None => None,
         };
 
+        // bezenti (fase 8): un evento que borra un usuario se archiva (con su iCalendar).
+        #[cfg(feature = "bezenti")]
+        crate::bezenti::archive_event(
+            server,
+            batch,
+            account_id,
+            document_id,
+            event.inner,
+            content_.as_ref(),
+        )
+        .await?;
+
         let content = content_
             .as_ref()
             .map(|content_| content_.to_unarchived::<CalendarEventContent>())

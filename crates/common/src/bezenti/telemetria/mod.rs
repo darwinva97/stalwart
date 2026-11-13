@@ -94,9 +94,9 @@ impl ConfigTelemetria {
         let metricas = match bp.setting_infallible::<MetricsStore>().await {
             MetricsStore::Disabled => Opcion::Ninguno,
             MetricsStore::Default => Opcion::Datos,
-            MetricsStore::FoundationDb(s) => Opcion::Aparte(DataStore::FoundationDb(s)),
-            MetricsStore::PostgreSql(s) => Opcion::Aparte(DataStore::PostgreSql(s)),
-            MetricsStore::MySql(s) => Opcion::Aparte(DataStore::MySql(s)),
+            MetricsStore::FoundationDb(s) => Opcion::Aparte(Box::new(DataStore::FoundationDb(s))),
+            MetricsStore::PostgreSql(s) => Opcion::Aparte(Box::new(DataStore::PostgreSql(s))),
+            MetricsStore::MySql(s) => Opcion::Aparte(Box::new(DataStore::MySql(s))),
         };
 
         let mut alertas = Vec::new();
@@ -162,9 +162,9 @@ pub async fn almacen_trazas(bp: &mut Bootstrap, datos: &Store) -> Option<(Store,
     let opcion = match config {
         TracingStore::Disabled => Opcion::Ninguno,
         TracingStore::Default => Opcion::Datos,
-        TracingStore::FoundationDb(s) => Opcion::Aparte(DataStore::FoundationDb(s)),
-        TracingStore::PostgreSql(s) => Opcion::Aparte(DataStore::PostgreSql(s)),
-        TracingStore::MySql(s) => Opcion::Aparte(DataStore::MySql(s)),
+        TracingStore::FoundationDb(s) => Opcion::Aparte(Box::new(DataStore::FoundationDb(s))),
+        TracingStore::PostgreSql(s) => Opcion::Aparte(Box::new(DataStore::PostgreSql(s))),
+        TracingStore::MySql(s) => Opcion::Aparte(Box::new(DataStore::MySql(s))),
     };
     almacen(bp, datos, opcion, ObjectType::TracingStore)
         .await
@@ -174,7 +174,7 @@ pub async fn almacen_trazas(bp: &mut Bootstrap, datos: &Store) -> Option<(Store,
 enum Opcion {
     Ninguno,
     Datos,
-    Aparte(DataStore),
+    Aparte(Box<DataStore>),
 }
 
 /// Almacenes aparte ya abiertos, para no abrir otra conexión en cada recarga de la configuración.
@@ -194,7 +194,7 @@ async fn almacen(
             if let Some((_, store)) = ALMACENES.lock().iter().find(|(c, _)| *c == clave) {
                 return Some(store.clone());
             }
-            match Store::build(config).await {
+            match Store::build(*config).await {
                 Ok(store) => {
                     ALMACENES.lock().push((clave, store.clone()));
                     Some(store)
@@ -238,5 +238,57 @@ pub fn nodo(server: &Server) -> u16 {
         server.registry().node_id()
     } else {
         0
+    }
+}
+
+/// Fase 8: clave del estado de las alertas disparadas de un nodo, en el almacén de datos (subespacio de métricas,
+/// con un prefijo que la purga de métricas no toca: `[2] nodo`).
+fn clave_alertas(nodo: u16) -> store::write::ValueClass {
+    let mut key = Vec::with_capacity(3);
+    key.push(2u8);
+    key.extend_from_slice(&nodo.to_be_bytes());
+    store::write::ValueClass::Any(store::write::AnyClass {
+        subspace: store::Subspace::TelemetryMetric,
+        key,
+    })
+}
+
+impl Server {
+    /// Fase 8: alertas que estaban disparadas en este nodo antes de reiniciar (para no repetir el aviso).
+    pub async fn alertas_disparadas(&self) -> trc::Result<Vec<u64>> {
+        use trc::AddContext;
+        Ok(self
+            .store()
+            .get_value::<store::write::serialize::RawValue>(store::ValueKey::from(clave_alertas(
+                nodo(self),
+            )))
+            .await
+            .caused_by(trc::location!())?
+            .map(|raw| {
+                let (ids, _) = raw.0.as_chunks::<8>();
+                ids.iter().map(|id| u64::from_be_bytes(*id)).collect()
+            })
+            .unwrap_or_default())
+    }
+
+    /// Fase 8: guarda las alertas disparadas de este nodo.
+    pub async fn guardar_alertas_disparadas(&self, ids: &[u64]) -> trc::Result<()> {
+        use trc::AddContext;
+        let mut batch = store::write::BatchBuilder::new();
+        if ids.is_empty() {
+            batch.clear(clave_alertas(nodo(self)));
+        } else {
+            batch.set(
+                clave_alertas(nodo(self)),
+                ids.iter()
+                    .flat_map(|id| id.to_be_bytes())
+                    .collect::<Vec<u8>>(),
+            );
+        }
+        self.store()
+            .write_batch(&mut batch)
+            .await
+            .caused_by(trc::location!())
+            .map(|_| ())
     }
 }

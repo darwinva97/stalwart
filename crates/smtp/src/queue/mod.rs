@@ -34,6 +34,9 @@ pub mod submission;
 // [fragmento SEL eliminado: 6 líneas]
 pub mod throttle;
 pub mod walk;
+// bezenti (fase 8): cola y límites de envío por inquilino (bezenti/especificaciones/multi-inquilino.md, §5).
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 
 pub type QueueId = u64;
 
@@ -135,11 +138,28 @@ pub struct MessageWrapper {
     serde::Deserialize,
 )]
 pub enum Metadata {
-    QueueSize { key: u128, id: u64 },
-    QueueCount { key: u128, id: u64 },
-    Headers { value: Box<[u8]>, id: u64 },
-    Submission { account_id: u32 },
+    QueueSize {
+        key: u128,
+        id: u64,
+    },
+    QueueCount {
+        key: u128,
+        id: u64,
+    },
+    Headers {
+        value: Box<[u8]>,
+        id: u64,
+    },
+    Submission {
+        account_id: u32,
+    },
     Blob(Box<RecipientBlob>),
+    /// bezenti (fase 8): inquilino que envía el mensaje. Va al final para que los mensajes ya encolados (sin él)
+    /// se sigan leyendo igual.
+    #[cfg(feature = "bezenti")]
+    Tenant {
+        tenant_id: u32,
+    },
 }
 
 const _: () = assert!(size_of::<Metadata>() == 32);

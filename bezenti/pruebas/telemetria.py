@@ -136,6 +136,12 @@ def configurar(srv, webhook):
                        "body": "Hay %{smtp.active-connections}% conexiones SMTP abiertas. %{no.existe}%"},
         "eventAlert": {"@type": "Enabled", "eventMessage": "conexiones=%{smtp.active-connections}%"},
     })
+    # Fase 8: una alerta que siempre se cumple, para comprobar que su estado sobrevive a un reinicio.
+    rec.crear("x:Alert", {
+        "enable": True,
+        "condition": {"else": "metric('smtp.active-connections') >= 0"},
+        "eventAlert": {"@type": "Enabled", "eventMessage": "siempre-disparada"},
+    })
     # Una condición con una métrica que no existe se rechaza.
     n, r = rec.set("x:Alert", create={"m": {"condition": {"else": "metric('no.existe') > 1"},
                                             "eventAlert": {"@type": "Enabled", "eventMessage": "x"}}})
@@ -493,12 +499,18 @@ def pruebas(srv, webhook):
 
     # --------------------------------------------------------------------------------------------------------
     print("== alertas (webhook con reintentos y correo a un buzón local)")
+
+    def conexiones_ev(tipo):
+        return [e for e in webhook.eventos(tipo) if "conexiones=" in json.dumps(e)]
+
+    def siempre(tipo):
+        return [e for e in webhook.eventos(tipo) if "siempre-disparada" in json.dumps(e)]
     conexiones = []
     for _ in range(3):
         s = smtplib.SMTP("127.0.0.1", srv.p_smtp, timeout=30)
         s.ehlo("abiertas.example")
         conexiones.append(s)
-    disparo = esperar(lambda: webhook.eventos("triggered"), 30)
+    disparo = esperar(lambda: conexiones_ev("triggered"), 30)
     ok(disparo, "al superar el umbral llega el evento por webhook", str(webhook.peticiones[:2]))
     ok(len(webhook.peticiones) >= 2, "tras un primer intento fallido (500), el webhook reintenta")
     if disparo:
@@ -507,9 +519,9 @@ def pruebas(srv, webhook):
     correo = esperar(lambda: buscar_correo(root, "Conexiones SMTP"), 30)
     ok(correo, "y el correo de alerta llega al buzón local del operador")
     time.sleep(7)
-    ok(len(webhook.eventos("triggered")) == 1 and len(buscar_correo(root, "Conexiones SMTP")) == 1,
+    ok(len(conexiones_ev("triggered")) == 1 and len(buscar_correo(root, "Conexiones SMTP")) == 1,
        "mientras sigue, no se repite (histéresis)",
-       f"eventos={len(webhook.eventos('triggered'))} correos={len(buscar_correo(root, 'Conexiones SMTP'))}")
+       f"eventos={len(conexiones_ev('triggered'))} correos={len(buscar_correo(root, 'Conexiones SMTP'))}")
     if correo:
         _, r = root.una("Email/get", {"accountId": root.cuenta(), "ids": correo[:1],
                                       "properties": ["subject", "from", "header:Auto-Submitted:asText",
@@ -522,13 +534,21 @@ def pruebas(srv, webhook):
         ok("%{no.existe}%" in (c.get("preview") or ""), "un nombre desconocido se deja tal cual", c.get("preview"))
     for s in conexiones:
         s.quit()
-    resuelta = esperar(lambda: webhook.eventos("resolved"), 30)
+    resuelta = esperar(lambda: conexiones_ev("resolved"), 30)
     ok(resuelta, "al bajar del umbral llega el aviso de resuelta")
     ok(esperar(lambda: len(buscar_correo(root, "Conexiones SMTP")) == 2, 30)
        and buscar_correo(root, "Resolved"), "y el correo de resuelta")
     time.sleep(5)
-    ok(len(webhook.eventos("triggered")) == 1 and len(webhook.eventos("resolved")) == 1,
-       "sin repetirse en bucle", f"{len(webhook.eventos('triggered'))}/{len(webhook.eventos('resolved'))}")
+    ok(len(conexiones_ev("triggered")) == 1 and len(conexiones_ev("resolved")) == 1,
+       "sin repetirse en bucle", f"{len(conexiones_ev('triggered'))}/{len(conexiones_ev('resolved'))}")
+
+    print("== alertas: el estado sobrevive a un reinicio (fase 8)")
+    ok(esperar(lambda: siempre("triggered"), 30), "la alerta que siempre se cumple se dispara una vez")
+    reiniciar(srv)
+    time.sleep(8)
+    ok(len(siempre("triggered")) == 1 and not siempre("resolved"),
+       "tras reiniciar no se repite el aviso (el estado se guarda en el almacén)",
+       f"{len(siempre('triggered'))}/{len(siempre('resolved'))}")
 
     # --------------------------------------------------------------------------------------------------------
     try:

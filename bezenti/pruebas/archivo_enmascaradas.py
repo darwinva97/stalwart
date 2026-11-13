@@ -289,9 +289,9 @@ def pruebas(srv):
     hasta = time.mktime(time.strptime(item.get("archivedUntil", "1970-01-01T00:00:00Z")[:19], "%Y-%m-%dT%H:%M:%S")) - time.timezone
     ok(abs(hasta - (time.time() + 86400)) < 600, "archivedUntil = ahora + archiveDeletedItemsFor", item.get("archivedUntil"))
     estado, cuerpo = descargar(ana, ana.cuenta(), item.get("blobId", "x"))
-    # El blob es el mensaje tal como llegó; las cabeceras que añadió el servidor (Received…) van aparte.
-    ok(estado == 200 and b"Subject: Archivo uno" in cuerpo and cuerpo_antes.endswith(cuerpo.split(b"\r\n\r\n", 1)[-1]),
-       "el blob archivado se descarga (el mensaje tal como llegó)", f"{estado} {cuerpo[:200]!r}")
+    # Fase 8: el blob se descarga íntegro, con las cabeceras que añadió el servidor al recibirlo (Received…).
+    ok(estado == 200 and cuerpo == cuerpo_antes,
+       "el blob archivado se descarga íntegro (con las cabeceras del servidor)", f"{estado} {cuerpo[:200]!r}")
     _, r = ana.set("x:ArchivedItem", update={arch[0]: {"subject": "falsificado"}})
     ok(arch[0] in (r.get("notUpdated") or {}), "solo se puede cambiar el estado (no el asunto)")
     n, r = ana.set("x:ArchivedItem", create={"x": {"@type": "Email"}})

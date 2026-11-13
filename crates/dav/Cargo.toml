@@ -27,7 +27,7 @@ tokio = { version = "1.54", features = ["time"] }
 
 [features]
 # bezenti: edición bezenti (ver bezenti/README.md).
-bezenti = ["common/bezenti"]
+bezenti = ["common/bezenti", "groupware/bezenti"]
 dev_mode = []
 enterprise = ["dav-proto/enterprise", "common/enterprise", "store/enterprise", "utils/enterprise", "groupware/enterprise", "directory/enterprise", "registry/enterprise", "http_proto/enterprise", "trc/enterprise"]
 
