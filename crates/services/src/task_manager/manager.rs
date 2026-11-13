@@ -517,6 +517,9 @@ fn is_enabled(task_type: TaskType, roles: &ClusterRoles) -> bool {
         | TaskType::DnsManagement
         | TaskType::ExternalPublicKeyMaintenance => true,
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: sin implementar todavía (fases 2 y 3), no se programan.
+        #[cfg(feature = "bezenti")]
+        TaskType::RestoreArchivedItem | TaskType::TenantMaintenance => false,
     }
 }
 

@@ -1,10 +1,14 @@
 /*
  * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2026 bezenti
  *
- * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-// This file is auto-generated. Do not edit directly.
+// Archivo generado por bezenti/generador a partir del esquema resources/schema/schema.json.gz.
+// No se edita a mano: para cambiarlo, cambia el generador o el esquema y vuelve a generarlo.
+// Lo que va tras `#[cfg(feature = "bezenti")]` es el modelo de datos de las funciones Enterprise que la
+// edición bezenti reimplementa como software libre (AGPL-3.0-only).
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
@@ -51,7 +55,81 @@ pub enum ActionType {
     ResumeMtaQueue = 10,
 }
 
-// [fragmento SEL eliminado: 79 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum AiModelType {
+    #[default]
+    OpenAi = 0,
+    Anthropic = 1,
+    Gemini = 2,
+    Ollama = 3,
+    TypeSafe = 4,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum AiOpenAiProfile {
+    #[default]
+    OpenAi = 0,
+    Azure = 1,
+    Vllm = 2,
+    LlamaCpp = 3,
+    Generic = 4,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum AiReasoning {
+    #[default]
+    Default = 0,
+    Off = 1,
+    Low = 2,
+    Medium = 3,
+    High = 4,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum AlertEmailType {
+    #[default]
+    Disabled = 0,
+    Enabled = 1,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum AlertEventType {
+    #[default]
+    Disabled = 0,
+    Enabled = 1,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum ArchivedItemStatus {
+    #[default]
+    Archived = 0,
+    RequestRestore = 1,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum ArchivedItemType {
+    #[default]
+    Email = 0,
+    FileNode = 1,
+    CalendarEvent = 2,
+    ContactCard = 3,
+    SieveScript = 4,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum ArfAuthFailureType {
@@ -129,13 +207,26 @@ pub enum AzureEnvironment {
     UsGovernment = 2,
 }
 
-// [fragmento SEL eliminado: 17 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum BlobStoreBaseType {
+    #[default]
+    S3 = 0,
+    Azure = 1,
+    FileSystem = 2,
+    FoundationDb = 3,
+    PostgreSql = 4,
+    MySql = 5,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum BlobStoreType {
     #[default]
     Default = 0,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sharded = 1,
     S3 = 2,
     Azure = 3,
     FileSystem = 4,
@@ -885,13 +976,23 @@ pub enum HttpLookupFormatType {
     List = 1,
 }
 
-// [fragmento SEL eliminado: 14 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum InMemoryStoreBaseType {
+    #[default]
+    Redis = 0,
+    RedisCluster = 1,
+    RedisSentinel = 2,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum InMemoryStoreType {
     #[default]
     Default = 0,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sharded = 1,
     Redis = 2,
     RedisCluster = 3,
     RedisSentinel = 4,
@@ -920,8 +1021,10 @@ pub enum IndexStatusType {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum IndexType {
-    // [fragmento SEL eliminado: 7 líneas]
-    #[cfg_attr(not(feature = "enterprise"), default)]
+    #[cfg(feature = "bezenti")]
+    #[default]
+    Telemetry = 0,
+    #[cfg_attr(not(feature = "bezenti"), default)]
     Email = 1,
     Calendar = 2,
     Contacts = 3,
@@ -1355,7 +1458,8 @@ pub enum LookupStoreType {
     PostgreSql = 0,
     MySql = 1,
     Sqlite = 2,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sharded = 3,
     Redis = 4,
     RedisCluster = 5,
     RedisSentinel = 6,
@@ -1388,7 +1492,16 @@ pub enum MetadataDataType {
     FileNode = 7,
 }
 
-// [fragmento SEL eliminado: 14 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum MetricVariantType {
+    #[default]
+    Counter = 0,
+    Gauge = 1,
+    Histogram = 2,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum MetricsOtelType {
@@ -1406,7 +1519,18 @@ pub enum MetricsPrometheusType {
     Enabled = 1,
 }
 
-// [fragmento SEL eliminado: 16 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum MetricsStoreType {
+    #[default]
+    Disabled = 0,
+    Default = 1,
+    FoundationDb = 2,
+    PostgreSql = 3,
+    MySql = 4,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum MilterVersion {
@@ -1663,7 +1787,8 @@ pub enum Permission {
     #[default]
     Authenticate = 0,
     AuthenticateWithAlias = 1,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    InteractAi = 2,
     Impersonate = 3,
     UnlimitedRequests = 4,
     UnlimitedUploads = 5,
@@ -1879,9 +2004,13 @@ pub enum Permission {
     DavCalQuery = 215,
     DavCalMultiGet = 216,
     DavCalFreeBusyQuery = 217,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    LiveTracing = 218,
+    #[cfg(feature = "bezenti")]
+    LiveMetrics = 219,
     LiveDeliveryTest = 220,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ScimAccess = 221,
     SysAccountGet = 222,
     SysAccountCreate = 223,
     SysAccountUpdate = 224,
@@ -1910,7 +2039,26 @@ pub enum Permission {
     SysActionCreate = 247,
     SysAddressBookGet = 248,
     SysAddressBookUpdate = 249,
-    // [fragmento SEL eliminado: 24 líneas]
+    #[cfg(feature = "bezenti")]
+    SysAiModelGet = 250,
+    #[cfg(feature = "bezenti")]
+    SysAiModelCreate = 251,
+    #[cfg(feature = "bezenti")]
+    SysAiModelUpdate = 252,
+    #[cfg(feature = "bezenti")]
+    SysAiModelDestroy = 253,
+    #[cfg(feature = "bezenti")]
+    SysAiModelQuery = 254,
+    #[cfg(feature = "bezenti")]
+    SysAlertGet = 255,
+    #[cfg(feature = "bezenti")]
+    SysAlertCreate = 256,
+    #[cfg(feature = "bezenti")]
+    SysAlertUpdate = 257,
+    #[cfg(feature = "bezenti")]
+    SysAlertDestroy = 258,
+    #[cfg(feature = "bezenti")]
+    SysAlertQuery = 259,
     SysAllowedIpGet = 260,
     SysAllowedIpCreate = 261,
     SysAllowedIpUpdate = 262,
@@ -1931,7 +2079,14 @@ pub enum Permission {
     SysApplicationUpdate = 277,
     SysApplicationDestroy = 278,
     SysApplicationQuery = 279,
-    // [fragmento SEL eliminado: 12 líneas]
+    #[cfg(feature = "bezenti")]
+    SysArchivedItemGet = 280,
+    #[cfg(feature = "bezenti")]
+    SysArchivedItemUpdate = 281,
+    #[cfg(feature = "bezenti")]
+    SysArchivedItemDestroy = 282,
+    #[cfg(feature = "bezenti")]
+    SysArchivedItemQuery = 283,
     SysArfExternalReportGet = 284,
     SysArfExternalReportDestroy = 285,
     SysArfExternalReportQuery = 286,
@@ -2013,7 +2168,6 @@ pub enum Permission {
     SysEmailUpdate = 362,
     SysEncryptionGet = 643,
     SysEncryptionUpdate = 644,
-    // [fragmento SEL eliminado: 8 líneas]
     SysEventTracingLevelGet = 365,
     SysEventTracingLevelCreate = 366,
     SysEventTracingLevelUpdate = 367,
@@ -2051,7 +2205,16 @@ pub enum Permission {
     SysMailingListUpdate = 394,
     SysMailingListDestroy = 395,
     SysMailingListQuery = 396,
-    // [fragmento SEL eliminado: 14 líneas]
+    #[cfg(feature = "bezenti")]
+    SysMaskedEmailGet = 363,
+    #[cfg(feature = "bezenti")]
+    SysMaskedEmailCreate = 364,
+    #[cfg(feature = "bezenti")]
+    SysMaskedEmailUpdate = 397,
+    #[cfg(feature = "bezenti")]
+    SysMaskedEmailDestroy = 398,
+    #[cfg(feature = "bezenti")]
+    SysMaskedEmailQuery = 399,
     SysMemoryLookupKeyGet = 402,
     SysMemoryLookupKeyCreate = 403,
     SysMemoryLookupKeyUpdate = 404,
@@ -2064,10 +2227,16 @@ pub enum Permission {
     SysMemoryLookupKeyValueQuery = 411,
     SysMetadataGet = 412,
     SysMetadataUpdate = 413,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    SysMetricGet = 400,
+    #[cfg(feature = "bezenti")]
+    SysMetricQuery = 401,
     SysMetricsGet = 416,
     SysMetricsUpdate = 417,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    SysMetricsStoreGet = 414,
+    #[cfg(feature = "bezenti")]
+    SysMetricsStoreUpdate = 415,
     SysMtaConnectionStrategyGet = 420,
     SysMtaConnectionStrategyCreate = 421,
     SysMtaConnectionStrategyUpdate = 422,
@@ -2203,7 +2372,10 @@ pub enum Permission {
     SysSmimeTrustAnchorUpdate = 652,
     SysSmimeTrustAnchorDestroy = 653,
     SysSmimeTrustAnchorQuery = 654,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    SysSpamAiGet = 418,
+    #[cfg(feature = "bezenti")]
+    SysSpamAiUpdate = 419,
     SysSpamClassifierGet = 547,
     SysSpamClassifierUpdate = 548,
     SysSpamDnsblServerGet = 549,
@@ -2256,10 +2428,12 @@ pub enum Permission {
     TaskMergeThreads = 591,
     TaskDmarcReport = 592,
     TaskTlsReport = 593,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TaskRestoreArchivedItem = 545,
     TaskDestroyAccount = 595,
     TaskAccountMaintenance = 596,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TaskTenantMaintenance = 546,
     TaskStoreMaintenance = 598,
     TaskSpamFilterMaintenance = 599,
     TaskAcmeRenewal = 600,
@@ -2277,7 +2451,16 @@ pub enum Permission {
     SysTaskQuery = 610,
     SysTaskManagerGet = 611,
     SysTaskManagerUpdate = 612,
-    // [fragmento SEL eliminado: 14 líneas]
+    #[cfg(feature = "bezenti")]
+    SysTenantGet = 594,
+    #[cfg(feature = "bezenti")]
+    SysTenantCreate = 597,
+    #[cfg(feature = "bezenti")]
+    SysTenantUpdate = 613,
+    #[cfg(feature = "bezenti")]
+    SysTenantDestroy = 614,
+    #[cfg(feature = "bezenti")]
+    SysTenantQuery = 615,
     SysTlsExternalReportGet = 618,
     SysTlsExternalReportDestroy = 619,
     SysTlsExternalReportQuery = 620,
@@ -2287,13 +2470,19 @@ pub enum Permission {
     SysTlsInternalReportQuery = 624,
     SysTlsReportSettingsGet = 625,
     SysTlsReportSettingsUpdate = 626,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    SysTraceGet = 616,
+    #[cfg(feature = "bezenti")]
+    SysTraceQuery = 617,
     SysTracerGet = 629,
     SysTracerCreate = 630,
     SysTracerUpdate = 631,
     SysTracerDestroy = 632,
     SysTracerQuery = 633,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    SysTracingStoreGet = 627,
+    #[cfg(feature = "bezenti")]
+    SysTracingStoreUpdate = 628,
     SysWebDavGet = 636,
     SysWebDavUpdate = 637,
     SysWebHookGet = 638,
@@ -2682,7 +2871,41 @@ pub enum SmimeCipher {
     ChaCha20Poly1305 = 6,
 }
 
-// [fragmento SEL eliminado: 39 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum SpamAiLearnType {
+    #[default]
+    Disable = 0,
+    Enable = 1,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum SpamAiMode {
+    #[default]
+    Automatic = 0,
+    Shadow = 1,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum SpamAiType {
+    #[default]
+    Disable = 0,
+    Enable = 1,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum SpamAiWebSearchType {
+    #[default]
+    Disable = 0,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum SpamClassifierModelType {
@@ -2823,7 +3046,8 @@ pub enum StorageQuota {
     MaxContactCards = 11,
     MaxFiles = 12,
     MaxFolders = 13,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaxMaskedAddresses = 14,
     MaxAppPasswords = 15,
     MaxApiKeys = 16,
     MaxPublicKeys = 17,
@@ -2912,13 +3136,15 @@ pub enum TaskStatusType {
 pub enum TaskStoreMaintenanceType {
     #[default]
     ReindexAccounts = 0,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ReindexTelemetry = 1,
     PurgeAccounts = 2,
     PurgeData = 3,
     PurgeBlob = 4,
     ResetRateLimiters = 5,
     ResetUserQuotas = 6,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ResetTenantQuotas = 7,
     ResetBlobQuotas = 8,
     RemoveAuthTokens = 9,
     RemoveLockQueueMessage = 10,
@@ -2927,7 +3153,14 @@ pub enum TaskStoreMaintenanceType {
     RemoveGreylist = 13,
 }
 
-// [fragmento SEL eliminado: 12 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum TaskTenantMaintenanceType {
+    #[default]
+    RecalculateQuota = 0,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum TaskType {
@@ -2938,10 +3171,12 @@ pub enum TaskType {
     MergeThreads = 3,
     DmarcReport = 4,
     TlsReport = 5,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    RestoreArchivedItem = 6,
     DestroyAccount = 7,
     AccountMaintenance = 8,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TenantMaintenance = 9,
     StoreMaintenance = 10,
     SpamFilterMaintenance = 11,
     AcmeRenewal = 12,
@@ -2954,7 +3189,24 @@ pub enum TaskType {
     BlobRecode = 19,
 }
 
-// [fragmento SEL eliminado: 22 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum TenantStorageQuota {
+    #[default]
+    MaxAccounts = 0,
+    MaxGroups = 1,
+    MaxDomains = 2,
+    MaxMailingLists = 3,
+    MaxRoles = 4,
+    MaxOauthClients = 5,
+    MaxDkimKeys = 6,
+    MaxDnsServers = 7,
+    MaxDirectories = 8,
+    MaxAcmeProviders = 9,
+    MaxDiskQuota = 10,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum TimeZone {
@@ -3610,7 +3862,24 @@ pub enum TlsVersion {
     Tls13 = 1,
 }
 
-// [fragmento SEL eliminado: 22 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum TraceValueType {
+    #[default]
+    String = 0,
+    UnsignedInt = 1,
+    Integer = 2,
+    Boolean = 3,
+    Float = 4,
+    UTCDateTime = 5,
+    Duration = 6,
+    IpAddr = 7,
+    List = 8,
+    Event = 9,
+    Null = 10,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum TracerType {
@@ -3645,7 +3914,18 @@ pub enum TracingLevelOpt {
     Trace = 5,
 }
 
-// [fragmento SEL eliminado: 16 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum TracingStoreType {
+    #[default]
+    Disabled = 0,
+    Default = 1,
+    FoundationDb = 2,
+    PostgreSql = 3,
+    MySql = 4,
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum TsigAlgorithm {

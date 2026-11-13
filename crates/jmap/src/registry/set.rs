@@ -807,6 +807,23 @@ impl RegistrySet for Server {
                 set.fail_all_destroy("Telemetry objects cannot be deleted");
                 Ok(set.into_response())
             }
+            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 2 a 5).
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel
+            | ObjectType::Alert
+            | ObjectType::ArchivedItem
+            | ObjectType::MaskedEmail
+            | ObjectType::Metric
+            | ObjectType::MetricsStore
+            | ObjectType::SpamAi
+            | ObjectType::Tenant
+            | ObjectType::Trace
+            | ObjectType::TracingStore => {
+                set.fail_all_create("Not available yet in this edition");
+                set.fail_all_update("Not available yet in this edition");
+                set.fail_all_destroy("Not available yet in this edition");
+                Ok(set.into_response())
+            }
         }
     }
 }

@@ -5536,6 +5536,7 @@ dependencies = [
  "lz4_flex 0.14.0",
  "mail-auth",
  "serde",
+ "serde_json",
  "smtp-report",
  "tokio",
  "trc",

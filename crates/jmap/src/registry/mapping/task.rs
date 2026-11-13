@@ -105,6 +105,9 @@ pub(crate) async fn task_set(
             | TaskType::DestroyAccount
             | TaskType::ShareRevokeCleanup => false,
             // [fragmento SEL eliminado: 6 líneas]
+            // bezenti: tareas sin implementar todavía (fases 2 y 3); no las crean los clientes.
+            #[cfg(feature = "bezenti")]
+            TaskType::RestoreArchivedItem | TaskType::TenantMaintenance => false,
         };
         if is_client_task {
             let mut index = IndexBuilder::default();

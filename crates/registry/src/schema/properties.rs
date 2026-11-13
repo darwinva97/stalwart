@@ -1,10 +1,14 @@
 /*
  * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2026 bezenti
  *
- * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-// This file is auto-generated. Do not edit directly.
+// Archivo generado por bezenti/generador a partir del esquema resources/schema/schema.json.gz.
+// No se edita a mano: para cambiarlo, cambia el generador o el esquema y vuelve a generarlo.
+// Lo que va tras `#[cfg(feature = "bezenti")]` es el modelo de datos de las funciones Enterprise que la
+// edición bezenti reimplementa como software libre (AGPL-3.0-only).
 
 use crate::schema::prelude::*;
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -16,12 +20,16 @@ pub enum ObjectInner {
     AcmeProvider(Box<AcmeProvider>),
     Action(Box<Action>),
     AddressBook(Box<AddressBook>),
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    AiModel(Box<AiModel>),
+    #[cfg(feature = "bezenti")]
+    Alert(Box<Alert>),
     AllowedIp(Box<AllowedIp>),
     ApiKey(Box<ApiKey>),
     AppPassword(Box<AppPassword>),
     Application(Box<Application>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ArchivedItem(Box<ArchivedItem>),
     ArfExternalReport(Box<ArfExternalReport>),
     Asn(Box<Asn>),
     Authentication(Box<Authentication>),
@@ -50,7 +58,6 @@ pub enum ObjectInner {
     DsnReportSettings(Box<DsnReportSettings>),
     Email(Box<Email>),
     Encryption(Box<Encryption>),
-    // [fragmento SEL eliminado: 6 líneas]
     EventTracingLevel(Box<EventTracingLevel>),
     ExternalPublicKey(Box<ExternalPublicKey>),
     FileStorage(Box<FileStorage>),
@@ -63,13 +70,16 @@ pub enum ObjectInner {
     Jmap(Box<Jmap>),
     Log(Box<Log>),
     MailingList(Box<MailingList>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaskedEmail(Box<MaskedEmail>),
     MemoryLookupKey(Box<MemoryLookupKey>),
     MemoryLookupKeyValue(Box<MemoryLookupKeyValue>),
     Metadata(Box<Metadata>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Metric(Box<Metric>),
     Metrics(Box<Metrics>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MetricsStore(Box<MetricsStore>),
     MtaConnectionStrategy(Box<MtaConnectionStrategy>),
     MtaDeliverySchedule(Box<MtaDeliverySchedule>),
     MtaExtensions(Box<MtaExtensions>),
@@ -109,7 +119,8 @@ pub enum ObjectInner {
     SieveUserInterpreter(Box<SieveUserInterpreter>),
     SieveUserScript(Box<SieveUserScript>),
     SmimeTrustAnchor(Box<SmimeTrustAnchor>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    SpamAi(Box<SpamAi>),
     SpamClassifier(Box<SpamClassifier>),
     SpamDnsblServer(Box<SpamDnsblServer>),
     SpamDnsblSettings(Box<SpamDnsblSettings>),
@@ -125,13 +136,16 @@ pub enum ObjectInner {
     SystemSettings(Box<SystemSettings>),
     Task(Box<Task>),
     TaskManager(Box<TaskManager>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Tenant(Box<Tenant>),
     TlsExternalReport(Box<TlsExternalReport>),
     TlsInternalReport(Box<TlsInternalReport>),
     TlsReportSettings(Box<TlsReportSettings>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Trace(Box<Trace>),
     Tracer(Box<Tracer>),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TracingStore(Box<TracingStore>),
     WebDav(Box<WebDav>),
     WebHook(Box<WebHook>),
 }
@@ -145,12 +159,16 @@ pub enum ObjectType {
     AcmeProvider = 3,
     Action = 4,
     AddressBook = 5,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    AiModel = 6,
+    #[cfg(feature = "bezenti")]
+    Alert = 7,
     AllowedIp = 8,
     ApiKey = 9,
     AppPassword = 10,
     Application = 11,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ArchivedItem = 12,
     ArfExternalReport = 13,
     Asn = 14,
     Authentication = 15,
@@ -179,7 +197,6 @@ pub enum ObjectType {
     DsnReportSettings = 38,
     Email = 39,
     Encryption = 120,
-    // [fragmento SEL eliminado: 6 líneas]
     EventTracingLevel = 41,
     ExternalPublicKey = 121,
     FileStorage = 42,
@@ -192,13 +209,16 @@ pub enum ObjectType {
     Jmap = 49,
     Log = 50,
     MailingList = 51,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaskedEmail = 40,
     MemoryLookupKey = 53,
     MemoryLookupKeyValue = 54,
     Metadata = 55,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Metric = 52,
     Metrics = 57,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MetricsStore = 56,
     MtaConnectionStrategy = 59,
     MtaDeliverySchedule = 60,
     MtaExtensions = 61,
@@ -238,7 +258,8 @@ pub enum ObjectType {
     SieveUserInterpreter = 94,
     SieveUserScript = 95,
     SmimeTrustAnchor = 122,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    SpamAi = 58,
     SpamClassifier = 97,
     SpamDnsblServer = 98,
     SpamDnsblSettings = 99,
@@ -254,13 +275,16 @@ pub enum ObjectType {
     SystemSettings = 108,
     Task = 109,
     TaskManager = 110,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Tenant = 96,
     TlsExternalReport = 112,
     TlsInternalReport = 113,
     TlsReportSettings = 114,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Trace = 111,
     Tracer = 116,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TracingStore = 115,
     WebDav = 118,
     WebHook = 119,
 }
@@ -290,7 +314,8 @@ pub enum Property {
     AddAuthResultsHeader = 649,
     AddDateHeader = 650,
     AddDeliveredToHeader = 651,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    AddHeader = 841,
     AddMessageIdHeader = 652,
     AddReceivedHeader = 653,
     AddReceivedSpfHeader = 654,
@@ -303,7 +328,12 @@ pub enum Property {
     AggregateFromName = 313,
     AggregateOrgName = 315,
     AggregateSendFrequency = 316,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    AiFacts = 887,
+    #[cfg(feature = "bezenti")]
+    AiGate = 888,
+    #[cfg(feature = "bezenti")]
+    AiVerdict = 889,
     AlarmId = 938,
     AlertAfter = 957,
     Algorithm = 1064,
@@ -316,7 +346,8 @@ pub enum Property {
     AllowInvalidCerts = 41,
     AllowPlainTextAuth = 502,
     AllowRelaying = 419,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    AllowScimProvisioning = 421,
     AllowSpamTraining = 446,
     AllowedEndpoints = 475,
     AllowedIps = 63,
@@ -331,7 +362,16 @@ pub enum Property {
     ApplicationSecret = 400,
     ArcResult = 337,
     ArcVerify = 804,
-    // [fragmento SEL eliminado: 14 líneas]
+    #[cfg(feature = "bezenti")]
+    ArchiveDeletedAccountsFor = 240,
+    #[cfg(feature = "bezenti")]
+    ArchiveDeletedItemsFor = 241,
+    #[cfg(feature = "bezenti")]
+    ArchivedAt = 69,
+    #[cfg(feature = "bezenti")]
+    ArchivedItemType = 961,
+    #[cfg(feature = "bezenti")]
+    ArchivedUntil = 70,
     ArrivalDate = 82,
     AsnUrls = 116,
     AtRestEnable = 1017,
@@ -376,9 +416,17 @@ pub enum Property {
     BlobStore = 153,
     BlockCount = 901,
     BlockedFingerprints = 1052,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    Body = 52,
+    #[cfg(feature = "bezenti")]
+    BreakerCooldown = 842,
+    #[cfg(feature = "bezenti")]
+    BreakerThreshold = 843,
     Bucket = 767,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    BucketHigh = 844,
+    #[cfg(feature = "bezenti")]
+    BucketMedium = 845,
     BufferSize = 764,
     Buffered = 1004,
     CaPath = 1073,
@@ -387,7 +435,8 @@ pub enum Property {
     Canonicalization = 254,
     Capabilities = 1039,
     CatchAllAddress = 417,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Categories = 846,
     CertPath = 1074,
     Certificate = 214,
     CertificateManagement = 413,
@@ -438,7 +487,8 @@ pub enum Property {
     Count = 301,
     Create = 444,
     CreatedAt = 60,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    CreatedBy = 551,
     CredentialId = 730,
     Credentials = 385,
     CurrentSecret = 4,
@@ -473,7 +523,8 @@ pub enum Property {
     DefaultReturnPath = 814,
     DefaultSubject = 489,
     DefaultSubjectPrefix = 826,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    DefaultTenantRoleIds = 122,
     DefaultUserRoleIds = 120,
     Definition = 275,
     Delay = 966,
@@ -548,9 +599,15 @@ pub enum Property {
     EmailAddress = 469,
     EmailAddresses = 180,
     EmailAddressesNegative = 181,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    EmailAlert = 49,
+    #[cfg(feature = "bezenti")]
+    EmailDomain = 574,
     EmailLimit = 893,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    EmailPrefix = 575,
+    #[cfg(feature = "bezenti")]
+    EmailTemplate = 212,
     Enable = 51,
     EnableAssistedDiscovery = 1005,
     EnableEdns = 349,
@@ -572,16 +629,21 @@ pub enum Property {
     ErrorMessage = 247,
     ErrorType = 246,
     Errors = 287,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    EscalateBelow = 866,
+    #[cfg(feature = "bezenti")]
+    EscalateOn = 867,
     EvaluatedDisposition = 302,
     EvaluatedDkim = 303,
     EvaluatedSpf = 304,
     Event = 448,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    EventAlert = 50,
     EventEnd = 941,
     EventEndTz = 943,
     EventId = 939,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    EventMessage = 57,
     EventSourceThrottle = 532,
     EventStart = 940,
     EventStartTz = 942,
@@ -592,7 +654,8 @@ pub enum Property {
     ExpiresAt = 61,
     ExpiresAttempts = 735,
     Expiry = 609,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Explanation = 847,
     Expn = 617,
     ExpungeSchedule = 236,
     ExpungeSchedulingInboxAfter = 235,
@@ -601,10 +664,12 @@ pub enum Property {
     ExpungeTrashAfter = 232,
     Extension = 896,
     Extensions = 297,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ExternalId = 447,
     ExternalPublicKeys = 1016,
     ExtraContactInfo = 283,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ExtraParameters = 32,
     Factor = 962,
     FailOnTimeout = 579,
     FailedAt = 968,
@@ -641,7 +706,8 @@ pub enum Property {
     FlushChanges = 144,
     FlushInterval = 145,
     FolderId = 410,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ForDomain = 576,
     Format = 493,
     ForwardedHops = 480,
     From = 76,
@@ -670,10 +736,12 @@ pub enum Property {
     HeaderProtection = 1032,
     Headers = 107,
     HkpServers = 1025,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    HoldMetricsFor = 243,
     HoldMtaReportsFor = 242,
     HoldSamplesFor = 872,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    HoldTracesFor = 244,
     Host = 376,
     HostedZoneId = 404,
     Hostname = 223,
@@ -683,7 +751,8 @@ pub enum Property {
     HttpHeaders = 40,
     HttpRsvpEnable = 206,
     HttpRsvpLinkExpiry = 207,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    HttpRsvpTemplate = 213,
     HttpRsvpUrl = 208,
     HttpRua = 984,
     HumanResult = 274,
@@ -701,10 +770,16 @@ pub enum Property {
     InboundReportAddresses = 758,
     InboundReportForwarding = 759,
     Incidents = 84,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    IncludeAttachments = 848,
+    #[cfg(feature = "bezenti")]
+    IncludeAuth = 849,
+    #[cfg(feature = "bezenti")]
+    IncludeLinks = 850,
     IncludeSecrets = 935,
     IncludeSource = 424,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Includes = 838,
     Index = 513,
     IndexAsn = 108,
     IndexAsnName = 109,
@@ -718,12 +793,14 @@ pub enum Property {
     IndexEmailFields = 777,
     IndexFiles = 780,
     IndexKey = 498,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    IndexTelemetry = 778,
     IndexValue = 499,
     IndicatorParameters = 878,
     InitialDelay = 963,
     InstanceHashes = 264,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Instructions = 851,
     Interval = 596,
     Intervals = 613,
     IntrospectionAuthMethod = 714,
@@ -747,7 +824,8 @@ pub enum Property {
     IssuerDomainNames = 18,
     IssuerUrl = 705,
     Jitter = 965,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    KeepAlive = 46,
     Key = 375,
     KeyId = 1061,
     KeyName = 406,
@@ -755,7 +833,8 @@ pub enum Property {
     KeyPrefix = 141,
     KeyRefreshInterval = 1028,
     KeyType = 1038,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    KeyValues = 994,
     Kind = 1037,
     L1Ratio = 467,
     L2Ratio = 468,
@@ -763,14 +842,14 @@ pub enum Property {
     LastRenewal = 224,
     LastSeen = 1044,
     LastUsedAt = 702,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Learn = 852,
     LearnHamFromCard = 869,
     LearnHamFromReply = 877,
     LearnSpamFromRblHits = 870,
     LearnSpamFromTraps = 871,
     LenientIssuerMatch = 718,
     Level = 449,
-    // [fragmento SEL eliminado: 6 líneas]
     Line = 358,
     ListenerIds = 221,
     Listeners = 226,
@@ -778,7 +857,8 @@ pub enum Property {
     LocalIps = 601,
     Locale = 7,
     Logo = 412,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Logprobs = 45,
     LoiterBanPeriod = 796,
     LoiterBanRate = 795,
     Lossy = 995,
@@ -802,7 +882,8 @@ pub enum Property {
     MaxAppPasswords = 129,
     MaxAttachmentSize = 425,
     MaxAttachmentText = 912,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaxAttachments = 853,
     MaxAttachmentsSize = 202,
     MaxAttempts = 608,
     MaxAttendees = 191,
@@ -850,9 +931,11 @@ pub enum Property {
     MaxIdentities = 435,
     MaxInboundReportSize = 762,
     MaxIncludes = 827,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaxInputChars = 854,
     MaxItipSize = 210,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaxLinks = 855,
     MaxLivePropertySize = 1008,
     MaxLocalVars = 828,
     MaxLockTimeout = 1006,
@@ -861,7 +944,8 @@ pub enum Property {
     MaxMailboxNameLength = 428,
     MaxMailboxes = 436,
     MaxMailboxesPerEmail = 439,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaxMaskedAddresses = 437,
     MaxMatchVars = 829,
     MaxMediaSize = 31,
     MaxMessageSize = 426,
@@ -877,7 +961,8 @@ pub enum Property {
     MaxNestedIncludes = 816,
     MaxNestedTests = 833,
     MaxOutMessages = 817,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MaxOutputTokens = 33,
     MaxParticipantIdentities = 196,
     MaxPasskeys = 1062,
     MaxPasswordLength = 126,
@@ -917,7 +1002,8 @@ pub enum Property {
     MaxVarNameLength = 836,
     MaxVarSize = 819,
     MemberGroupIds = 953,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MemberTenantId = 21,
     Message = 106,
     MessageIdHostname = 812,
     MessageIds = 959,
@@ -926,15 +1012,18 @@ pub enum Property {
     MessagesLarge = 173,
     MessagesLargeTtl = 174,
     Method = 1053,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Metric = 577,
     Metrics = 594,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MetricsCollectionInterval = 245,
     MetricsPolicy = 595,
     MinAccountSize = 147,
     MinHamSamples = 873,
     MinPasswordLength = 125,
     MinPasswordStrength = 127,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    MinProbability = 839,
     MinRetryWait = 751,
     MinSpamSamples = 874,
     MinTriggerInterval = 204,
@@ -942,7 +1031,8 @@ pub enum Property {
     Minute = 229,
     Mode = 662,
     Model = 37,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ModelId = 868,
     MtPriority = 619,
     MtaSts = 665,
     MtaStsTimeout = 667,
@@ -1069,7 +1159,8 @@ pub enum Property {
     QueryLogin = 923,
     QueryMemberOf = 925,
     QueryRecipient = 924,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Question = 865,
     QueueId = 611,
     QueueName = 746,
     QueuedDeletions = 516,
@@ -1084,9 +1175,11 @@ pub enum Property {
     RcptToTimeout = 607,
     ReadBufferCapacity = 678,
     ReadFromReplicas = 752,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    ReadReplicas = 591,
     Reason = 59,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Reasoning = 34,
     ReceivedAt = 77,
     ReceivedFromIp = 738,
     ReceivedViaPort = 739,
@@ -1144,7 +1237,8 @@ pub enum Property {
     RotateAfter = 267,
     Route = 635,
     Rua = 276,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    SampleRate = 840,
     Sandbox = 389,
     SasToken = 134,
     SaslMechanisms = 644,
@@ -1184,7 +1278,8 @@ pub enum Property {
     ShardConnections = 1070,
     ShardIndex = 973,
     SharedSecret = 388,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Signals = 856,
     SignatureAlgorithm = 725,
     SignatureKey = 726,
     Size = 78,
@@ -1219,12 +1314,14 @@ pub enum Property {
     SpfResults = 310,
     Stage = 262,
     Stages = 626,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    StartTime = 72,
     StartTls = 666,
     Status = 75,
     StorageAccount = 136,
     Store = 142,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Stores = 808,
     Strategy = 956,
     StreamMode = 1071,
     StrictKeyWrapEncoding = 1054,
@@ -1235,7 +1332,8 @@ pub enum Property {
     Subscribe = 445,
     SubscriptionCapacity = 679,
     SubscriptionId = 365,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sum = 590,
     Summary = 949,
     SupportedLanguages = 771,
     Swap = 190,
@@ -1247,10 +1345,14 @@ pub enum Property {
     TcpOnError = 351,
     TeamId = 408,
     TempFailOnError = 625,
-    // [fragmento SEL eliminado: 8 líneas]
+    #[cfg(feature = "bezenti")]
+    Temperature = 35,
+    #[cfg(feature = "bezenti")]
+    Template = 205,
     TenancyOcid = 393,
     TenantId = 131,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Tenants = 184,
     Text = 2,
     Then = 453,
     ThirdParty = 257,
@@ -1258,11 +1360,13 @@ pub enum Property {
     ThreadName = 958,
     ThreadsPerNode = 669,
     Throttle = 1003,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Tiers = 857,
     TimeZone = 8,
     Timeout = 42,
     Timestamp = 571,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Title = 73,
     Tls = 637,
     TlsDisableCipherSuites = 691,
     TlsDisableProtocols = 692,
@@ -1279,21 +1383,25 @@ pub enum Property {
     TransactionRetryLimit = 462,
     TransactionTimeout = 463,
     TransferLimit = 628,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TrimQuotes = 858,
     Trust = 1036,
     TrustContacts = 904,
     TrustReplies = 909,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TrustedProvider = 673,
     TsigAlgorithm = 407,
     Ttl = 359,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    UncertainBelow = 859,
     UnpackDirectory = 67,
     UnscopedTokens = 715,
     UpdateRecords = 954,
     UploadQuota = 530,
     UploadTtl = 531,
     Url = 38,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    UrlFailover = 472,
     UrlLimit = 895,
     UrlPrefix = 65,
     Urls = 749,
@@ -1311,7 +1419,12 @@ pub enum Property {
     Value = 581,
     VariableName = 789,
     VendorNamespaces = 583,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    VerbalHigh = 861,
+    #[cfg(feature = "bezenti")]
+    VerbalLow = 862,
+    #[cfg(feature = "bezenti")]
+    VerbalMedium = 863,
     VerifyAfterWrite = 768,
     Version = 94,
     ViewName = 368,
@@ -1321,7 +1434,8 @@ pub enum Property {
     Warnings = 757,
     WebPushContact = 545,
     WebPushKey = 544,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    WebSearch = 864,
     WebsocketHeartbeat = 540,
     WebsocketThrottle = 541,
     WebsocketTimeout = 542,

@@ -151,6 +151,8 @@ impl TaskTypeLimits for TaskType {
             | TaskType::ExternalPublicKeyMaintenance
             | TaskType::ShareRevokeCleanup => manager::TASK_QUEUE_BUFFER,
             // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            TaskType::RestoreArchivedItem | TaskType::TenantMaintenance => 1,
         }
     }
 
@@ -175,6 +177,8 @@ impl TaskTypeLimits for TaskType {
             TaskType::CalendarAlarmEmail
             | TaskType::CalendarAlarmNotification
             | TaskType::CalendarItipMessage => 4,
+            #[cfg(feature = "bezenti")]
+            TaskType::RestoreArchivedItem | TaskType::TenantMaintenance => 1,
         }
     }
 }

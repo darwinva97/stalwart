@@ -38,6 +38,11 @@ impl Task {
             Task::ShareRevokeCleanup(task) => task.status = status,
             Task::ExternalPublicKeyMaintenance(task) => task.status = status,
             Task::BlobRecode(task) => task.status = status,
+            // bezenti: tareas de pago (modelo de datos, fase 1).
+            #[cfg(feature = "bezenti")]
+            Task::RestoreArchivedItem(task) => task.status = status,
+            #[cfg(feature = "bezenti")]
+            Task::TenantMaintenance(task) => task.status = status,
         }
     }
 
@@ -62,6 +67,10 @@ impl Task {
             Task::ShareRevokeCleanup(task) => &task.status,
             Task::ExternalPublicKeyMaintenance(task) => &task.status,
             Task::BlobRecode(task) => &task.status,
+            #[cfg(feature = "bezenti")]
+            Task::RestoreArchivedItem(task) => &task.status,
+            #[cfg(feature = "bezenti")]
+            Task::TenantMaintenance(task) => &task.status,
         }
     }
 
@@ -105,6 +114,10 @@ impl Task {
             Task::ShareRevokeCleanup(_) => Permission::TaskShareRevokeCleanup,
             Task::ExternalPublicKeyMaintenance(_) => Permission::TaskExternalPublicKeyMaintenance,
             Task::BlobRecode(_) => Permission::TaskBlobRecode,
+            #[cfg(feature = "bezenti")]
+            Task::RestoreArchivedItem(_) => Permission::TaskRestoreArchivedItem,
+            #[cfg(feature = "bezenti")]
+            Task::TenantMaintenance(_) => Permission::TaskTenantMaintenance,
         }
     }
 

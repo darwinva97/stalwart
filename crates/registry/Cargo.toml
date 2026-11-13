@@ -17,8 +17,13 @@ tokio = { version = "1.54", features = ["fs"] }
 lz4_flex = { version = "0.14", features = ["alloc"], default-features = false }
 compact_str = "0.10.0"
 
+[dev-dependencies]
+serde_json = "1.0"
+
 [features]
 enterprise = ["trc/enterprise", "utils/enterprise"]
+# bezenti: modelo de datos de las funciones Enterprise reimplementadas como AGPL (bezenti/generador).
+bezenti = []
 
 [lints]
 workspace = true

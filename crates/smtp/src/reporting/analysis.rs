@@ -283,6 +283,9 @@ impl AnalyzeReport for Server {
                                 to: to.into(),
                                 subject,
                                 // [fragmento SEL eliminado: 6 líneas]
+                                // bezenti: el inquilino del informe se asigna en la fase 2 (multi-inquilino).
+                                #[cfg(feature = "bezenti")]
+                                member_tenant_id: None,
                                 expires_at: UTCDateTime::from_timestamp(expires as i64),
                                 received_at: UTCDateTime::now(),
                                 report: report.into(),
@@ -297,6 +300,9 @@ impl AnalyzeReport for Server {
                                 to: to.into(),
                                 subject,
                                 // [fragmento SEL eliminado: 6 líneas]
+                                // bezenti: el inquilino del informe se asigna en la fase 2 (multi-inquilino).
+                                #[cfg(feature = "bezenti")]
+                                member_tenant_id: None,
                                 expires_at: UTCDateTime::from_timestamp(expires as i64),
                                 received_at: UTCDateTime::now(),
                                 report: report.into(),
@@ -311,6 +317,9 @@ impl AnalyzeReport for Server {
                                 to: to.into(),
                                 subject,
                                 // [fragmento SEL eliminado: 6 líneas]
+                                // bezenti: el inquilino del informe se asigna en la fase 2 (multi-inquilino).
+                                #[cfg(feature = "bezenti")]
+                                member_tenant_id: None,
                                 expires_at: UTCDateTime::from_timestamp(expires as i64),
                                 received_at: UTCDateTime::now(),
                                 report: report.into(),

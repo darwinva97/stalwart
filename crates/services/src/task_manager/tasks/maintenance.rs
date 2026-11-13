@@ -97,6 +97,11 @@ impl MaintenanceTask for Server {
 
 async fn store_maintenance(server: &Server, task: &TaskStoreMaintenance) -> trc::Result<Outcome> {
     match task.maintenance_type {
+        // bezenti: reindexar la telemetría (fase 5) y reiniciar cuotas de inquilinos (fase 2), sin implementar.
+        #[cfg(feature = "bezenti")]
+        TaskStoreMaintenanceType::ReindexTelemetry | TaskStoreMaintenanceType::ResetTenantQuotas => {
+            return Ok(Outcome::Fatal("tarea de la edición bezenti todavía no implementada".to_string()));
+        }
         // [fragmento SEL eliminado: 37 líneas]
         TaskStoreMaintenanceType::ReindexAccounts
         | TaskStoreMaintenanceType::PurgeAccounts

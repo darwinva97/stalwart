@@ -1,10 +1,14 @@
 /*
  * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2026 bezenti
  *
- * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-// This file is auto-generated. Do not edit directly.
+// Archivo generado por bezenti/generador a partir del esquema resources/schema/schema.json.gz.
+// No se edita a mano: para cambiarlo, cambia el generador o el esquema y vuelve a generarlo.
+// Lo que va tras `#[cfg(feature = "bezenti")]` es el modelo de datos de las funciones Enterprise que la
+// edición bezenti reimplementa como software libre (AGPL-3.0-only).
 
 use crate::schema::prelude::*;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,7 +58,9 @@ pub struct AcmeProvider {
     pub caa_identities: Map<String>,
     #[serde(rename = "renewBefore")]
     pub renew_before: AcmeRenewBefore,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     #[serde(rename = "preferredChain")]
     pub preferred_chain: Option<String>,
     #[serde(rename = "reuseKey")]
@@ -99,7 +105,196 @@ pub struct AddressBook {
     pub max_media_size: u64,
 }
 
-// [fragmento SEL eliminado: 194 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum AiModel {
+    OpenAi(AiModelOpenAi),
+    Anthropic(AiModelAnthropic),
+    Gemini(AiModelGemini),
+    Ollama(AiModelOllama),
+    TypeSafe(AiModelTypeSafe),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AiModelAnthropic {
+    pub name: String,
+    pub model: String,
+    pub url: Option<String>,
+    #[serde(rename = "apiKey")]
+    pub api_key: SecretKeyOptional,
+    #[serde(rename = "allowInvalidCerts")]
+    pub allow_invalid_certs: bool,
+    #[serde(rename = "httpHeaders")]
+    pub http_headers: VecMap<String, String>,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: u64,
+    pub temperature: Option<Float>,
+    pub reasoning: AiReasoning,
+    #[serde(rename = "extraParameters")]
+    pub extra_parameters: Option<String>,
+    pub timeout: Duration,
+    #[serde(rename = "maxConcurrentRequests")]
+    pub max_concurrent_requests: u64,
+    #[serde(rename = "rateLimit")]
+    pub rate_limit: Option<Rate>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AiModelGemini {
+    pub name: String,
+    pub model: String,
+    pub url: Option<String>,
+    #[serde(rename = "apiKey")]
+    pub api_key: SecretKeyOptional,
+    #[serde(rename = "allowInvalidCerts")]
+    pub allow_invalid_certs: bool,
+    #[serde(rename = "httpHeaders")]
+    pub http_headers: VecMap<String, String>,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: u64,
+    pub temperature: Option<Float>,
+    pub reasoning: AiReasoning,
+    pub logprobs: bool,
+    #[serde(rename = "extraParameters")]
+    pub extra_parameters: Option<String>,
+    pub timeout: Duration,
+    #[serde(rename = "maxConcurrentRequests")]
+    pub max_concurrent_requests: u64,
+    #[serde(rename = "rateLimit")]
+    pub rate_limit: Option<Rate>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AiModelOllama {
+    pub name: String,
+    pub model: String,
+    pub url: Option<String>,
+    #[serde(rename = "apiKey")]
+    pub api_key: SecretKeyOptional,
+    #[serde(rename = "allowInvalidCerts")]
+    pub allow_invalid_certs: bool,
+    #[serde(rename = "httpHeaders")]
+    pub http_headers: VecMap<String, String>,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: u64,
+    pub temperature: Option<Float>,
+    pub reasoning: AiReasoning,
+    pub logprobs: bool,
+    #[serde(rename = "keepAlive")]
+    pub keep_alive: Option<Duration>,
+    #[serde(rename = "extraParameters")]
+    pub extra_parameters: Option<String>,
+    pub timeout: Duration,
+    #[serde(rename = "maxConcurrentRequests")]
+    pub max_concurrent_requests: u64,
+    #[serde(rename = "rateLimit")]
+    pub rate_limit: Option<Rate>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AiModelOpenAi {
+    pub name: String,
+    pub model: String,
+    pub profile: AiOpenAiProfile,
+    pub url: Option<String>,
+    #[serde(rename = "apiKey")]
+    pub api_key: SecretKeyOptional,
+    #[serde(rename = "allowInvalidCerts")]
+    pub allow_invalid_certs: bool,
+    #[serde(rename = "httpHeaders")]
+    pub http_headers: VecMap<String, String>,
+    #[serde(rename = "maxOutputTokens")]
+    pub max_output_tokens: u64,
+    pub temperature: Option<Float>,
+    pub reasoning: AiReasoning,
+    pub logprobs: bool,
+    #[serde(rename = "extraParameters")]
+    pub extra_parameters: Option<String>,
+    pub timeout: Duration,
+    #[serde(rename = "maxConcurrentRequests")]
+    pub max_concurrent_requests: u64,
+    #[serde(rename = "rateLimit")]
+    pub rate_limit: Option<Rate>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AiModelTypeSafe {
+    pub name: String,
+    pub model: String,
+    pub url: Option<String>,
+    #[serde(rename = "apiKey")]
+    pub api_key: SecretKeyOptional,
+    #[serde(rename = "allowInvalidCerts")]
+    pub allow_invalid_certs: bool,
+    #[serde(rename = "httpHeaders")]
+    pub http_headers: VecMap<String, String>,
+    pub timeout: Duration,
+    #[serde(rename = "maxConcurrentRequests")]
+    pub max_concurrent_requests: u64,
+    #[serde(rename = "rateLimit")]
+    pub rate_limit: Option<Rate>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Alert {
+    pub enable: bool,
+    pub condition: Expression,
+    #[serde(rename = "emailAlert")]
+    pub email_alert: AlertEmail,
+    #[serde(rename = "eventAlert")]
+    pub event_alert: AlertEvent,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum AlertEmail {
+    Disabled,
+    Enabled(AlertEmailProperties),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AlertEmailProperties {
+    #[serde(rename = "fromName")]
+    pub from_name: Option<String>,
+    #[serde(rename = "fromAddress")]
+    pub from_address: String,
+    pub subject: String,
+    pub to: Map<String>,
+    pub body: String,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum AlertEvent {
+    Disabled,
+    Enabled(AlertEventProperties),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AlertEventProperties {
+    #[serde(rename = "eventMessage")]
+    pub event_message: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AllowedIp {
@@ -158,7 +353,112 @@ pub struct Application {
     pub oauth_scopes: Map<String>,
 }
 
-// [fragmento SEL eliminado: 105 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ArchivedCalendarEvent {
+    pub title: String,
+    #[serde(rename = "startTime")]
+    pub start_time: Option<UTCDateTime>,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "blobId")]
+    pub blob_id: BlobId,
+    #[serde(rename = "archivedAt")]
+    pub archived_at: UTCDateTime,
+    #[serde(rename = "archivedUntil")]
+    pub archived_until: UTCDateTime,
+    pub status: ArchivedItemStatus,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ArchivedContactCard {
+    pub name: Option<String>,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "blobId")]
+    pub blob_id: BlobId,
+    #[serde(rename = "archivedAt")]
+    pub archived_at: UTCDateTime,
+    #[serde(rename = "archivedUntil")]
+    pub archived_until: UTCDateTime,
+    pub status: ArchivedItemStatus,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ArchivedEmail {
+    pub from: String,
+    pub subject: String,
+    #[serde(rename = "receivedAt")]
+    pub received_at: UTCDateTime,
+    pub size: u64,
+    #[serde(rename = "blobId")]
+    pub blob_id: BlobId,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "archivedAt")]
+    pub archived_at: UTCDateTime,
+    #[serde(rename = "archivedUntil")]
+    pub archived_until: UTCDateTime,
+    pub status: ArchivedItemStatus,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ArchivedFileNode {
+    pub name: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "blobId")]
+    pub blob_id: BlobId,
+    #[serde(rename = "archivedAt")]
+    pub archived_at: UTCDateTime,
+    #[serde(rename = "archivedUntil")]
+    pub archived_until: UTCDateTime,
+    pub status: ArchivedItemStatus,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum ArchivedItem {
+    Email(ArchivedEmail),
+    FileNode(ArchivedFileNode),
+    CalendarEvent(ArchivedCalendarEvent),
+    ContactCard(ArchivedContactCard),
+    SieveScript(ArchivedSieveScript),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ArchivedSieveScript {
+    pub name: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    pub contents: String,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "blobId")]
+    pub blob_id: BlobId,
+    #[serde(rename = "archivedAt")]
+    pub archived_at: UTCDateTime,
+    #[serde(rename = "archivedUntil")]
+    pub archived_until: UTCDateTime,
+    pub status: ArchivedItemStatus,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ArfExternalReport {
@@ -170,7 +470,9 @@ pub struct ArfExternalReport {
     pub received_at: UTCDateTime,
     #[serde(rename = "expiresAt")]
     pub expires_at: UTCDateTime,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -281,7 +583,9 @@ pub struct Authentication {
     pub default_user_role_ids: Map<Id>,
     #[serde(rename = "defaultGroupRoleIds")]
     pub default_group_role_ids: Map<Id>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "defaultTenantRoleIds")]
+    pub default_tenant_role_ids: Map<Id>,
     #[serde(rename = "defaultAdminRoleIds")]
     pub default_admin_role_ids: Map<Id>,
     #[serde(rename = "passwordHashAlgorithm")]
@@ -375,7 +679,8 @@ pub struct AzureStore {
 #[serde(tag = "@type")]
 pub enum BlobStore {
     Default,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sharded(ShardedBlobStore),
     S3(S3Store),
     Azure(AzureStore),
     FileSystem(FileSystemStore),
@@ -384,7 +689,18 @@ pub enum BlobStore {
     MySql(MySqlStore),
 }
 
-// [fragmento SEL eliminado: 16 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum BlobStoreBase {
+    S3(S3Store),
+    Azure(AzureStore),
+    FileSystem(FileSystemStore),
+    FoundationDb(FoundationDbStore),
+    PostgreSql(PostgreSqlStore),
+    MySql(MySqlStore),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct BlobStoreSwap {
@@ -494,7 +810,8 @@ pub struct Cache {
     pub email_addresses_negative: u64,
     pub accounts: u64,
     pub roles: u64,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    pub tenants: u64,
     #[serde(rename = "mailingLists")]
     pub mailing_lists: u64,
     #[serde(rename = "dkimSignatures")]
@@ -564,7 +881,8 @@ pub struct CalendarAlarm {
     pub from_name: String,
     #[serde(rename = "minTriggerInterval")]
     pub min_trigger_interval: Duration,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    pub template: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -583,7 +901,12 @@ pub struct CalendarScheduling {
     pub max_itip_size: u64,
     #[serde(rename = "maxRecipients")]
     pub max_recipients: u64,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "emailTemplate")]
+    pub email_template: Option<String>,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "httpRsvpTemplate")]
+    pub http_rsvp_template: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -761,10 +1084,23 @@ pub struct DataRetention {
     pub blob_cleanup_schedule: Cron,
     #[serde(rename = "maxChangesHistory")]
     pub max_changes_history: Option<u64>,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "archiveDeletedAccountsFor")]
+    pub archive_deleted_accounts_for: Option<Duration>,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "archiveDeletedItemsFor")]
+    pub archive_deleted_items_for: Option<Duration>,
     #[serde(rename = "holdMtaReportsFor")]
     pub hold_mta_reports_for: Option<Duration>,
-    // [fragmento SEL eliminado: 13 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "holdMetricsFor")]
+    pub hold_metrics_for: Option<Duration>,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "holdTracesFor")]
+    pub hold_traces_for: Option<Duration>,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "metricsCollectionInterval")]
+    pub metrics_collection_interval: Cron,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -829,7 +1165,9 @@ pub struct Dkim1Signature {
     pub third_party_hash: Option<DkimHash>,
     #[serde(rename = "domainId")]
     pub domain_id: Id,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub selector: String,
     #[serde(rename = "createdAt")]
     pub created_at: UTCDateTime,
@@ -848,7 +1186,9 @@ pub struct Dkim2Signature {
     pub private_key: SecretText,
     #[serde(rename = "domainId")]
     pub domain_id: Id,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub selector: String,
     #[serde(rename = "createdAt")]
     pub created_at: UTCDateTime,
@@ -930,7 +1270,9 @@ pub struct DmarcExternalReport {
     pub received_at: UTCDateTime,
     #[serde(rename = "expiresAt")]
     pub expires_at: UTCDateTime,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1293,7 +1635,9 @@ pub struct DnsServerAlidns {
     pub session_token: SecretKeyOptional,
     pub line: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1311,7 +1655,9 @@ pub struct DnsServerAutodns {
     pub password: SecretKey,
     pub context: Option<u64>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1337,7 +1683,9 @@ pub struct DnsServerAzureDns {
     pub resource_group: String,
     pub environment: AzureEnvironment,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1356,7 +1704,9 @@ pub struct DnsServerBaiduCloud {
     #[serde(rename = "secretKey")]
     pub secret_key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1380,7 +1730,9 @@ pub struct DnsServerBluecatV2 {
     #[serde(rename = "skipDeploy")]
     pub skip_deploy: bool,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1476,7 +1828,9 @@ pub struct DnsServerClouDns {
     pub sub_auth_id: Option<String>,
     pub password: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1492,7 +1846,9 @@ pub struct DnsServerClouDns {
 pub struct DnsServerCloud {
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1508,7 +1864,9 @@ pub struct DnsServerCloud {
 pub struct DnsServerCloudflare {
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1527,7 +1885,9 @@ pub struct DnsServerConstellix {
     #[serde(rename = "secretKey")]
     pub secret_key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1545,7 +1905,9 @@ pub struct DnsServerCpanel {
     pub username: String,
     pub token: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1563,7 +1925,9 @@ pub struct DnsServerDnsMadeEasy {
     pub api_key_id: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1581,7 +1945,9 @@ pub struct DnsServerDnsimple {
     #[serde(rename = "accountIdentifier")]
     pub account_identifier: String,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1598,7 +1964,9 @@ pub struct DnsServerDomeneshop {
     pub token: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1615,7 +1983,9 @@ pub struct DnsServerEasyDns {
     pub token: String,
     pub key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1639,7 +2009,9 @@ pub struct DnsServerEdgeDns {
     #[serde(rename = "accountSwitchKey")]
     pub account_switch_key: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1657,7 +2029,9 @@ pub struct DnsServerExoscale {
     pub api_key_id: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1675,7 +2049,9 @@ pub struct DnsServerGlesys {
     #[serde(rename = "apiKey")]
     pub api_key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1693,7 +2069,9 @@ pub struct DnsServerGodaddy {
     pub api_key_id: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1718,7 +2096,9 @@ pub struct DnsServerGoogleCloudDns {
     #[serde(rename = "impersonateServiceAccount")]
     pub impersonate_service_account: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1738,7 +2118,9 @@ pub struct DnsServerHuaweiCloud {
     pub secret_key: SecretKey,
     pub region: String,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1754,7 +2136,9 @@ pub struct DnsServerHuaweiCloud {
 pub struct DnsServerHurricane {
     pub credentials: List<HurricaneCredential>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1772,7 +2156,9 @@ pub struct DnsServerIbmCloud {
     #[serde(rename = "apiKey")]
     pub api_key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1795,7 +2181,9 @@ pub struct DnsServerInfoblox {
     #[serde(rename = "dnsView")]
     pub dns_view: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1815,7 +2203,9 @@ pub struct DnsServerInwx {
     pub shared_secret: SecretKeyOptional,
     pub sandbox: bool,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1831,7 +2221,9 @@ pub struct DnsServerInwx {
 pub struct DnsServerJoker {
     pub auth: JokerAuth,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1854,7 +2246,9 @@ pub struct DnsServerLightsail {
     pub region: Option<String>,
     pub domain: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1871,7 +2265,9 @@ pub struct DnsServerLuaDns {
     pub username: String,
     pub token: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1888,7 +2284,9 @@ pub struct DnsServerMythicBeasts {
     pub username: String,
     pub password: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1905,7 +2303,9 @@ pub struct DnsServerNameDotCom {
     pub username: String,
     pub token: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1927,7 +2327,9 @@ pub struct DnsServerNamecheap {
     pub client_ip: String,
     pub username: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1947,7 +2349,9 @@ pub struct DnsServerNetcup {
     pub api_key_id: String,
     pub password: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1966,7 +2370,9 @@ pub struct DnsServerNifcloud {
     #[serde(rename = "secretKey")]
     pub secret_key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -1993,7 +2399,9 @@ pub struct DnsServerOracleCloud {
     #[serde(rename = "compartmentOcid")]
     pub compartment_ocid: String,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2016,7 +2424,9 @@ pub struct DnsServerOvh {
     #[serde(rename = "ovhEndpoint")]
     pub ovh_endpoint: OvhEndpoint,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2034,7 +2444,9 @@ pub struct DnsServerPlesk {
     #[serde(rename = "apiKey")]
     pub api_key: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2052,7 +2464,9 @@ pub struct DnsServerPorkbun {
     pub api_key_id: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2072,7 +2486,9 @@ pub struct DnsServerPowerDns {
     #[serde(rename = "serverId")]
     pub server_id: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2098,7 +2514,9 @@ pub struct DnsServerRoute53 {
     #[serde(rename = "privateZoneOnly")]
     pub private_zone_only: bool,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2116,7 +2534,9 @@ pub struct DnsServerSpaceship {
     pub api_key_id: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2138,7 +2558,9 @@ pub struct DnsServerTencentCloud {
     #[serde(rename = "sessionToken")]
     pub session_token: SecretKeyOptional,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2156,7 +2578,9 @@ pub struct DnsServerTransip {
     #[serde(rename = "privateKeyPem")]
     pub private_key_pem: SecretText,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2179,7 +2603,9 @@ pub struct DnsServerTsig {
     #[serde(rename = "tsigAlgorithm")]
     pub tsig_algorithm: TsigAlgorithm,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2197,7 +2623,9 @@ pub struct DnsServerUltraDns {
     pub password: SecretKey,
     pub url: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2215,7 +2643,9 @@ pub struct DnsServerVercel {
     #[serde(rename = "teamId")]
     pub team_id: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2237,7 +2667,9 @@ pub struct DnsServerVolcengine {
     pub host: Option<String>,
     pub scheme: Option<String>,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2255,7 +2687,9 @@ pub struct DnsServerWebSupport {
     pub api_key_id: String,
     pub secret: SecretKey,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2274,7 +2708,9 @@ pub struct DnsServerYandexCloud {
     #[serde(rename = "folderId")]
     pub folder_id: String,
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub timeout: Duration,
     pub ttl: Duration,
     #[serde(rename = "pollInterval")]
@@ -2294,14 +2730,20 @@ pub struct Domain {
     #[serde(rename = "createdAt")]
     pub created_at: UTCDateTime,
     pub description: Option<String>,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "allowScimProvisioning")]
+    pub allow_scim_provisioning: bool,
     #[serde(rename = "certificateManagement")]
     pub certificate_management: CertificateManagement,
     #[serde(rename = "dkimManagement")]
     pub dkim_management: DkimManagement,
     #[serde(rename = "dnsManagement")]
     pub dns_management: DnsManagement,
-    // [fragmento SEL eliminado: 10 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "directoryId")]
+    pub directory_id: Option<Id>,
+    #[cfg(feature = "bezenti")]
+    pub logo: Option<String>,
     #[serde(rename = "catchAllAddress")]
     pub catch_all_address: Option<String>,
     #[serde(rename = "subAddressing")]
@@ -2310,7 +2752,9 @@ pub struct Domain {
     pub allow_relaying: bool,
     #[serde(rename = "reportAddressUri")]
     pub report_address_uri: Option<String>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -2354,6 +2798,9 @@ pub struct Email {
     pub max_mailbox_depth: u64,
     #[serde(rename = "maxMailboxNameLength")]
     pub max_mailbox_name_length: u64,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "maxMaskedAddresses")]
+    pub max_masked_addresses: Option<u64>,
     #[serde(rename = "compressionAlgorithm")]
     pub compression_algorithm: CompressionAlgo,
     #[serde(rename = "blobEncryptionKey")]
@@ -2368,7 +2815,6 @@ pub struct Email {
     pub max_identities: Option<u64>,
     #[serde(rename = "maxMailboxes")]
     pub max_mailboxes: Option<u64>,
-    // [fragmento SEL eliminado: 7 líneas]
     #[serde(rename = "maxPublicKeys")]
     pub max_public_keys: Option<u64>,
     #[serde(rename = "maxMailboxesPerEmail")]
@@ -2457,7 +2903,6 @@ pub struct EncryptionSettings {
     pub allow_spam_training: bool,
 }
 
-// [fragmento SEL eliminado: 15 líneas]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct EventTracingLevel {
@@ -2591,7 +3036,9 @@ pub struct GroupAccount {
     pub description: Option<String>,
     #[serde(rename = "createdAt")]
     pub created_at: UTCDateTime,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "externalId")]
+    pub external_id: Option<String>,
     pub roles: Roles,
     pub quotas: VecMap<StorageQuota, u64>,
     pub permissions: Permissions,
@@ -2599,7 +3046,9 @@ pub struct GroupAccount {
     pub locale: Locale,
     #[serde(rename = "timeZone")]
     pub time_zone: Option<TimeZone>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -2761,14 +3210,23 @@ pub struct Imap {
 #[serde(tag = "@type")]
 pub enum InMemoryStore {
     Default,
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sharded(ShardedInMemoryStore),
     Redis(RedisStore),
     RedisCluster(RedisClusterStore),
     RedisSentinel(RedisSentinelStore),
     Keep(KeepStore),
 }
 
-// [fragmento SEL eliminado: 13 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum InMemoryStoreBase {
+    Redis(RedisStore),
+    RedisCluster(RedisClusterStore),
+    RedisSentinel(RedisSentinelStore),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct InMemorySwap {
@@ -2998,7 +3456,9 @@ pub struct KeySourceAutomatic {
 pub struct LdapDirectory {
     pub description: String,
     pub url: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "urlFailover")]
+    pub url_failover: Map<String>,
     pub timeout: Duration,
     #[serde(rename = "allowInvalidCerts")]
     pub allow_invalid_certs: bool,
@@ -3042,7 +3502,9 @@ pub struct LdapDirectory {
     pub pool_timeout_recycle: Duration,
     #[serde(rename = "poolTimeoutWait")]
     pub pool_timeout_wait: Duration,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -3074,7 +3536,8 @@ pub enum LookupStore {
     PostgreSql(PostgreSqlStore),
     MySql(MySqlStore),
     Sqlite(SqliteStore),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    Sharded(ShardedInMemoryStore),
     Redis(RedisStore),
     RedisCluster(RedisClusterStore),
     RedisSentinel(RedisSentinelStore),
@@ -3096,11 +3559,36 @@ pub struct MailingList {
     pub domain_id: Id,
     pub description: Option<String>,
     pub aliases: List<EmailAlias>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub recipients: Map<String>,
 }
 
-// [fragmento SEL eliminado: 24 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MaskedEmail {
+    pub email: String,
+    pub description: Option<String>,
+    pub enable: bool,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "expiresAt")]
+    pub expires_at: Option<UTCDateTime>,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    #[serde(rename = "forDomain")]
+    pub for_domain: Option<String>,
+    pub url: Option<String>,
+    #[serde(rename = "createdBy")]
+    pub created_by: Option<String>,
+    #[serde(rename = "emailPrefix")]
+    pub email_prefix: Option<String>,
+    #[serde(rename = "emailDomain")]
+    pub email_domain: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct MeilisearchStore {
@@ -3166,7 +3654,38 @@ pub struct Metadata {
     pub imap_server_admin: Option<String>,
 }
 
-// [fragmento SEL eliminado: 34 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum Metric {
+    Counter(MetricCount),
+    Gauge(MetricCount),
+    Histogram(MetricSum),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MetricCount {
+    pub count: u64,
+    pub metric: trc::MetricType,
+    #[serde(rename = "nodeId")]
+    pub node_id: u64,
+    pub timestamp: UTCDateTime,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MetricSum {
+    pub count: u64,
+    pub sum: u64,
+    pub metric: trc::MetricType,
+    #[serde(rename = "nodeId")]
+    pub node_id: u64,
+    pub timestamp: UTCDateTime,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Metrics {
@@ -3236,7 +3755,17 @@ pub struct MetricsPrometheusProperties {
     pub auth_username: Option<String>,
 }
 
-// [fragmento SEL eliminado: 15 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum MetricsStore {
+    Disabled,
+    Default,
+    FoundationDb(FoundationDbStore),
+    PostgreSql(PostgreSqlStore),
+    MySql(MySqlStore),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct MtaConnectionIpHost {
@@ -3611,7 +4140,19 @@ pub struct MtaVirtualQueue {
     pub threads_per_node: u64,
 }
 
-// [fragmento SEL eliminado: 17 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MySqlSettings {
+    pub host: String,
+    pub port: u64,
+    pub database: String,
+    #[serde(rename = "authUsername")]
+    pub auth_username: Option<String>,
+    #[serde(rename = "authSecret")]
+    pub auth_secret: SecretKeyOptional,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct MySqlStore {
@@ -3627,7 +4168,9 @@ pub struct MySqlStore {
     pub pool_max_connections: Option<u64>,
     #[serde(rename = "poolMinConnections")]
     pub pool_min_connections: Option<u64>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "readReplicas")]
+    pub read_replicas: List<MySqlSettings>,
     pub host: String,
     pub port: u64,
     pub database: String,
@@ -3720,7 +4263,9 @@ pub struct OAuthClient {
     pub created_at: UTCDateTime,
     #[serde(rename = "expiresAt")]
     pub expires_at: Option<UTCDateTime>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     #[serde(rename = "redirectUris")]
     pub redirect_uris: Map<String>,
     #[serde(rename = "postLogoutRedirectUris")]
@@ -3771,7 +4316,9 @@ pub struct OidcDirectory {
     pub claim_name: Option<String>,
     #[serde(rename = "claimGroups")]
     pub claim_groups: Option<String>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     #[serde(rename = "acceptedAudiences")]
     pub accepted_audiences: Map<String>,
     #[serde(rename = "opaqueTokenValidation")]
@@ -3790,7 +4337,9 @@ pub struct OidcDirectory {
     pub allow_id_token_claims: bool,
     #[serde(rename = "lenientIssuerMatch")]
     pub lenient_issuer_match: bool,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "trustedProvider")]
+    pub trusted_provider: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -3889,7 +4438,20 @@ pub struct PermissionsList {
     pub disabled_permissions: Map<Permission>,
 }
 
-// [fragmento SEL eliminado: 18 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PostgreSqlSettings {
+    pub host: String,
+    pub port: u64,
+    pub database: String,
+    pub options: Option<String>,
+    #[serde(rename = "authUsername")]
+    pub auth_username: Option<String>,
+    #[serde(rename = "authSecret")]
+    pub auth_secret: SecretKeyOptional,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct PostgreSqlStore {
@@ -3905,7 +4467,9 @@ pub struct PostgreSqlStore {
     pub pool_max_connections: Option<u64>,
     #[serde(rename = "poolRecyclingMethod")]
     pub pool_recycling_method: PostgreSqlRecyclingMethod,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "readReplicas")]
+    pub read_replicas: List<PostgreSqlSettings>,
     pub host: String,
     pub port: u64,
     pub database: String,
@@ -4164,7 +4728,9 @@ pub struct RocksDbStore {
 #[serde(default)]
 pub struct Role {
     pub description: String,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     #[serde(rename = "roleIds")]
     pub role_ids: Map<Id>,
     #[serde(rename = "enabledPermissions")]
@@ -4279,7 +4845,9 @@ pub struct Search {
     pub index_email: bool,
     #[serde(rename = "indexEmailFields")]
     pub index_email_fields: Map<SearchEmailField>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "indexTelemetry")]
+    pub index_telemetry: bool,
     #[serde(rename = "maxConcurrentIndexTasks")]
     pub max_concurrent_index_tasks: u64,
     #[serde(rename = "indexFiles")]
@@ -4451,7 +5019,20 @@ pub struct Service {
     pub cleartext: bool,
 }
 
-// [fragmento SEL eliminado: 18 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ShardedBlobStore {
+    pub stores: List<BlobStoreBase>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ShardedInMemoryStore {
+    pub stores: List<InMemoryStoreBase>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Sharing {
@@ -4578,7 +5159,117 @@ pub struct SmimeTrustAnchor {
     pub expires_at: UTCDateTime,
 }
 
-// [fragmento SEL eliminado: 115 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum SpamAi {
+    Disable,
+    Enable(SpamAiProperties),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpamAiCategory {
+    pub name: String,
+    pub description: String,
+    pub includes: Map<String>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum SpamAiLearn {
+    Disable,
+    Enable(SpamAiLearnProperties),
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpamAiLearnProperties {
+    #[serde(rename = "minProbability")]
+    pub min_probability: Float,
+    #[serde(rename = "sampleRate")]
+    pub sample_rate: Float,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpamAiProperties {
+    pub mode: SpamAiMode,
+    pub condition: Expression,
+    pub tiers: List<SpamAiTier>,
+    pub instructions: String,
+    pub categories: List<SpamAiCategory>,
+    pub signals: List<SpamAiSignal>,
+    pub explanation: bool,
+    #[serde(rename = "bucketHigh")]
+    pub bucket_high: Float,
+    #[serde(rename = "bucketMedium")]
+    pub bucket_medium: Float,
+    #[serde(rename = "uncertainBelow")]
+    pub uncertain_below: Float,
+    #[serde(rename = "verbalHigh")]
+    pub verbal_high: Float,
+    #[serde(rename = "verbalMedium")]
+    pub verbal_medium: Float,
+    #[serde(rename = "verbalLow")]
+    pub verbal_low: Float,
+    #[serde(rename = "addHeader")]
+    pub add_header: bool,
+    #[serde(rename = "maxInputChars")]
+    pub max_input_chars: u64,
+    #[serde(rename = "maxLinks")]
+    pub max_links: u64,
+    #[serde(rename = "maxAttachments")]
+    pub max_attachments: u64,
+    #[serde(rename = "trimQuotes")]
+    pub trim_quotes: bool,
+    #[serde(rename = "includeAuth")]
+    pub include_auth: bool,
+    #[serde(rename = "includeLinks")]
+    pub include_links: bool,
+    #[serde(rename = "includeAttachments")]
+    pub include_attachments: bool,
+    pub deadline: Duration,
+    #[serde(rename = "breakerThreshold")]
+    pub breaker_threshold: u64,
+    #[serde(rename = "breakerCooldown")]
+    pub breaker_cooldown: Duration,
+    pub learn: SpamAiLearn,
+    #[serde(rename = "webSearch")]
+    pub web_search: SpamAiWebSearch,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpamAiSignal {
+    pub name: String,
+    pub question: String,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpamAiTier {
+    #[serde(rename = "modelId")]
+    pub model_id: Id,
+    #[serde(rename = "escalateBelow")]
+    pub escalate_below: Float,
+    #[serde(rename = "escalateOn")]
+    pub escalate_on: Map<String>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum SpamAiWebSearch {
+    Disable,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct SpamClassifier {
@@ -4654,7 +5345,15 @@ pub struct SpamClassify {
     pub score: Float,
     pub tags: VecMap<String, SpamClassifyTag>,
     pub result: SpamClassifyResult,
-    // [fragmento SEL eliminado: 13 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "aiFacts")]
+    pub ai_facts: Option<String>,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "aiGate")]
+    pub ai_gate: Option<String>,
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "aiVerdict")]
+    pub ai_verdict: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -4983,7 +5682,9 @@ pub struct SqlDirectory {
     pub query_member_of: Option<String>,
     #[serde(rename = "queryEmailAliases")]
     pub query_email_aliases: Option<String>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -5060,10 +5761,12 @@ pub enum Task {
     MergeThreads(TaskMergeThreads),
     DmarcReport(TaskDmarcReport),
     TlsReport(TaskTlsReport),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    RestoreArchivedItem(TaskRestoreArchivedItem),
     DestroyAccount(TaskDestroyAccount),
     AccountMaintenance(TaskAccountMaintenance),
-    // [fragmento SEL eliminado: 6 líneas]
+    #[cfg(feature = "bezenti")]
+    TenantMaintenance(TaskTenantMaintenance),
     StoreMaintenance(TaskStoreMaintenance),
     SpamFilterMaintenance(TaskSpamFilterMaintenance),
     AcmeRenewal(TaskDomainManagement),
@@ -5256,7 +5959,24 @@ pub struct TaskReportWindow {
     pub status: TaskStatus,
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TaskRestoreArchivedItem {
+    #[serde(rename = "blobId")]
+    pub blob_id: BlobId,
+    #[serde(rename = "archivedItemType")]
+    pub archived_item_type: ArchivedItemType,
+    #[serde(rename = "accountId")]
+    pub account_id: Id,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    #[serde(rename = "archivedUntil")]
+    pub archived_until: UTCDateTime,
+    pub status: TaskStatus,
+    pub due: Option<UTCDateTime>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "@type")]
 pub enum TaskRetryStrategy {
@@ -5355,7 +6075,18 @@ pub struct TaskStoreMaintenance {
     pub status: TaskStatus,
 }
 
-// [fragmento SEL eliminado: 15 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TaskTenantMaintenance {
+    #[serde(rename = "tenantId")]
+    pub tenant_id: Id,
+    #[serde(rename = "maintenanceType")]
+    pub maintenance_type: TaskTenantMaintenanceType,
+    pub status: TaskStatus,
+    pub due: Option<UTCDateTime>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct TaskTlsReport {
@@ -5364,7 +6095,21 @@ pub struct TaskTlsReport {
     pub status: TaskStatus,
 }
 
-// [fragmento SEL eliminado: 17 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Tenant {
+    pub name: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: UTCDateTime,
+    #[serde(rename = "usedDiskQuota")]
+    pub used_disk_quota: u64,
+    pub logo: Option<String>,
+    pub roles: Roles,
+    pub permissions: Permissions,
+    pub quotas: VecMap<TenantStorageQuota, u64>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct TlsExternalReport {
@@ -5376,7 +6121,9 @@ pub struct TlsExternalReport {
     pub received_at: UTCDateTime,
     #[serde(rename = "expiresAt")]
     pub expires_at: UTCDateTime,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -5471,7 +6218,123 @@ pub struct TlsReportSettings {
     pub dkim_sign_domain: Expression,
 }
 
-// [fragmento SEL eliminado: 117 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Trace {
+    pub events: List<TraceEvent>,
+    pub timestamp: UTCDateTime,
+    pub from: String,
+    pub to: String,
+    pub size: u64,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceEvent {
+    pub event: trc::EventType,
+    pub timestamp: UTCDateTime,
+    #[serde(rename = "keyValues")]
+    pub key_values: List<TraceKeyValue>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceKeyValue {
+    pub key: trc::Key,
+    pub value: TraceValue,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum TraceValue {
+    String(TraceValueString),
+    UnsignedInt(TraceValueUnsignedInt),
+    Integer(TraceValueInteger),
+    Boolean(TraceValueBoolean),
+    Float(TraceValueFloat),
+    UTCDateTime(TraceValueUTCDateTime),
+    Duration(TraceValueDuration),
+    IpAddr(TraceValueIpAddr),
+    List(TraceValueList),
+    Event(TraceValueEvent),
+    Null,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueBoolean {
+    pub value: bool,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueDuration {
+    pub value: u64,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueEvent {
+    pub event: trc::EventType,
+    pub value: List<TraceKeyValue>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueFloat {
+    pub value: Float,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueInteger {
+    pub value: i64,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueIpAddr {
+    pub value: IpAddr,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueList {
+    pub value: List<TraceValue>,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueString {
+    pub value: String,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueUTCDateTime {
+    pub value: UTCDateTime,
+}
+
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TraceValueUnsignedInt {
+    pub value: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "@type")]
 pub enum Tracer {
@@ -5571,7 +6434,17 @@ pub struct TracerStdout {
     pub events_policy: EventPolicy,
 }
 
-// [fragmento SEL eliminado: 15 líneas]
+#[cfg(feature = "bezenti")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "@type")]
+pub enum TracingStore {
+    Disabled,
+    Default,
+    FoundationDb(FoundationDbStore),
+    PostgreSql(PostgreSqlStore),
+    MySql(MySqlStore),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct UserAccount {
@@ -5583,12 +6456,16 @@ pub struct UserAccount {
     pub created_at: UTCDateTime,
     #[serde(rename = "memberGroupIds")]
     pub member_group_ids: Map<Id>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "externalId")]
+    pub external_id: Option<String>,
     pub roles: UserRoles,
     pub permissions: Permissions,
     pub quotas: VecMap<StorageQuota, u64>,
     pub aliases: List<EmailAlias>,
-    // [fragmento SEL eliminado: 7 líneas]
+    #[cfg(feature = "bezenti")]
+    #[serde(rename = "memberTenantId")]
+    pub member_tenant_id: Option<Id>,
     pub description: Option<String>,
     pub locale: Locale,
     #[serde(rename = "timeZone")]

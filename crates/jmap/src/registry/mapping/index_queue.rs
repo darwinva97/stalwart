@@ -481,5 +481,8 @@ fn search_index(index: IndexType) -> Option<SearchIndex> {
         IndexType::Contacts => Some(SearchIndex::Contacts),
         IndexType::File => Some(SearchIndex::File),
         // [fragmento SEL eliminado: 6 líneas]
+        // bezenti: el índice de telemetría llega en la fase 5.
+        #[cfg(feature = "bezenti")]
+        IndexType::Telemetry => None,
     }
 }

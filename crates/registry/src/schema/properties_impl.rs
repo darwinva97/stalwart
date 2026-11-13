@@ -1,16 +1,152 @@
 /*
  * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2026 bezenti
  *
- * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-// This file is auto-generated. Do not edit directly.
+// Archivo generado por bezenti/generador a partir del esquema resources/schema/schema.json.gz.
+// No se edita a mano: para cambiarlo, cambia el generador o el esquema y vuelve a generarlo.
+// Lo que va tras `#[cfg(feature = "bezenti")]` es el modelo de datos de las funciones Enterprise que la
+// edición bezenti reimplementa como software libre (AGPL-3.0-only).
 
 use crate::schema::prelude::*;
 
 impl EnumImpl for ObjectType {
-    // [fragmento SEL eliminado: 138 líneas]
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(feature = "bezenti")]
+    fn parse(value: &str) -> Option<Self> {
+        hashify::map! {
+            value.as_bytes(),
+            ObjectType,
+            b"Account" => ObjectType::Account,
+            b"AccountPassword" => ObjectType::AccountPassword,
+            b"AccountSettings" => ObjectType::AccountSettings,
+            b"AcmeProvider" => ObjectType::AcmeProvider,
+            b"Action" => ObjectType::Action,
+            b"AddressBook" => ObjectType::AddressBook,
+            b"AiModel" => ObjectType::AiModel,
+            b"Alert" => ObjectType::Alert,
+            b"AllowedIp" => ObjectType::AllowedIp,
+            b"ApiKey" => ObjectType::ApiKey,
+            b"AppPassword" => ObjectType::AppPassword,
+            b"Application" => ObjectType::Application,
+            b"ArchivedItem" => ObjectType::ArchivedItem,
+            b"ArfExternalReport" => ObjectType::ArfExternalReport,
+            b"Asn" => ObjectType::Asn,
+            b"Authentication" => ObjectType::Authentication,
+            b"BlobStore" => ObjectType::BlobStore,
+            b"BlockedIp" => ObjectType::BlockedIp,
+            b"Bootstrap" => ObjectType::Bootstrap,
+            b"Cache" => ObjectType::Cache,
+            b"Calendar" => ObjectType::Calendar,
+            b"CalendarAlarm" => ObjectType::CalendarAlarm,
+            b"CalendarScheduling" => ObjectType::CalendarScheduling,
+            b"Certificate" => ObjectType::Certificate,
+            b"ClusterNode" => ObjectType::ClusterNode,
+            b"ClusterRole" => ObjectType::ClusterRole,
+            b"Coordinator" => ObjectType::Coordinator,
+            b"DataRetention" => ObjectType::DataRetention,
+            b"DataStore" => ObjectType::DataStore,
+            b"Directory" => ObjectType::Directory,
+            b"DkimReportSettings" => ObjectType::DkimReportSettings,
+            b"DkimSignature" => ObjectType::DkimSignature,
+            b"DmarcExternalReport" => ObjectType::DmarcExternalReport,
+            b"DmarcInternalReport" => ObjectType::DmarcInternalReport,
+            b"DmarcReportSettings" => ObjectType::DmarcReportSettings,
+            b"DnsResolver" => ObjectType::DnsResolver,
+            b"DnsServer" => ObjectType::DnsServer,
+            b"Domain" => ObjectType::Domain,
+            b"DsnReportSettings" => ObjectType::DsnReportSettings,
+            b"Email" => ObjectType::Email,
+            b"Encryption" => ObjectType::Encryption,
+            b"EventTracingLevel" => ObjectType::EventTracingLevel,
+            b"ExternalPublicKey" => ObjectType::ExternalPublicKey,
+            b"FileStorage" => ObjectType::FileStorage,
+            b"Http" => ObjectType::Http,
+            b"HttpForm" => ObjectType::HttpForm,
+            b"HttpLookup" => ObjectType::HttpLookup,
+            b"Imap" => ObjectType::Imap,
+            b"InMemoryStore" => ObjectType::InMemoryStore,
+            b"IndexQueueStatus" => ObjectType::IndexQueueStatus,
+            b"Jmap" => ObjectType::Jmap,
+            b"Log" => ObjectType::Log,
+            b"MailingList" => ObjectType::MailingList,
+            b"MaskedEmail" => ObjectType::MaskedEmail,
+            b"MemoryLookupKey" => ObjectType::MemoryLookupKey,
+            b"MemoryLookupKeyValue" => ObjectType::MemoryLookupKeyValue,
+            b"Metadata" => ObjectType::Metadata,
+            b"Metric" => ObjectType::Metric,
+            b"Metrics" => ObjectType::Metrics,
+            b"MetricsStore" => ObjectType::MetricsStore,
+            b"MtaConnectionStrategy" => ObjectType::MtaConnectionStrategy,
+            b"MtaDeliverySchedule" => ObjectType::MtaDeliverySchedule,
+            b"MtaExtensions" => ObjectType::MtaExtensions,
+            b"MtaHook" => ObjectType::MtaHook,
+            b"MtaInboundSession" => ObjectType::MtaInboundSession,
+            b"MtaInboundThrottle" => ObjectType::MtaInboundThrottle,
+            b"MtaMilter" => ObjectType::MtaMilter,
+            b"MtaOutboundStrategy" => ObjectType::MtaOutboundStrategy,
+            b"MtaOutboundThrottle" => ObjectType::MtaOutboundThrottle,
+            b"MtaQueueQuota" => ObjectType::MtaQueueQuota,
+            b"MtaRoute" => ObjectType::MtaRoute,
+            b"MtaStageAuth" => ObjectType::MtaStageAuth,
+            b"MtaStageConnect" => ObjectType::MtaStageConnect,
+            b"MtaStageData" => ObjectType::MtaStageData,
+            b"MtaStageEhlo" => ObjectType::MtaStageEhlo,
+            b"MtaStageMail" => ObjectType::MtaStageMail,
+            b"MtaStageRcpt" => ObjectType::MtaStageRcpt,
+            b"MtaSts" => ObjectType::MtaSts,
+            b"MtaTlsStrategy" => ObjectType::MtaTlsStrategy,
+            b"MtaVirtualQueue" => ObjectType::MtaVirtualQueue,
+            b"NetworkListener" => ObjectType::NetworkListener,
+            b"OAuthClient" => ObjectType::OAuthClient,
+            b"OAuthGrant" => ObjectType::OAuthGrant,
+            b"OidcProvider" => ObjectType::OidcProvider,
+            b"Passkey" => ObjectType::Passkey,
+            b"PublicKey" => ObjectType::PublicKey,
+            b"QueuedMessage" => ObjectType::QueuedMessage,
+            b"ReportSettings" => ObjectType::ReportSettings,
+            b"Role" => ObjectType::Role,
+            b"Search" => ObjectType::Search,
+            b"SearchStore" => ObjectType::SearchStore,
+            b"Security" => ObjectType::Security,
+            b"SenderAuth" => ObjectType::SenderAuth,
+            b"Sharing" => ObjectType::Sharing,
+            b"SieveSystemInterpreter" => ObjectType::SieveSystemInterpreter,
+            b"SieveSystemScript" => ObjectType::SieveSystemScript,
+            b"SieveUserInterpreter" => ObjectType::SieveUserInterpreter,
+            b"SieveUserScript" => ObjectType::SieveUserScript,
+            b"SmimeTrustAnchor" => ObjectType::SmimeTrustAnchor,
+            b"SpamAi" => ObjectType::SpamAi,
+            b"SpamClassifier" => ObjectType::SpamClassifier,
+            b"SpamDnsblServer" => ObjectType::SpamDnsblServer,
+            b"SpamDnsblSettings" => ObjectType::SpamDnsblSettings,
+            b"SpamFileExtension" => ObjectType::SpamFileExtension,
+            b"SpamPyzor" => ObjectType::SpamPyzor,
+            b"SpamRule" => ObjectType::SpamRule,
+            b"SpamSettings" => ObjectType::SpamSettings,
+            b"SpamTag" => ObjectType::SpamTag,
+            b"SpamTrainingSample" => ObjectType::SpamTrainingSample,
+            b"SpfReportSettings" => ObjectType::SpfReportSettings,
+            b"StoreLookup" => ObjectType::StoreLookup,
+            b"SymmetricKey" => ObjectType::SymmetricKey,
+            b"SystemSettings" => ObjectType::SystemSettings,
+            b"Task" => ObjectType::Task,
+            b"TaskManager" => ObjectType::TaskManager,
+            b"Tenant" => ObjectType::Tenant,
+            b"TlsExternalReport" => ObjectType::TlsExternalReport,
+            b"TlsInternalReport" => ObjectType::TlsInternalReport,
+            b"TlsReportSettings" => ObjectType::TlsReportSettings,
+            b"Trace" => ObjectType::Trace,
+            b"Tracer" => ObjectType::Tracer,
+            b"TracingStore" => ObjectType::TracingStore,
+            b"WebDav" => ObjectType::WebDav,
+            b"WebHook" => ObjectType::WebHook,
+        }
+        .copied()
+    }
+
+    #[cfg(not(feature = "bezenti"))]
     fn parse(value: &str) -> Option<Self> {
         hashify::map! {
             value.as_bytes(),
@@ -141,12 +277,16 @@ impl EnumImpl for ObjectType {
             ObjectType::AcmeProvider => "AcmeProvider",
             ObjectType::Action => "Action",
             ObjectType::AddressBook => "AddressBook",
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => "AiModel",
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => "Alert",
             ObjectType::AllowedIp => "AllowedIp",
             ObjectType::ApiKey => "ApiKey",
             ObjectType::AppPassword => "AppPassword",
             ObjectType::Application => "Application",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => "ArchivedItem",
             ObjectType::ArfExternalReport => "ArfExternalReport",
             ObjectType::Asn => "Asn",
             ObjectType::Authentication => "Authentication",
@@ -175,7 +315,6 @@ impl EnumImpl for ObjectType {
             ObjectType::DsnReportSettings => "DsnReportSettings",
             ObjectType::Email => "Email",
             ObjectType::Encryption => "Encryption",
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => "EventTracingLevel",
             ObjectType::ExternalPublicKey => "ExternalPublicKey",
             ObjectType::FileStorage => "FileStorage",
@@ -188,13 +327,16 @@ impl EnumImpl for ObjectType {
             ObjectType::Jmap => "Jmap",
             ObjectType::Log => "Log",
             ObjectType::MailingList => "MailingList",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => "MaskedEmail",
             ObjectType::MemoryLookupKey => "MemoryLookupKey",
             ObjectType::MemoryLookupKeyValue => "MemoryLookupKeyValue",
             ObjectType::Metadata => "Metadata",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => "Metric",
             ObjectType::Metrics => "Metrics",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => "MetricsStore",
             ObjectType::MtaConnectionStrategy => "MtaConnectionStrategy",
             ObjectType::MtaDeliverySchedule => "MtaDeliverySchedule",
             ObjectType::MtaExtensions => "MtaExtensions",
@@ -234,7 +376,8 @@ impl EnumImpl for ObjectType {
             ObjectType::SieveUserInterpreter => "SieveUserInterpreter",
             ObjectType::SieveUserScript => "SieveUserScript",
             ObjectType::SmimeTrustAnchor => "SmimeTrustAnchor",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => "SpamAi",
             ObjectType::SpamClassifier => "SpamClassifier",
             ObjectType::SpamDnsblServer => "SpamDnsblServer",
             ObjectType::SpamDnsblSettings => "SpamDnsblSettings",
@@ -250,13 +393,16 @@ impl EnumImpl for ObjectType {
             ObjectType::SystemSettings => "SystemSettings",
             ObjectType::Task => "Task",
             ObjectType::TaskManager => "TaskManager",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => "Tenant",
             ObjectType::TlsExternalReport => "TlsExternalReport",
             ObjectType::TlsInternalReport => "TlsInternalReport",
             ObjectType::TlsReportSettings => "TlsReportSettings",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => "Trace",
             ObjectType::Tracer => "Tracer",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => "TracingStore",
             ObjectType::WebDav => "WebDav",
             ObjectType::WebHook => "WebHook",
         }
@@ -274,12 +420,16 @@ impl EnumImpl for ObjectType {
             3 => Some(ObjectType::AcmeProvider),
             4 => Some(ObjectType::Action),
             5 => Some(ObjectType::AddressBook),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            6 => Some(ObjectType::AiModel),
+            #[cfg(feature = "bezenti")]
+            7 => Some(ObjectType::Alert),
             8 => Some(ObjectType::AllowedIp),
             9 => Some(ObjectType::ApiKey),
             10 => Some(ObjectType::AppPassword),
             11 => Some(ObjectType::Application),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            12 => Some(ObjectType::ArchivedItem),
             13 => Some(ObjectType::ArfExternalReport),
             14 => Some(ObjectType::Asn),
             15 => Some(ObjectType::Authentication),
@@ -308,7 +458,6 @@ impl EnumImpl for ObjectType {
             38 => Some(ObjectType::DsnReportSettings),
             39 => Some(ObjectType::Email),
             120 => Some(ObjectType::Encryption),
-            // [fragmento SEL eliminado: 6 líneas]
             41 => Some(ObjectType::EventTracingLevel),
             121 => Some(ObjectType::ExternalPublicKey),
             42 => Some(ObjectType::FileStorage),
@@ -321,13 +470,16 @@ impl EnumImpl for ObjectType {
             49 => Some(ObjectType::Jmap),
             50 => Some(ObjectType::Log),
             51 => Some(ObjectType::MailingList),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            40 => Some(ObjectType::MaskedEmail),
             53 => Some(ObjectType::MemoryLookupKey),
             54 => Some(ObjectType::MemoryLookupKeyValue),
             55 => Some(ObjectType::Metadata),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            52 => Some(ObjectType::Metric),
             57 => Some(ObjectType::Metrics),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            56 => Some(ObjectType::MetricsStore),
             59 => Some(ObjectType::MtaConnectionStrategy),
             60 => Some(ObjectType::MtaDeliverySchedule),
             61 => Some(ObjectType::MtaExtensions),
@@ -367,7 +519,8 @@ impl EnumImpl for ObjectType {
             94 => Some(ObjectType::SieveUserInterpreter),
             95 => Some(ObjectType::SieveUserScript),
             122 => Some(ObjectType::SmimeTrustAnchor),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            58 => Some(ObjectType::SpamAi),
             97 => Some(ObjectType::SpamClassifier),
             98 => Some(ObjectType::SpamDnsblServer),
             99 => Some(ObjectType::SpamDnsblSettings),
@@ -383,13 +536,16 @@ impl EnumImpl for ObjectType {
             108 => Some(ObjectType::SystemSettings),
             109 => Some(ObjectType::Task),
             110 => Some(ObjectType::TaskManager),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            96 => Some(ObjectType::Tenant),
             112 => Some(ObjectType::TlsExternalReport),
             113 => Some(ObjectType::TlsInternalReport),
             114 => Some(ObjectType::TlsReportSettings),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            111 => Some(ObjectType::Trace),
             116 => Some(ObjectType::Tracer),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            115 => Some(ObjectType::TracingStore),
             118 => Some(ObjectType::WebDav),
             119 => Some(ObjectType::WebHook),
             _ => None,
@@ -419,8 +575,1093 @@ impl<'de> serde::Deserialize<'de> for ObjectType {
 }
 
 impl EnumImpl for Property {
-    // [fragmento SEL eliminado: 1091 líneas]
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(feature = "bezenti")]
+    fn parse(value: &str) -> Option<Self> {
+        hashify::map! {
+            value.as_bytes(),
+            Property,
+            b"@type" => Property::Type,
+            b"abuseBanPeriod" => Property::AbuseBanPeriod,
+            b"abuseBanRate" => Property::AbuseBanRate,
+            b"acceptedAudiences" => Property::AcceptedAudiences,
+            b"accessKeyId" => Property::AccessKeyId,
+            b"accessToken" => Property::AccessToken,
+            b"accessTokenExpiry" => Property::AccessTokenExpiry,
+            b"accessTokens" => Property::AccessTokens,
+            b"accountDomainId" => Property::AccountDomainId,
+            b"accountHashPrefix" => Property::AccountHashPrefix,
+            b"accountId" => Property::AccountId,
+            b"accountIdentifier" => Property::AccountIdentifier,
+            b"accountKey" => Property::AccountKey,
+            b"accountName" => Property::AccountName,
+            b"accountSwitchKey" => Property::AccountSwitchKey,
+            b"accountType" => Property::AccountType,
+            b"accountUri" => Property::AccountUri,
+            b"accounts" => Property::Accounts,
+            b"acmeProviderId" => Property::AcmeProviderId,
+            b"addAuthResultsHeader" => Property::AddAuthResultsHeader,
+            b"addDateHeader" => Property::AddDateHeader,
+            b"addDeliveredToHeader" => Property::AddDeliveredToHeader,
+            b"addHeader" => Property::AddHeader,
+            b"addMessageIdHeader" => Property::AddMessageIdHeader,
+            b"addReceivedHeader" => Property::AddReceivedHeader,
+            b"addReceivedSpfHeader" => Property::AddReceivedSpfHeader,
+            b"addReturnPathHeader" => Property::AddReturnPathHeader,
+            b"additionalInformation" => Property::AdditionalInformation,
+            b"address" => Property::Address,
+            b"aggregateContactInfo" => Property::AggregateContactInfo,
+            b"aggregateDkimSignDomain" => Property::AggregateDkimSignDomain,
+            b"aggregateFromAddress" => Property::AggregateFromAddress,
+            b"aggregateFromName" => Property::AggregateFromName,
+            b"aggregateOrgName" => Property::AggregateOrgName,
+            b"aggregateSendFrequency" => Property::AggregateSendFrequency,
+            b"aiFacts" => Property::AiFacts,
+            b"aiGate" => Property::AiGate,
+            b"aiVerdict" => Property::AiVerdict,
+            b"alarmId" => Property::AlarmId,
+            b"alertAfter" => Property::AlertAfter,
+            b"algorithm" => Property::Algorithm,
+            b"algorithms" => Property::Algorithms,
+            b"aliases" => Property::Aliases,
+            b"allowCount" => Property::AllowCount,
+            b"allowDirectoryQueries" => Property::AllowDirectoryQueries,
+            b"allowExternalRcpts" => Property::AllowExternalRcpts,
+            b"allowIdTokenClaims" => Property::AllowIdTokenClaims,
+            b"allowInvalidCerts" => Property::AllowInvalidCerts,
+            b"allowPlainTextAuth" => Property::AllowPlainTextAuth,
+            b"allowRelaying" => Property::AllowRelaying,
+            b"allowScimProvisioning" => Property::AllowScimProvisioning,
+            b"allowSpamTraining" => Property::AllowSpamTraining,
+            b"allowedEndpoints" => Property::AllowedEndpoints,
+            b"allowedIps" => Property::AllowedIps,
+            b"allowedNotifyUris" => Property::AllowedNotifyUris,
+            b"alpha" => Property::Alpha,
+            b"anonymousTimeout" => Property::AnonymousTimeout,
+            b"ansi" => Property::Ansi,
+            b"apiKey" => Property::ApiKey,
+            b"apiKeyId" => Property::ApiKeyId,
+            b"apiUser" => Property::ApiUser,
+            b"applicationKey" => Property::ApplicationKey,
+            b"applicationSecret" => Property::ApplicationSecret,
+            b"arcResult" => Property::ArcResult,
+            b"arcVerify" => Property::ArcVerify,
+            b"archiveDeletedAccountsFor" => Property::ArchiveDeletedAccountsFor,
+            b"archiveDeletedItemsFor" => Property::ArchiveDeletedItemsFor,
+            b"archivedAt" => Property::ArchivedAt,
+            b"archivedItemType" => Property::ArchivedItemType,
+            b"archivedUntil" => Property::ArchivedUntil,
+            b"arrivalDate" => Property::ArrivalDate,
+            b"asnUrls" => Property::AsnUrls,
+            b"atRestEnable" => Property::AtRestEnable,
+            b"attemptNumber" => Property::AttemptNumber,
+            b"attemptTimeout" => Property::AttemptTimeout,
+            b"attempts" => Property::Attempts,
+            b"attestationObject" => Property::AttestationObject,
+            b"attrClass" => Property::AttrClass,
+            b"attrDescription" => Property::AttrDescription,
+            b"attrEmail" => Property::AttrEmail,
+            b"attrEmailAlias" => Property::AttrEmailAlias,
+            b"attrMemberOf" => Property::AttrMemberOf,
+            b"attrSecret" => Property::AttrSecret,
+            b"attrSecretChanged" => Property::AttrSecretChanged,
+            b"auid" => Property::Auid,
+            b"auth" => Property::Auth,
+            b"authBanPeriod" => Property::AuthBanPeriod,
+            b"authBanRate" => Property::AuthBanRate,
+            b"authCodeExpiry" => Property::AuthCodeExpiry,
+            b"authFailure" => Property::AuthFailure,
+            b"authId" => Property::AuthId,
+            b"authSecret" => Property::AuthSecret,
+            b"authUsername" => Property::AuthUsername,
+            b"authenticatedAs" => Property::AuthenticatedAs,
+            b"authenticatedEncryption" => Property::AuthenticatedEncryption,
+            b"authenticatedTimeout" => Property::AuthenticatedTimeout,
+            b"authenticationResults" => Property::AuthenticationResults,
+            b"autoAddInvitations" => Property::AutoAddInvitations,
+            b"autoUpdateInterval" => Property::AutoUpdateInterval,
+            b"availabilityRateLimit" => Property::AvailabilityRateLimit,
+            b"baseDn" => Property::BaseDn,
+            b"bearerToken" => Property::BearerToken,
+            b"beta" => Property::Beta,
+            b"bind" => Property::Bind,
+            b"bindAuthentication" => Property::BindAuthentication,
+            b"bindDn" => Property::BindDn,
+            b"bindSecret" => Property::BindSecret,
+            b"blobCleanupSchedule" => Property::BlobCleanupSchedule,
+            b"blobEncryptionKey" => Property::BlobEncryptionKey,
+            b"blobId" => Property::BlobId,
+            b"blobSize" => Property::BlobSize,
+            b"blobStore" => Property::BlobStore,
+            b"blockCount" => Property::BlockCount,
+            b"blockedFingerprints" => Property::BlockedFingerprints,
+            b"body" => Property::Body,
+            b"breakerCooldown" => Property::BreakerCooldown,
+            b"breakerThreshold" => Property::BreakerThreshold,
+            b"bucket" => Property::Bucket,
+            b"bucketHigh" => Property::BucketHigh,
+            b"bucketMedium" => Property::BucketMedium,
+            b"bufferSize" => Property::BufferSize,
+            b"buffered" => Property::Buffered,
+            b"caPath" => Property::CaPath,
+            b"caaIdentities" => Property::CaaIdentities,
+            b"cacheSize" => Property::CacheSize,
+            b"canonicalization" => Property::Canonicalization,
+            b"capabilities" => Property::Capabilities,
+            b"catchAllAddress" => Property::CatchAllAddress,
+            b"categories" => Property::Categories,
+            b"certPath" => Property::CertPath,
+            b"certificate" => Property::Certificate,
+            b"certificateManagement" => Property::CertificateManagement,
+            b"challengeType" => Property::ChallengeType,
+            b"chunkSize" => Property::ChunkSize,
+            b"chunking" => Property::Chunking,
+            b"cipher" => Property::Cipher,
+            b"claimGroups" => Property::ClaimGroups,
+            b"claimName" => Property::ClaimName,
+            b"claimUsername" => Property::ClaimUsername,
+            b"cleartext" => Property::Cleartext,
+            b"clientCapacity" => Property::ClientCapacity,
+            b"clientDataJson" => Property::ClientDataJson,
+            b"clientHash" => Property::ClientHash,
+            b"clientId" => Property::ClientId,
+            b"clientIp" => Property::ClientIp,
+            b"clientIpSource" => Property::ClientIpSource,
+            b"clientKind" => Property::ClientKind,
+            b"clientMetadataDocuments" => Property::ClientMetadataDocuments,
+            b"clientName" => Property::ClientName,
+            b"clientSecret" => Property::ClientSecret,
+            b"clientToken" => Property::ClientToken,
+            b"clusterDiscovery" => Property::ClusterDiscovery,
+            b"clusterFile" => Property::ClusterFile,
+            b"columnClass" => Property::ColumnClass,
+            b"columnDescription" => Property::ColumnDescription,
+            b"columnEmail" => Property::ColumnEmail,
+            b"columnSecret" => Property::ColumnSecret,
+            b"commandTimeout" => Property::CommandTimeout,
+            b"comment" => Property::Comment,
+            b"compartmentOcid" => Property::CompartmentOcid,
+            b"compression" => Property::Compression,
+            b"compressionAlgorithm" => Property::CompressionAlgorithm,
+            b"condition" => Property::Condition,
+            b"config" => Property::Config,
+            b"configName" => Property::ConfigName,
+            b"connectTimeout" => Property::ConnectTimeout,
+            b"connection" => Property::Connection,
+            b"connections" => Property::Connections,
+            b"consumerKey" => Property::ConsumerKey,
+            b"contact" => Property::Contact,
+            b"contactInfo" => Property::ContactInfo,
+            b"contacts" => Property::Contacts,
+            b"container" => Property::Container,
+            b"contentTypes" => Property::ContentTypes,
+            b"contents" => Property::Contents,
+            b"context" => Property::Context,
+            b"count" => Property::Count,
+            b"create" => Property::Create,
+            b"createdAt" => Property::CreatedAt,
+            b"createdBy" => Property::CreatedBy,
+            b"credentialId" => Property::CredentialId,
+            b"credentials" => Property::Credentials,
+            b"currentSecret" => Property::CurrentSecret,
+            b"customRule" => Property::CustomRule,
+            b"customerNumber" => Property::CustomerNumber,
+            b"dane" => Property::Dane,
+            b"dataCleanupSchedule" => Property::DataCleanupSchedule,
+            b"dataStore" => Property::DataStore,
+            b"dataTimeout" => Property::DataTimeout,
+            b"dataTypes" => Property::DataTypes,
+            b"database" => Property::Database,
+            b"datacenterId" => Property::DatacenterId,
+            b"dateRangeEnd" => Property::DateRangeEnd,
+            b"dateRangeStart" => Property::DateRangeStart,
+            b"day" => Property::Day,
+            b"deadline" => Property::Deadline,
+            b"defaultAdminRoleIds" => Property::DefaultAdminRoleIds,
+            b"defaultCertificateId" => Property::DefaultCertificateId,
+            b"defaultDisplayName" => Property::DefaultDisplayName,
+            b"defaultDomain" => Property::DefaultDomain,
+            b"defaultDomainId" => Property::DefaultDomainId,
+            b"defaultExpiryDuplicate" => Property::DefaultExpiryDuplicate,
+            b"defaultExpiryVacation" => Property::DefaultExpiryVacation,
+            b"defaultFolders" => Property::DefaultFolders,
+            b"defaultFromAddress" => Property::DefaultFromAddress,
+            b"defaultFromName" => Property::DefaultFromName,
+            b"defaultGroupRoleIds" => Property::DefaultGroupRoleIds,
+            b"defaultHostname" => Property::DefaultHostname,
+            b"defaultHrefName" => Property::DefaultHrefName,
+            b"defaultLanguage" => Property::DefaultLanguage,
+            b"defaultName" => Property::DefaultName,
+            b"defaultReturnPath" => Property::DefaultReturnPath,
+            b"defaultSubject" => Property::DefaultSubject,
+            b"defaultSubjectPrefix" => Property::DefaultSubjectPrefix,
+            b"defaultTenantRoleIds" => Property::DefaultTenantRoleIds,
+            b"defaultUserRoleIds" => Property::DefaultUserRoleIds,
+            b"definition" => Property::Definition,
+            b"delay" => Property::Delay,
+            b"deleteAfter" => Property::DeleteAfter,
+            b"deleteAfterUse" => Property::DeleteAfterUse,
+            b"deliverAt" => Property::DeliverAt,
+            b"deliverBy" => Property::DeliverBy,
+            b"deliverTo" => Property::DeliverTo,
+            b"deliveryResult" => Property::DeliveryResult,
+            b"depth" => Property::Depth,
+            b"description" => Property::Description,
+            b"details" => Property::Details,
+            b"directory" => Property::Directory,
+            b"directoryId" => Property::DirectoryId,
+            b"directoryRecipients" => Property::DirectoryRecipients,
+            b"directoryRecipientsTtl" => Property::DirectoryRecipientsTtl,
+            b"disableCapabilities" => Property::DisableCapabilities,
+            b"disabledPermissions" => Property::DisabledPermissions,
+            b"discardAfter" => Property::DiscardAfter,
+            b"discoveryProxy" => Property::DiscoveryProxy,
+            b"disposition" => Property::Disposition,
+            b"dkim2Pass" => Property::Dkim2Pass,
+            b"dkim2Result" => Property::Dkim2Result,
+            b"dkimAdspDns" => Property::DkimAdspDns,
+            b"dkimCanonicalizedBody" => Property::DkimCanonicalizedBody,
+            b"dkimCanonicalizedHeader" => Property::DkimCanonicalizedHeader,
+            b"dkimDomain" => Property::DkimDomain,
+            b"dkimIdentity" => Property::DkimIdentity,
+            b"dkimManagement" => Property::DkimManagement,
+            b"dkimPass" => Property::DkimPass,
+            b"dkimResults" => Property::DkimResults,
+            b"dkimSelector" => Property::DkimSelector,
+            b"dkimSelectorDns" => Property::DkimSelectorDns,
+            b"dkimSignDomain" => Property::DkimSignDomain,
+            b"dkimSignatures" => Property::DkimSignatures,
+            b"dkimStrict" => Property::DkimStrict,
+            b"dkimVerify" => Property::DkimVerify,
+            b"dmarcPass" => Property::DmarcPass,
+            b"dmarcPolicy" => Property::DmarcPolicy,
+            b"dmarcResult" => Property::DmarcResult,
+            b"dmarcVerify" => Property::DmarcVerify,
+            b"dnsIpv4" => Property::DnsIpv4,
+            b"dnsIpv6" => Property::DnsIpv6,
+            b"dnsManagement" => Property::DnsManagement,
+            b"dnsMtaSts" => Property::DnsMtaSts,
+            b"dnsMx" => Property::DnsMx,
+            b"dnsPtr" => Property::DnsPtr,
+            b"dnsServer" => Property::DnsServer,
+            b"dnsServerId" => Property::DnsServerId,
+            b"dnsTlsa" => Property::DnsTlsa,
+            b"dnsTxt" => Property::DnsTxt,
+            b"dnsView" => Property::DnsView,
+            b"dnsZoneFile" => Property::DnsZoneFile,
+            b"documentId" => Property::DocumentId,
+            b"domain" => Property::Domain,
+            b"domainId" => Property::DomainId,
+            b"domainLimit" => Property::DomainLimit,
+            b"domainNames" => Property::DomainNames,
+            b"domainNamesNegative" => Property::DomainNamesNegative,
+            b"domains" => Property::Domains,
+            b"dsn" => Property::Dsn,
+            b"due" => Property::Due,
+            b"duration" => Property::Duration,
+            b"eabHmacKey" => Property::EabHmacKey,
+            b"eabKeyId" => Property::EabKeyId,
+            b"ehloDomain" => Property::EhloDomain,
+            b"ehloHostname" => Property::EhloHostname,
+            b"ehloTimeout" => Property::EhloTimeout,
+            b"elapsed" => Property::Elapsed,
+            b"else" => Property::Else,
+            b"email" => Property::Email,
+            b"emailAddress" => Property::EmailAddress,
+            b"emailAddresses" => Property::EmailAddresses,
+            b"emailAddressesNegative" => Property::EmailAddressesNegative,
+            b"emailAlert" => Property::EmailAlert,
+            b"emailDomain" => Property::EmailDomain,
+            b"emailLimit" => Property::EmailLimit,
+            b"emailPrefix" => Property::EmailPrefix,
+            b"emailTemplate" => Property::EmailTemplate,
+            b"enable" => Property::Enable,
+            b"enableAssistedDiscovery" => Property::EnableAssistedDiscovery,
+            b"enableEdns" => Property::EnableEdns,
+            b"enableHsts" => Property::EnableHsts,
+            b"enableLogExporter" => Property::EnableLogExporter,
+            b"enableSpamFilter" => Property::EnableSpamFilter,
+            b"enableSpanExporter" => Property::EnableSpanExporter,
+            b"enabledPermissions" => Property::EnabledPermissions,
+            b"encryptAtRest" => Property::EncryptAtRest,
+            b"encryptOnAppend" => Property::EncryptOnAppend,
+            b"encryption" => Property::Encryption,
+            b"encryptionAtRest" => Property::EncryptionAtRest,
+            b"encryptionKey" => Property::EncryptionKey,
+            b"envId" => Property::EnvId,
+            b"envelopeFrom" => Property::EnvelopeFrom,
+            b"envelopeTo" => Property::EnvelopeTo,
+            b"environment" => Property::Environment,
+            b"errorCommand" => Property::ErrorCommand,
+            b"errorMessage" => Property::ErrorMessage,
+            b"errorType" => Property::ErrorType,
+            b"errors" => Property::Errors,
+            b"escalateBelow" => Property::EscalateBelow,
+            b"escalateOn" => Property::EscalateOn,
+            b"evaluatedDisposition" => Property::EvaluatedDisposition,
+            b"evaluatedDkim" => Property::EvaluatedDkim,
+            b"evaluatedSpf" => Property::EvaluatedSpf,
+            b"event" => Property::Event,
+            b"eventAlert" => Property::EventAlert,
+            b"eventEnd" => Property::EventEnd,
+            b"eventEndTz" => Property::EventEndTz,
+            b"eventId" => Property::EventId,
+            b"eventMessage" => Property::EventMessage,
+            b"eventSourceThrottle" => Property::EventSourceThrottle,
+            b"eventStart" => Property::EventStart,
+            b"eventStartTz" => Property::EventStartTz,
+            b"events" => Property::Events,
+            b"eventsPolicy" => Property::EventsPolicy,
+            b"expire" => Property::Expire,
+            b"expires" => Property::Expires,
+            b"expiresAt" => Property::ExpiresAt,
+            b"expiresAttempts" => Property::ExpiresAttempts,
+            b"expiry" => Property::Expiry,
+            b"explanation" => Property::Explanation,
+            b"expn" => Property::Expn,
+            b"expungeSchedule" => Property::ExpungeSchedule,
+            b"expungeSchedulingInboxAfter" => Property::ExpungeSchedulingInboxAfter,
+            b"expungeShareNotifyAfter" => Property::ExpungeShareNotifyAfter,
+            b"expungeSubmissionsAfter" => Property::ExpungeSubmissionsAfter,
+            b"expungeTrashAfter" => Property::ExpungeTrashAfter,
+            b"extension" => Property::Extension,
+            b"extensions" => Property::Extensions,
+            b"externalId" => Property::ExternalId,
+            b"externalPublicKeys" => Property::ExternalPublicKeys,
+            b"extraContactInfo" => Property::ExtraContactInfo,
+            b"extraParameters" => Property::ExtraParameters,
+            b"factor" => Property::Factor,
+            b"failOnTimeout" => Property::FailOnTimeout,
+            b"failedAt" => Property::FailedAt,
+            b"failedAttemptNumber" => Property::FailedAttemptNumber,
+            b"failedSessionCount" => Property::FailedSessionCount,
+            b"failureDetails" => Property::FailureDetails,
+            b"failureDkimSignDomain" => Property::FailureDkimSignDomain,
+            b"failureFromAddress" => Property::FailureFromAddress,
+            b"failureFromName" => Property::FailureFromName,
+            b"failureReason" => Property::FailureReason,
+            b"failureReasonCode" => Property::FailureReasonCode,
+            b"failureSendFrequency" => Property::FailureSendFrequency,
+            b"failureSubject" => Property::FailureSubject,
+            b"featureL2Normalize" => Property::FeatureL2Normalize,
+            b"featureLogScale" => Property::FeatureLogScale,
+            b"feedbackType" => Property::FeedbackType,
+            b"fieldEmail" => Property::FieldEmail,
+            b"fieldHoneyPot" => Property::FieldHoneyPot,
+            b"fieldName" => Property::FieldName,
+            b"fieldSubject" => Property::FieldSubject,
+            b"filePath" => Property::FilePath,
+            b"files" => Property::Files,
+            b"filterLogin" => Property::FilterLogin,
+            b"filterMemberOf" => Property::FilterMemberOf,
+            b"filterRecipient" => Property::FilterRecipient,
+            b"fingerprint" => Property::Fingerprint,
+            b"fingerprints" => Property::Fingerprints,
+            b"firstFailedAt" => Property::FirstFailedAt,
+            b"firstParty" => Property::FirstParty,
+            b"firstSeen" => Property::FirstSeen,
+            b"flags" => Property::Flags,
+            b"flagsAction" => Property::FlagsAction,
+            b"flagsProtocol" => Property::FlagsProtocol,
+            b"flushChanges" => Property::FlushChanges,
+            b"flushInterval" => Property::FlushInterval,
+            b"folderId" => Property::FolderId,
+            b"forDomain" => Property::ForDomain,
+            b"format" => Property::Format,
+            b"forwardedHops" => Property::ForwardedHops,
+            b"from" => Property::From,
+            b"fromAddress" => Property::FromAddress,
+            b"fromName" => Property::FromName,
+            b"futureRelease" => Property::FutureRelease,
+            b"gatewayEnable" => Property::GatewayEnable,
+            b"gatewayEncryptSigned" => Property::GatewayEncryptSigned,
+            b"gatewayHeaderProtection" => Property::GatewayHeaderProtection,
+            b"gatewayMethods" => Property::GatewayMethods,
+            b"gatewayMinTrust" => Property::GatewayMinTrust,
+            b"gatewayOutbound" => Property::GatewayOutbound,
+            b"generateDkimKeys" => Property::GenerateDkimKeys,
+            b"generation" => Property::Generation,
+            b"generator" => Property::Generator,
+            b"geoUrls" => Property::GeoUrls,
+            b"grantTypes" => Property::GrantTypes,
+            b"greetingTimeout" => Property::GreetingTimeout,
+            b"greylistFor" => Property::GreylistFor,
+            b"groupClass" => Property::GroupClass,
+            b"groupId" => Property::GroupId,
+            b"groupwareLarge" => Property::GroupwareLarge,
+            b"groupwareLargeTtl" => Property::GroupwareLargeTtl,
+            b"harvestKeys" => Property::HarvestKeys,
+            b"headerFrom" => Property::HeaderFrom,
+            b"headerProtection" => Property::HeaderProtection,
+            b"headers" => Property::Headers,
+            b"hkpServers" => Property::HkpServers,
+            b"holdMetricsFor" => Property::HoldMetricsFor,
+            b"holdMtaReportsFor" => Property::HoldMtaReportsFor,
+            b"holdSamplesFor" => Property::HoldSamplesFor,
+            b"holdTracesFor" => Property::HoldTracesFor,
+            b"host" => Property::Host,
+            b"hostedZoneId" => Property::HostedZoneId,
+            b"hostname" => Property::Hostname,
+            b"hosts" => Property::Hosts,
+            b"hour" => Property::Hour,
+            b"httpAuth" => Property::HttpAuth,
+            b"httpHeaders" => Property::HttpHeaders,
+            b"httpRsvpEnable" => Property::HttpRsvpEnable,
+            b"httpRsvpLinkExpiry" => Property::HttpRsvpLinkExpiry,
+            b"httpRsvpTemplate" => Property::HttpRsvpTemplate,
+            b"httpRsvpUrl" => Property::HttpRsvpUrl,
+            b"httpRua" => Property::HttpRua,
+            b"humanResult" => Property::HumanResult,
+            b"iCalendarData" => Property::ICalendarData,
+            b"id" => Property::Id,
+            b"idTokenExpiry" => Property::IdTokenExpiry,
+            b"identityAlignment" => Property::IdentityAlignment,
+            b"idleTimeout" => Property::IdleTimeout,
+            b"if" => Property::If,
+            b"imapServerAdmin" => Property::ImapServerAdmin,
+            b"imapServerComment" => Property::ImapServerComment,
+            b"impersonateServiceAccount" => Property::ImpersonateServiceAccount,
+            b"implicitTls" => Property::ImplicitTls,
+            b"inMemoryStore" => Property::InMemoryStore,
+            b"inboundReportAddresses" => Property::InboundReportAddresses,
+            b"inboundReportForwarding" => Property::InboundReportForwarding,
+            b"incidents" => Property::Incidents,
+            b"includeAttachments" => Property::IncludeAttachments,
+            b"includeAuth" => Property::IncludeAuth,
+            b"includeLinks" => Property::IncludeLinks,
+            b"includeSecrets" => Property::IncludeSecrets,
+            b"includeSource" => Property::IncludeSource,
+            b"includes" => Property::Includes,
+            b"index" => Property::Index,
+            b"indexAsn" => Property::IndexAsn,
+            b"indexAsnName" => Property::IndexAsnName,
+            b"indexBatchSize" => Property::IndexBatchSize,
+            b"indexCalendar" => Property::IndexCalendar,
+            b"indexCalendarFields" => Property::IndexCalendarFields,
+            b"indexContactFields" => Property::IndexContactFields,
+            b"indexContacts" => Property::IndexContacts,
+            b"indexCountry" => Property::IndexCountry,
+            b"indexEmail" => Property::IndexEmail,
+            b"indexEmailFields" => Property::IndexEmailFields,
+            b"indexFiles" => Property::IndexFiles,
+            b"indexKey" => Property::IndexKey,
+            b"indexTelemetry" => Property::IndexTelemetry,
+            b"indexValue" => Property::IndexValue,
+            b"indicatorParameters" => Property::IndicatorParameters,
+            b"initialDelay" => Property::InitialDelay,
+            b"instanceHashes" => Property::InstanceHashes,
+            b"instructions" => Property::Instructions,
+            b"interval" => Property::Interval,
+            b"intervals" => Property::Intervals,
+            b"introspectionAuthMethod" => Property::IntrospectionAuthMethod,
+            b"introspectionClientId" => Property::IntrospectionClientId,
+            b"introspectionClientSecret" => Property::IntrospectionClientSecret,
+            b"ipLimit" => Property::IpLimit,
+            b"ipLookupStrategy" => Property::IpLookupStrategy,
+            b"ipRevPtr" => Property::IpRevPtr,
+            b"ipRevResult" => Property::IpRevResult,
+            b"isActive" => Property::IsActive,
+            b"isArchive" => Property::IsArchive,
+            b"isBad" => Property::IsBad,
+            b"isFromOrganizer" => Property::IsFromOrganizer,
+            b"isGlobPattern" => Property::IsGlobPattern,
+            b"isGzipped" => Property::IsGzipped,
+            b"isNz" => Property::IsNz,
+            b"isSenderAllowed" => Property::IsSenderAllowed,
+            b"isSpam" => Property::IsSpam,
+            b"isTls" => Property::IsTls,
+            b"issuer" => Property::Issuer,
+            b"issuerDomainNames" => Property::IssuerDomainNames,
+            b"issuerUrl" => Property::IssuerUrl,
+            b"jitter" => Property::Jitter,
+            b"keepAlive" => Property::KeepAlive,
+            b"key" => Property::Key,
+            b"keyId" => Property::KeyId,
+            b"keyName" => Property::KeyName,
+            b"keyPath" => Property::KeyPath,
+            b"keyPrefix" => Property::KeyPrefix,
+            b"keyRefreshInterval" => Property::KeyRefreshInterval,
+            b"keyType" => Property::KeyType,
+            b"keyValues" => Property::KeyValues,
+            b"kind" => Property::Kind,
+            b"l1Ratio" => Property::L1Ratio,
+            b"l2Ratio" => Property::L2Ratio,
+            b"lastChecked" => Property::LastChecked,
+            b"lastRenewal" => Property::LastRenewal,
+            b"lastSeen" => Property::LastSeen,
+            b"lastUsedAt" => Property::LastUsedAt,
+            b"learn" => Property::Learn,
+            b"learnHamFromCard" => Property::LearnHamFromCard,
+            b"learnHamFromReply" => Property::LearnHamFromReply,
+            b"learnSpamFromRblHits" => Property::LearnSpamFromRblHits,
+            b"learnSpamFromTraps" => Property::LearnSpamFromTraps,
+            b"lenientIssuerMatch" => Property::LenientIssuerMatch,
+            b"level" => Property::Level,
+            b"line" => Property::Line,
+            b"listenerIds" => Property::ListenerIds,
+            b"listeners" => Property::Listeners,
+            b"localIp" => Property::LocalIp,
+            b"localIps" => Property::LocalIps,
+            b"locale" => Property::Locale,
+            b"logo" => Property::Logo,
+            b"logprobs" => Property::Logprobs,
+            b"loiterBanPeriod" => Property::LoiterBanPeriod,
+            b"loiterBanRate" => Property::LoiterBanRate,
+            b"lossy" => Property::Lossy,
+            b"machineId" => Property::MachineId,
+            b"mailExchangers" => Property::MailExchangers,
+            b"mailFrom" => Property::MailFrom,
+            b"mailFromParameters" => Property::MailFromParameters,
+            b"mailFromTimeout" => Property::MailFromTimeout,
+            b"mailRua" => Property::MailRua,
+            b"mailingLists" => Property::MailingLists,
+            b"maintenanceType" => Property::MaintenanceType,
+            b"managedZone" => Property::ManagedZone,
+            b"match" => Property::Match,
+            b"maxAccountSize" => Property::MaxAccountSize,
+            b"maxAddressBooks" => Property::MaxAddressBooks,
+            b"maxAddressBooksPerCard" => Property::MaxAddressBooksPerCard,
+            b"maxAge" => Property::MaxAge,
+            b"maxAggregateReportSize" => Property::MaxAggregateReportSize,
+            b"maxAllowedPacket" => Property::MaxAllowedPacket,
+            b"maxApiKeys" => Property::MaxApiKeys,
+            b"maxAppPasswords" => Property::MaxAppPasswords,
+            b"maxAttachmentSize" => Property::MaxAttachmentSize,
+            b"maxAttachmentText" => Property::MaxAttachmentText,
+            b"maxAttachments" => Property::MaxAttachments,
+            b"maxAttachmentsSize" => Property::MaxAttachmentsSize,
+            b"maxAttempts" => Property::MaxAttempts,
+            b"maxAttendees" => Property::MaxAttendees,
+            b"maxAuthFailures" => Property::MaxAuthFailures,
+            b"maxAvailabilityDuration" => Property::MaxAvailabilityDuration,
+            b"maxBodyText" => Property::MaxBodyText,
+            b"maxBufferedMemory" => Property::MaxBufferedMemory,
+            b"maxCalendars" => Property::MaxCalendars,
+            b"maxCalendarsPerEvent" => Property::MaxCalendarsPerEvent,
+            b"maxChangesHistory" => Property::MaxChangesHistory,
+            b"maxChangesResults" => Property::MaxChangesResults,
+            b"maxConcurrentConnections" => Property::MaxConcurrentConnections,
+            b"maxConcurrentIndexTasks" => Property::MaxConcurrentIndexTasks,
+            b"maxConcurrentRequests" => Property::MaxConcurrentRequests,
+            b"maxConcurrentUploads" => Property::MaxConcurrentUploads,
+            b"maxConnections" => Property::MaxConnections,
+            b"maxContacts" => Property::MaxContacts,
+            b"maxCpuCycles" => Property::MaxCpuCycles,
+            b"maxCrlSize" => Property::MaxCrlSize,
+            b"maxDelay" => Property::MaxDelay,
+            b"maxDepth" => Property::MaxDepth,
+            b"maxDuration" => Property::MaxDuration,
+            b"maxEntries" => Property::MaxEntries,
+            b"maxEntrySize" => Property::MaxEntrySize,
+            b"maxEventNotifications" => Property::MaxEventNotifications,
+            b"maxEvents" => Property::MaxEvents,
+            b"maxExpandedQueryDuration" => Property::MaxExpandedQueryDuration,
+            b"maxExtractArchiveEntries" => Property::MaxExtractArchiveEntries,
+            b"maxExtractDecompressedSize" => Property::MaxExtractDecompressedSize,
+            b"maxExtractDocumentSize" => Property::MaxExtractDocumentSize,
+            b"maxExtractPartSize" => Property::MaxExtractPartSize,
+            b"maxExtractParts" => Property::MaxExtractParts,
+            b"maxExtractPdfObjects" => Property::MaxExtractPdfObjects,
+            b"maxExtractRtfDepth" => Property::MaxExtractRtfDepth,
+            b"maxExtractTextSize" => Property::MaxExtractTextSize,
+            b"maxFailures" => Property::MaxFailures,
+            b"maxFiles" => Property::MaxFiles,
+            b"maxFlagLength" => Property::MaxFlagLength,
+            b"maxFlagsPerEmail" => Property::MaxFlagsPerEmail,
+            b"maxFolders" => Property::MaxFolders,
+            b"maxGetResults" => Property::MaxGetResults,
+            b"maxHeaderCount" => Property::MaxHeaderCount,
+            b"maxHeaderSize" => Property::MaxHeaderSize,
+            b"maxICalendarSize" => Property::MaxICalendarSize,
+            b"maxIdentities" => Property::MaxIdentities,
+            b"maxInboundReportSize" => Property::MaxInboundReportSize,
+            b"maxIncludes" => Property::MaxIncludes,
+            b"maxInputChars" => Property::MaxInputChars,
+            b"maxItipSize" => Property::MaxItipSize,
+            b"maxLinks" => Property::MaxLinks,
+            b"maxLivePropertySize" => Property::MaxLivePropertySize,
+            b"maxLocalVars" => Property::MaxLocalVars,
+            b"maxLockTimeout" => Property::MaxLockTimeout,
+            b"maxLocks" => Property::MaxLocks,
+            b"maxMailboxDepth" => Property::MaxMailboxDepth,
+            b"maxMailboxNameLength" => Property::MaxMailboxNameLength,
+            b"maxMailboxes" => Property::MaxMailboxes,
+            b"maxMailboxesPerEmail" => Property::MaxMailboxesPerEmail,
+            b"maxMaskedAddresses" => Property::MaxMaskedAddresses,
+            b"maxMatchVars" => Property::MaxMatchVars,
+            b"maxMediaSize" => Property::MaxMediaSize,
+            b"maxMessageSize" => Property::MaxMessageSize,
+            b"maxMessageText" => Property::MaxMessageText,
+            b"maxMessages" => Property::MaxMessages,
+            b"maxMessagesPerCommand" => Property::MaxMessagesPerCommand,
+            b"maxMessagesPerSave" => Property::MaxMessagesPerSave,
+            b"maxMethodCalls" => Property::MaxMethodCalls,
+            b"maxMultihomed" => Property::MaxMultihomed,
+            b"maxMxHosts" => Property::MaxMxHosts,
+            b"maxNestedBlocks" => Property::MaxNestedBlocks,
+            b"maxNestedForEvery" => Property::MaxNestedForEvery,
+            b"maxNestedIncludes" => Property::MaxNestedIncludes,
+            b"maxNestedTests" => Property::MaxNestedTests,
+            b"maxOutMessages" => Property::MaxOutMessages,
+            b"maxOutputTokens" => Property::MaxOutputTokens,
+            b"maxParticipantIdentities" => Property::MaxParticipantIdentities,
+            b"maxPasskeys" => Property::MaxPasskeys,
+            b"maxPasswordLength" => Property::MaxPasswordLength,
+            b"maxPolls" => Property::MaxPolls,
+            b"maxPrivateSize" => Property::MaxPrivateSize,
+            b"maxPublicKeys" => Property::MaxPublicKeys,
+            b"maxPushAttempts" => Property::MaxPushAttempts,
+            b"maxPushSize" => Property::MaxPushSize,
+            b"maxQueryResults" => Property::MaxQueryResults,
+            b"maxQueryScan" => Property::MaxQueryScan,
+            b"maxReceivedHeaders" => Property::MaxReceivedHeaders,
+            b"maxRecipients" => Property::MaxRecipients,
+            b"maxReconnects" => Property::MaxReconnects,
+            b"maxRecurrenceExpansions" => Property::MaxRecurrenceExpansions,
+            b"maxRedirectUrls" => Property::MaxRedirectUrls,
+            b"maxRedirects" => Property::MaxRedirects,
+            b"maxReportSize" => Property::MaxReportSize,
+            b"maxRequestSize" => Property::MaxRequestSize,
+            b"maxResponseSize" => Property::MaxResponseSize,
+            b"maxResults" => Property::MaxResults,
+            b"maxRetries" => Property::MaxRetries,
+            b"maxRetryWait" => Property::MaxRetryWait,
+            b"maxScriptNameLength" => Property::MaxScriptNameLength,
+            b"maxScriptSize" => Property::MaxScriptSize,
+            b"maxScripts" => Property::MaxScripts,
+            b"maxSetObjects" => Property::MaxSetObjects,
+            b"maxShares" => Property::MaxShares,
+            b"maxSize" => Property::MaxSize,
+            b"maxSnippetResults" => Property::MaxSnippetResults,
+            b"maxStringLength" => Property::MaxStringLength,
+            b"maxSubmissions" => Property::MaxSubmissions,
+            b"maxSubscriptions" => Property::MaxSubscriptions,
+            b"maxUidBatches" => Property::MaxUidBatches,
+            b"maxUploadCount" => Property::MaxUploadCount,
+            b"maxUploadSize" => Property::MaxUploadSize,
+            b"maxVCardSize" => Property::MaxVCardSize,
+            b"maxVarNameLength" => Property::MaxVarNameLength,
+            b"maxVarSize" => Property::MaxVarSize,
+            b"memberGroupIds" => Property::MemberGroupIds,
+            b"memberTenantId" => Property::MemberTenantId,
+            b"message" => Property::Message,
+            b"messageIdHostname" => Property::MessageIdHostname,
+            b"messageIds" => Property::MessageIds,
+            b"messageTimeout" => Property::MessageTimeout,
+            b"messages" => Property::Messages,
+            b"messagesLarge" => Property::MessagesLarge,
+            b"messagesLargeTtl" => Property::MessagesLargeTtl,
+            b"method" => Property::Method,
+            b"metric" => Property::Metric,
+            b"metrics" => Property::Metrics,
+            b"metricsCollectionInterval" => Property::MetricsCollectionInterval,
+            b"metricsPolicy" => Property::MetricsPolicy,
+            b"minAccountSize" => Property::MinAccountSize,
+            b"minHamSamples" => Property::MinHamSamples,
+            b"minPasswordLength" => Property::MinPasswordLength,
+            b"minPasswordStrength" => Property::MinPasswordStrength,
+            b"minProbability" => Property::MinProbability,
+            b"minRetryWait" => Property::MinRetryWait,
+            b"minSpamSamples" => Property::MinSpamSamples,
+            b"minTriggerInterval" => Property::MinTriggerInterval,
+            b"minUidBatchSize" => Property::MinUidBatchSize,
+            b"minute" => Property::Minute,
+            b"mode" => Property::Mode,
+            b"model" => Property::Model,
+            b"modelId" => Property::ModelId,
+            b"mtPriority" => Property::MtPriority,
+            b"mtaSts" => Property::MtaSts,
+            b"mtaStsTimeout" => Property::MtaStsTimeout,
+            b"multiline" => Property::Multiline,
+            b"mustMatchSender" => Property::MustMatchSender,
+            b"mxHosts" => Property::MxHosts,
+            b"name" => Property::Name,
+            b"namespace" => Property::Namespace,
+            b"negativeCacheTtl" => Property::NegativeCacheTtl,
+            b"negativeTtl" => Property::NegativeTtl,
+            b"nextCapabilities" => Property::NextCapabilities,
+            b"nextCheckAt" => Property::NextCheckAt,
+            b"nextExpiresAt" => Property::NextExpiresAt,
+            b"nextFingerprint" => Property::NextFingerprint,
+            b"nextKey" => Property::NextKey,
+            b"nextKeyType" => Property::NextKeyType,
+            b"nextNotify" => Property::NextNotify,
+            b"nextRetry" => Property::NextRetry,
+            b"nextTransitionAt" => Property::NextTransitionAt,
+            b"noCapabilityCheck" => Property::NoCapabilityCheck,
+            b"noEcho" => Property::NoEcho,
+            b"noSoliciting" => Property::NoSoliciting,
+            b"nodeId" => Property::NodeId,
+            b"notValidAfter" => Property::NotValidAfter,
+            b"notValidBefore" => Property::NotValidBefore,
+            b"notify" => Property::Notify,
+            b"notifyCount" => Property::NotifyCount,
+            b"notifyDue" => Property::NotifyDue,
+            b"numFeatures" => Property::NumFeatures,
+            b"numReplicas" => Property::NumReplicas,
+            b"numShards" => Property::NumShards,
+            b"oauthClientId" => Property::OauthClientId,
+            b"oauthScopes" => Property::OauthScopes,
+            b"objectType" => Property::ObjectType,
+            b"onSuccessRenewCertificate" => Property::OnSuccessRenewCertificate,
+            b"opaqueTokenValidation" => Property::OpaqueTokenValidation,
+            b"openTelemetry" => Property::OpenTelemetry,
+            b"options" => Property::Options,
+            b"orcpt" => Property::Orcpt,
+            b"orgName" => Property::OrgName,
+            b"organizationName" => Property::OrganizationName,
+            b"origin" => Property::Origin,
+            b"originalEnvelopeId" => Property::OriginalEnvelopeId,
+            b"originalMailFrom" => Property::OriginalMailFrom,
+            b"originalRcptTo" => Property::OriginalRcptTo,
+            b"otpAuth" => Property::OtpAuth,
+            b"otpCode" => Property::OtpCode,
+            b"otpUrl" => Property::OtpUrl,
+            b"outboundReportDomain" => Property::OutboundReportDomain,
+            b"outboundReportSubmitter" => Property::OutboundReportSubmitter,
+            b"overrideProxyTrustedNetworks" => Property::OverrideProxyTrustedNetworks,
+            b"overrideType" => Property::OverrideType,
+            b"ovhEndpoint" => Property::OvhEndpoint,
+            b"parameters" => Property::Parameters,
+            b"parseLimitContact" => Property::ParseLimitContact,
+            b"parseLimitEmail" => Property::ParseLimitEmail,
+            b"parseLimitEvent" => Property::ParseLimitEvent,
+            b"partition" => Property::Partition,
+            b"password" => Property::Password,
+            b"passwordDefaultExpiry" => Property::PasswordDefaultExpiry,
+            b"passwordHashAlgorithm" => Property::PasswordHashAlgorithm,
+            b"path" => Property::Path,
+            b"pending" => Property::Pending,
+            b"period" => Property::Period,
+            b"permissions" => Property::Permissions,
+            b"pingInterval" => Property::PingInterval,
+            b"pinned" => Property::Pinned,
+            b"pipelining" => Property::Pipelining,
+            b"policies" => Property::Policies,
+            b"policyAdkim" => Property::PolicyAdkim,
+            b"policyAspf" => Property::PolicyAspf,
+            b"policyDiscoveryMethod" => Property::PolicyDiscoveryMethod,
+            b"policyDisposition" => Property::PolicyDisposition,
+            b"policyDomain" => Property::PolicyDomain,
+            b"policyFailureReportingOptions" => Property::PolicyFailureReportingOptions,
+            b"policyIdentifier" => Property::PolicyIdentifier,
+            b"policyIdentifiers" => Property::PolicyIdentifiers,
+            b"policyNp" => Property::PolicyNp,
+            b"policyOverrideReasons" => Property::PolicyOverrideReasons,
+            b"policyStrings" => Property::PolicyStrings,
+            b"policySubdomainDisposition" => Property::PolicySubdomainDisposition,
+            b"policyTestingMode" => Property::PolicyTestingMode,
+            b"policyType" => Property::PolicyType,
+            b"policyVersion" => Property::PolicyVersion,
+            b"pollInterval" => Property::PollInterval,
+            b"poolMaxConnections" => Property::PoolMaxConnections,
+            b"poolMinConnections" => Property::PoolMinConnections,
+            b"poolRecyclingMethod" => Property::PoolRecyclingMethod,
+            b"poolTimeoutCreate" => Property::PoolTimeoutCreate,
+            b"poolTimeoutRecycle" => Property::PoolTimeoutRecycle,
+            b"poolTimeoutWait" => Property::PoolTimeoutWait,
+            b"poolWorkers" => Property::PoolWorkers,
+            b"port" => Property::Port,
+            b"postLogoutRedirectUris" => Property::PostLogoutRedirectUris,
+            b"preferredChain" => Property::PreferredChain,
+            b"prefix" => Property::Prefix,
+            b"preserveIntermediates" => Property::PreserveIntermediates,
+            b"priority" => Property::Priority,
+            b"privateKey" => Property::PrivateKey,
+            b"privateKeyPassword" => Property::PrivateKeyPassword,
+            b"privateKeyPem" => Property::PrivateKeyPem,
+            b"privateMetadata" => Property::PrivateMetadata,
+            b"privateZone" => Property::PrivateZone,
+            b"privateZoneOnly" => Property::PrivateZoneOnly,
+            b"profile" => Property::Profile,
+            b"projectId" => Property::ProjectId,
+            b"prometheus" => Property::Prometheus,
+            b"propagationDelay" => Property::PropagationDelay,
+            b"propagationTimeout" => Property::PropagationTimeout,
+            b"protectedHeaders" => Property::ProtectedHeaders,
+            b"protocol" => Property::Protocol,
+            b"protocolVersion" => Property::ProtocolVersion,
+            b"providerInfo" => Property::ProviderInfo,
+            b"proxyTrustedNetworks" => Property::ProxyTrustedNetworks,
+            b"publicKey" => Property::PublicKey,
+            b"publishRecords" => Property::PublishRecords,
+            b"pushAttemptWait" => Property::PushAttemptWait,
+            b"pushRequestTimeout" => Property::PushRequestTimeout,
+            b"pushRetryWait" => Property::PushRetryWait,
+            b"pushShardsTotal" => Property::PushShardsTotal,
+            b"pushThrottle" => Property::PushThrottle,
+            b"pushVerifyTimeout" => Property::PushVerifyTimeout,
+            b"queryEmailAliases" => Property::QueryEmailAliases,
+            b"queryLogin" => Property::QueryLogin,
+            b"queryMemberOf" => Property::QueryMemberOf,
+            b"queryRecipient" => Property::QueryRecipient,
+            b"question" => Property::Question,
+            b"queueId" => Property::QueueId,
+            b"queueName" => Property::QueueName,
+            b"queuedDeletions" => Property::QueuedDeletions,
+            b"queuedUpdates" => Property::QueuedUpdates,
+            b"quotas" => Property::Quotas,
+            b"rate" => Property::Rate,
+            b"rateLimit" => Property::RateLimit,
+            b"rateLimitAnonymous" => Property::RateLimitAnonymous,
+            b"rateLimitAuthenticated" => Property::RateLimitAuthenticated,
+            b"ratio" => Property::Ratio,
+            b"rcptTo" => Property::RcptTo,
+            b"rcptToTimeout" => Property::RcptToTimeout,
+            b"readBufferCapacity" => Property::ReadBufferCapacity,
+            b"readFromReplicas" => Property::ReadFromReplicas,
+            b"readReplicas" => Property::ReadReplicas,
+            b"reason" => Property::Reason,
+            b"reasoning" => Property::Reasoning,
+            b"receivedAt" => Property::ReceivedAt,
+            b"receivedFromIp" => Property::ReceivedFromIp,
+            b"receivedViaPort" => Property::ReceivedViaPort,
+            b"receivingIp" => Property::ReceivingIp,
+            b"receivingMxHelo" => Property::ReceivingMxHelo,
+            b"receivingMxHostname" => Property::ReceivingMxHostname,
+            b"recipients" => Property::Recipients,
+            b"records" => Property::Records,
+            b"recurrenceId" => Property::RecurrenceId,
+            b"redirectCacheTtl" => Property::RedirectCacheTtl,
+            b"redirectRoot" => Property::RedirectRoot,
+            b"redirectTimeout" => Property::RedirectTimeout,
+            b"redirectUris" => Property::RedirectUris,
+            b"refreshInterval" => Property::RefreshInterval,
+            b"refreshTokenExpiry" => Property::RefreshTokenExpiry,
+            b"region" => Property::Region,
+            b"registration" => Property::Registration,
+            b"rejectNonFqdn" => Property::RejectNonFqdn,
+            b"remoteIp" => Property::RemoteIp,
+            b"renewBefore" => Property::RenewBefore,
+            b"report" => Property::Report,
+            b"reportAddressUri" => Property::ReportAddressUri,
+            b"reportId" => Property::ReportId,
+            b"reportedDomains" => Property::ReportedDomains,
+            b"reportedUris" => Property::ReportedUris,
+            b"reportingMta" => Property::ReportingMta,
+            b"requestTimeout" => Property::RequestTimeout,
+            b"requestTlsCertificate" => Property::RequestTlsCertificate,
+            b"require" => Property::Require,
+            b"requireTls" => Property::RequireTls,
+            b"reservoirCapacity" => Property::ReservoirCapacity,
+            b"resourceAttributes" => Property::ResourceAttributes,
+            b"resourceGroup" => Property::ResourceGroup,
+            b"resourceUrl" => Property::ResourceUrl,
+            b"responseCode" => Property::ResponseCode,
+            b"responseEnhanced" => Property::ResponseEnhanced,
+            b"responseHeaders" => Property::ResponseHeaders,
+            b"responseHostname" => Property::ResponseHostname,
+            b"responseMessage" => Property::ResponseMessage,
+            b"responseTimeout" => Property::ResponseTimeout,
+            b"result" => Property::Result,
+            b"resultType" => Property::ResultType,
+            b"retention" => Property::Retention,
+            b"retireAfter" => Property::RetireAfter,
+            b"retry" => Property::Retry,
+            b"retryCount" => Property::RetryCount,
+            b"retryDue" => Property::RetryDue,
+            b"returnPath" => Property::ReturnPath,
+            b"reuseKey" => Property::ReuseKey,
+            b"reverseIpVerify" => Property::ReverseIpVerify,
+            b"rewrite" => Property::Rewrite,
+            b"roleIds" => Property::RoleIds,
+            b"roles" => Property::Roles,
+            b"rotate" => Property::Rotate,
+            b"rotateAfter" => Property::RotateAfter,
+            b"route" => Property::Route,
+            b"rua" => Property::Rua,
+            b"sampleRate" => Property::SampleRate,
+            b"sandbox" => Property::Sandbox,
+            b"sasToken" => Property::SasToken,
+            b"saslMechanisms" => Property::SaslMechanisms,
+            b"scanBanPaths" => Property::ScanBanPaths,
+            b"scanBanPeriod" => Property::ScanBanPeriod,
+            b"scanBanRate" => Property::ScanBanRate,
+            b"schedule" => Property::Schedule,
+            b"scheduling" => Property::Scheduling,
+            b"scheme" => Property::Scheme,
+            b"scope" => Property::Scope,
+            b"scopes" => Property::Scopes,
+            b"score" => Property::Score,
+            b"scoreDiscard" => Property::ScoreDiscard,
+            b"scoreReject" => Property::ScoreReject,
+            b"scoreSpam" => Property::ScoreSpam,
+            b"script" => Property::Script,
+            b"searchStore" => Property::SearchStore,
+            b"secret" => Property::Secret,
+            b"secretKey" => Property::SecretKey,
+            b"selector" => Property::Selector,
+            b"selectorTemplate" => Property::SelectorTemplate,
+            b"sendFrequency" => Property::SendFrequency,
+            b"sendingMtaIp" => Property::SendingMtaIp,
+            b"sentinelSecret" => Property::SentinelSecret,
+            b"sentinelUsername" => Property::SentinelUsername,
+            b"separator" => Property::Separator,
+            b"serverId" => Property::ServerId,
+            b"serverKeysPath" => Property::ServerKeysPath,
+            b"serverName" => Property::ServerName,
+            b"servers" => Property::Servers,
+            b"serviceAccountJson" => Property::ServiceAccountJson,
+            b"serviceName" => Property::ServiceName,
+            b"serviceNamespace" => Property::ServiceNamespace,
+            b"services" => Property::Services,
+            b"sessionTimeout" => Property::SessionTimeout,
+            b"sessionToken" => Property::SessionToken,
+            b"shardConnections" => Property::ShardConnections,
+            b"shardIndex" => Property::ShardIndex,
+            b"sharedSecret" => Property::SharedSecret,
+            b"signals" => Property::Signals,
+            b"signatureAlgorithm" => Property::SignatureAlgorithm,
+            b"signatureKey" => Property::SignatureKey,
+            b"size" => Property::Size,
+            b"skipAudienceValidation" => Property::SkipAudienceValidation,
+            b"skipDeploy" => Property::SkipDeploy,
+            b"skipFirst" => Property::SkipFirst,
+            b"smimeCiphers" => Property::SmimeCiphers,
+            b"smimeOaep" => Property::SmimeOaep,
+            b"smimeSignedAt" => Property::SmimeSignedAt,
+            b"smtpGreeting" => Property::SmtpGreeting,
+            b"socketBacklog" => Property::SocketBacklog,
+            b"socketNoDelay" => Property::SocketNoDelay,
+            b"socketReceiveBufferSize" => Property::SocketReceiveBufferSize,
+            b"socketReuseAddress" => Property::SocketReuseAddress,
+            b"socketReusePort" => Property::SocketReusePort,
+            b"socketSendBufferSize" => Property::SocketSendBufferSize,
+            b"socketTosV4" => Property::SocketTosV4,
+            b"socketTtl" => Property::SocketTtl,
+            b"source" => Property::Source,
+            b"sourceIp" => Property::SourceIp,
+            b"sourcePort" => Property::SourcePort,
+            b"sourceTimeout" => Property::SourceTimeout,
+            b"spamFilterRulesUrl" => Property::SpamFilterRulesUrl,
+            b"spamLookup" => Property::SpamLookup,
+            b"spfDns" => Property::SpfDns,
+            b"spfEhloDomain" => Property::SpfEhloDomain,
+            b"spfEhloResult" => Property::SpfEhloResult,
+            b"spfEhloVerify" => Property::SpfEhloVerify,
+            b"spfFromVerify" => Property::SpfFromVerify,
+            b"spfMailFromDomain" => Property::SpfMailFromDomain,
+            b"spfMailFromResult" => Property::SpfMailFromResult,
+            b"spfResults" => Property::SpfResults,
+            b"stage" => Property::Stage,
+            b"stages" => Property::Stages,
+            b"startTime" => Property::StartTime,
+            b"startTls" => Property::StartTls,
+            b"status" => Property::Status,
+            b"storageAccount" => Property::StorageAccount,
+            b"store" => Property::Store,
+            b"stores" => Property::Stores,
+            b"strategy" => Property::Strategy,
+            b"streamMode" => Property::StreamMode,
+            b"strictKeyWrapEncoding" => Property::StrictKeyWrapEncoding,
+            b"subAddressing" => Property::SubAddressing,
+            b"subAuthId" => Property::SubAuthId,
+            b"subject" => Property::Subject,
+            b"subjectAlternativeNames" => Property::SubjectAlternativeNames,
+            b"subscribe" => Property::Subscribe,
+            b"subscriptionCapacity" => Property::SubscriptionCapacity,
+            b"subscriptionId" => Property::SubscriptionId,
+            b"sum" => Property::Sum,
+            b"summary" => Property::Summary,
+            b"supportedLanguages" => Property::SupportedLanguages,
+            b"swap" => Property::Swap,
+            b"tag" => Property::Tag,
+            b"tags" => Property::Tags,
+            b"targetAccountId" => Property::TargetAccountId,
+            b"taskTypes" => Property::TaskTypes,
+            b"tasks" => Property::Tasks,
+            b"tcpOnError" => Property::TcpOnError,
+            b"teamId" => Property::TeamId,
+            b"tempFailOnError" => Property::TempFailOnError,
+            b"temperature" => Property::Temperature,
+            b"template" => Property::Template,
+            b"tenancyOcid" => Property::TenancyOcid,
+            b"tenantId" => Property::TenantId,
+            b"tenants" => Property::Tenants,
+            b"text" => Property::Text,
+            b"then" => Property::Then,
+            b"thirdParty" => Property::ThirdParty,
+            b"thirdPartyHash" => Property::ThirdPartyHash,
+            b"threadName" => Property::ThreadName,
+            b"threadsPerNode" => Property::ThreadsPerNode,
+            b"throttle" => Property::Throttle,
+            b"tiers" => Property::Tiers,
+            b"timeZone" => Property::TimeZone,
+            b"timeout" => Property::Timeout,
+            b"timestamp" => Property::Timestamp,
+            b"title" => Property::Title,
+            b"tls" => Property::Tls,
+            b"tlsDisableCipherSuites" => Property::TlsDisableCipherSuites,
+            b"tlsDisableProtocols" => Property::TlsDisableProtocols,
+            b"tlsIgnoreClientOrder" => Property::TlsIgnoreClientOrder,
+            b"tlsTimeout" => Property::TlsTimeout,
+            b"to" => Property::To,
+            b"token" => Property::Token,
+            b"tokenFile" => Property::TokenFile,
+            b"totalFailedSessions" => Property::TotalFailedSessions,
+            b"totalSuccessfulSessions" => Property::TotalSuccessfulSessions,
+            b"tracer" => Property::Tracer,
+            b"trainInterval" => Property::TrainInterval,
+            b"transactionRetryDelay" => Property::TransactionRetryDelay,
+            b"transactionRetryLimit" => Property::TransactionRetryLimit,
+            b"transactionTimeout" => Property::TransactionTimeout,
+            b"transferLimit" => Property::TransferLimit,
+            b"trimQuotes" => Property::TrimQuotes,
+            b"trust" => Property::Trust,
+            b"trustContacts" => Property::TrustContacts,
+            b"trustReplies" => Property::TrustReplies,
+            b"trustedProvider" => Property::TrustedProvider,
+            b"tsigAlgorithm" => Property::TsigAlgorithm,
+            b"ttl" => Property::Ttl,
+            b"uncertainBelow" => Property::UncertainBelow,
+            b"unpackDirectory" => Property::UnpackDirectory,
+            b"unscopedTokens" => Property::UnscopedTokens,
+            b"updateRecords" => Property::UpdateRecords,
+            b"uploadQuota" => Property::UploadQuota,
+            b"uploadTtl" => Property::UploadTtl,
+            b"url" => Property::Url,
+            b"urlFailover" => Property::UrlFailover,
+            b"urlLimit" => Property::UrlLimit,
+            b"urlPrefix" => Property::UrlPrefix,
+            b"urls" => Property::Urls,
+            b"useBundledRoots" => Property::UseBundledRoots,
+            b"usePermissiveCors" => Property::UsePermissiveCors,
+            b"useTls" => Property::UseTls,
+            b"usedDiskQuota" => Property::UsedDiskQuota,
+            b"userAgent" => Property::UserAgent,
+            b"userCodeExpiry" => Property::UserCodeExpiry,
+            b"userOcid" => Property::UserOcid,
+            b"username" => Property::Username,
+            b"usernameDomain" => Property::UsernameDomain,
+            b"vCardVersion" => Property::VCardVersion,
+            b"validateDomain" => Property::ValidateDomain,
+            b"value" => Property::Value,
+            b"variableName" => Property::VariableName,
+            b"vendorNamespaces" => Property::VendorNamespaces,
+            b"verbalHigh" => Property::VerbalHigh,
+            b"verbalLow" => Property::VerbalLow,
+            b"verbalMedium" => Property::VerbalMedium,
+            b"verifyAfterWrite" => Property::VerifyAfterWrite,
+            b"version" => Property::Version,
+            b"viewName" => Property::ViewName,
+            b"vrfy" => Property::Vrfy,
+            b"waitOnFail" => Property::WaitOnFail,
+            b"wapiVersion" => Property::WapiVersion,
+            b"warnings" => Property::Warnings,
+            b"webPushContact" => Property::WebPushContact,
+            b"webPushKey" => Property::WebPushKey,
+            b"webSearch" => Property::WebSearch,
+            b"websocketHeartbeat" => Property::WebsocketHeartbeat,
+            b"websocketThrottle" => Property::WebsocketThrottle,
+            b"websocketTimeout" => Property::WebsocketTimeout,
+            b"windowEnd" => Property::WindowEnd,
+            b"zone" => Property::Zone,
+            b"zoneIpV4" => Property::ZoneIpV4,
+            b"zoneIpV6" => Property::ZoneIpV6,
+        }
+        .copied()
+    }
+
+    #[cfg(not(feature = "bezenti"))]
     fn parse(value: &str) -> Option<Self> {
         hashify::map! {
             value.as_bytes(),
@@ -1456,7 +2697,8 @@ impl EnumImpl for Property {
             Property::AddAuthResultsHeader => "addAuthResultsHeader",
             Property::AddDateHeader => "addDateHeader",
             Property::AddDeliveredToHeader => "addDeliveredToHeader",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::AddHeader => "addHeader",
             Property::AddMessageIdHeader => "addMessageIdHeader",
             Property::AddReceivedHeader => "addReceivedHeader",
             Property::AddReceivedSpfHeader => "addReceivedSpfHeader",
@@ -1469,7 +2711,12 @@ impl EnumImpl for Property {
             Property::AggregateFromName => "aggregateFromName",
             Property::AggregateOrgName => "aggregateOrgName",
             Property::AggregateSendFrequency => "aggregateSendFrequency",
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::AiFacts => "aiFacts",
+            #[cfg(feature = "bezenti")]
+            Property::AiGate => "aiGate",
+            #[cfg(feature = "bezenti")]
+            Property::AiVerdict => "aiVerdict",
             Property::AlarmId => "alarmId",
             Property::AlertAfter => "alertAfter",
             Property::Algorithm => "algorithm",
@@ -1482,7 +2729,8 @@ impl EnumImpl for Property {
             Property::AllowInvalidCerts => "allowInvalidCerts",
             Property::AllowPlainTextAuth => "allowPlainTextAuth",
             Property::AllowRelaying => "allowRelaying",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::AllowScimProvisioning => "allowScimProvisioning",
             Property::AllowSpamTraining => "allowSpamTraining",
             Property::AllowedEndpoints => "allowedEndpoints",
             Property::AllowedIps => "allowedIps",
@@ -1497,7 +2745,16 @@ impl EnumImpl for Property {
             Property::ApplicationSecret => "applicationSecret",
             Property::ArcResult => "arcResult",
             Property::ArcVerify => "arcVerify",
-            // [fragmento SEL eliminado: 14 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::ArchiveDeletedAccountsFor => "archiveDeletedAccountsFor",
+            #[cfg(feature = "bezenti")]
+            Property::ArchiveDeletedItemsFor => "archiveDeletedItemsFor",
+            #[cfg(feature = "bezenti")]
+            Property::ArchivedAt => "archivedAt",
+            #[cfg(feature = "bezenti")]
+            Property::ArchivedItemType => "archivedItemType",
+            #[cfg(feature = "bezenti")]
+            Property::ArchivedUntil => "archivedUntil",
             Property::ArrivalDate => "arrivalDate",
             Property::AsnUrls => "asnUrls",
             Property::AtRestEnable => "atRestEnable",
@@ -1542,9 +2799,17 @@ impl EnumImpl for Property {
             Property::BlobStore => "blobStore",
             Property::BlockCount => "blockCount",
             Property::BlockedFingerprints => "blockedFingerprints",
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Body => "body",
+            #[cfg(feature = "bezenti")]
+            Property::BreakerCooldown => "breakerCooldown",
+            #[cfg(feature = "bezenti")]
+            Property::BreakerThreshold => "breakerThreshold",
             Property::Bucket => "bucket",
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::BucketHigh => "bucketHigh",
+            #[cfg(feature = "bezenti")]
+            Property::BucketMedium => "bucketMedium",
             Property::BufferSize => "bufferSize",
             Property::Buffered => "buffered",
             Property::CaPath => "caPath",
@@ -1553,7 +2818,8 @@ impl EnumImpl for Property {
             Property::Canonicalization => "canonicalization",
             Property::Capabilities => "capabilities",
             Property::CatchAllAddress => "catchAllAddress",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Categories => "categories",
             Property::CertPath => "certPath",
             Property::Certificate => "certificate",
             Property::CertificateManagement => "certificateManagement",
@@ -1604,7 +2870,8 @@ impl EnumImpl for Property {
             Property::Count => "count",
             Property::Create => "create",
             Property::CreatedAt => "createdAt",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::CreatedBy => "createdBy",
             Property::CredentialId => "credentialId",
             Property::Credentials => "credentials",
             Property::CurrentSecret => "currentSecret",
@@ -1639,7 +2906,8 @@ impl EnumImpl for Property {
             Property::DefaultReturnPath => "defaultReturnPath",
             Property::DefaultSubject => "defaultSubject",
             Property::DefaultSubjectPrefix => "defaultSubjectPrefix",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::DefaultTenantRoleIds => "defaultTenantRoleIds",
             Property::DefaultUserRoleIds => "defaultUserRoleIds",
             Property::Definition => "definition",
             Property::Delay => "delay",
@@ -1714,9 +2982,15 @@ impl EnumImpl for Property {
             Property::EmailAddress => "emailAddress",
             Property::EmailAddresses => "emailAddresses",
             Property::EmailAddressesNegative => "emailAddressesNegative",
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::EmailAlert => "emailAlert",
+            #[cfg(feature = "bezenti")]
+            Property::EmailDomain => "emailDomain",
             Property::EmailLimit => "emailLimit",
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::EmailPrefix => "emailPrefix",
+            #[cfg(feature = "bezenti")]
+            Property::EmailTemplate => "emailTemplate",
             Property::Enable => "enable",
             Property::EnableAssistedDiscovery => "enableAssistedDiscovery",
             Property::EnableEdns => "enableEdns",
@@ -1738,16 +3012,21 @@ impl EnumImpl for Property {
             Property::ErrorMessage => "errorMessage",
             Property::ErrorType => "errorType",
             Property::Errors => "errors",
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::EscalateBelow => "escalateBelow",
+            #[cfg(feature = "bezenti")]
+            Property::EscalateOn => "escalateOn",
             Property::EvaluatedDisposition => "evaluatedDisposition",
             Property::EvaluatedDkim => "evaluatedDkim",
             Property::EvaluatedSpf => "evaluatedSpf",
             Property::Event => "event",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::EventAlert => "eventAlert",
             Property::EventEnd => "eventEnd",
             Property::EventEndTz => "eventEndTz",
             Property::EventId => "eventId",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::EventMessage => "eventMessage",
             Property::EventSourceThrottle => "eventSourceThrottle",
             Property::EventStart => "eventStart",
             Property::EventStartTz => "eventStartTz",
@@ -1758,7 +3037,8 @@ impl EnumImpl for Property {
             Property::ExpiresAt => "expiresAt",
             Property::ExpiresAttempts => "expiresAttempts",
             Property::Expiry => "expiry",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Explanation => "explanation",
             Property::Expn => "expn",
             Property::ExpungeSchedule => "expungeSchedule",
             Property::ExpungeSchedulingInboxAfter => "expungeSchedulingInboxAfter",
@@ -1767,10 +3047,12 @@ impl EnumImpl for Property {
             Property::ExpungeTrashAfter => "expungeTrashAfter",
             Property::Extension => "extension",
             Property::Extensions => "extensions",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::ExternalId => "externalId",
             Property::ExternalPublicKeys => "externalPublicKeys",
             Property::ExtraContactInfo => "extraContactInfo",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::ExtraParameters => "extraParameters",
             Property::Factor => "factor",
             Property::FailOnTimeout => "failOnTimeout",
             Property::FailedAt => "failedAt",
@@ -1807,7 +3089,8 @@ impl EnumImpl for Property {
             Property::FlushChanges => "flushChanges",
             Property::FlushInterval => "flushInterval",
             Property::FolderId => "folderId",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::ForDomain => "forDomain",
             Property::Format => "format",
             Property::ForwardedHops => "forwardedHops",
             Property::From => "from",
@@ -1836,10 +3119,12 @@ impl EnumImpl for Property {
             Property::HeaderProtection => "headerProtection",
             Property::Headers => "headers",
             Property::HkpServers => "hkpServers",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::HoldMetricsFor => "holdMetricsFor",
             Property::HoldMtaReportsFor => "holdMtaReportsFor",
             Property::HoldSamplesFor => "holdSamplesFor",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::HoldTracesFor => "holdTracesFor",
             Property::Host => "host",
             Property::HostedZoneId => "hostedZoneId",
             Property::Hostname => "hostname",
@@ -1849,7 +3134,8 @@ impl EnumImpl for Property {
             Property::HttpHeaders => "httpHeaders",
             Property::HttpRsvpEnable => "httpRsvpEnable",
             Property::HttpRsvpLinkExpiry => "httpRsvpLinkExpiry",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::HttpRsvpTemplate => "httpRsvpTemplate",
             Property::HttpRsvpUrl => "httpRsvpUrl",
             Property::HttpRua => "httpRua",
             Property::HumanResult => "humanResult",
@@ -1867,10 +3153,16 @@ impl EnumImpl for Property {
             Property::InboundReportAddresses => "inboundReportAddresses",
             Property::InboundReportForwarding => "inboundReportForwarding",
             Property::Incidents => "incidents",
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::IncludeAttachments => "includeAttachments",
+            #[cfg(feature = "bezenti")]
+            Property::IncludeAuth => "includeAuth",
+            #[cfg(feature = "bezenti")]
+            Property::IncludeLinks => "includeLinks",
             Property::IncludeSecrets => "includeSecrets",
             Property::IncludeSource => "includeSource",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Includes => "includes",
             Property::Index => "index",
             Property::IndexAsn => "indexAsn",
             Property::IndexAsnName => "indexAsnName",
@@ -1884,12 +3176,14 @@ impl EnumImpl for Property {
             Property::IndexEmailFields => "indexEmailFields",
             Property::IndexFiles => "indexFiles",
             Property::IndexKey => "indexKey",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::IndexTelemetry => "indexTelemetry",
             Property::IndexValue => "indexValue",
             Property::IndicatorParameters => "indicatorParameters",
             Property::InitialDelay => "initialDelay",
             Property::InstanceHashes => "instanceHashes",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Instructions => "instructions",
             Property::Interval => "interval",
             Property::Intervals => "intervals",
             Property::IntrospectionAuthMethod => "introspectionAuthMethod",
@@ -1913,7 +3207,8 @@ impl EnumImpl for Property {
             Property::IssuerDomainNames => "issuerDomainNames",
             Property::IssuerUrl => "issuerUrl",
             Property::Jitter => "jitter",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::KeepAlive => "keepAlive",
             Property::Key => "key",
             Property::KeyId => "keyId",
             Property::KeyName => "keyName",
@@ -1921,7 +3216,8 @@ impl EnumImpl for Property {
             Property::KeyPrefix => "keyPrefix",
             Property::KeyRefreshInterval => "keyRefreshInterval",
             Property::KeyType => "keyType",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::KeyValues => "keyValues",
             Property::Kind => "kind",
             Property::L1Ratio => "l1Ratio",
             Property::L2Ratio => "l2Ratio",
@@ -1929,14 +3225,14 @@ impl EnumImpl for Property {
             Property::LastRenewal => "lastRenewal",
             Property::LastSeen => "lastSeen",
             Property::LastUsedAt => "lastUsedAt",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Learn => "learn",
             Property::LearnHamFromCard => "learnHamFromCard",
             Property::LearnHamFromReply => "learnHamFromReply",
             Property::LearnSpamFromRblHits => "learnSpamFromRblHits",
             Property::LearnSpamFromTraps => "learnSpamFromTraps",
             Property::LenientIssuerMatch => "lenientIssuerMatch",
             Property::Level => "level",
-            // [fragmento SEL eliminado: 6 líneas]
             Property::Line => "line",
             Property::ListenerIds => "listenerIds",
             Property::Listeners => "listeners",
@@ -1944,7 +3240,8 @@ impl EnumImpl for Property {
             Property::LocalIps => "localIps",
             Property::Locale => "locale",
             Property::Logo => "logo",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Logprobs => "logprobs",
             Property::LoiterBanPeriod => "loiterBanPeriod",
             Property::LoiterBanRate => "loiterBanRate",
             Property::Lossy => "lossy",
@@ -1968,7 +3265,8 @@ impl EnumImpl for Property {
             Property::MaxAppPasswords => "maxAppPasswords",
             Property::MaxAttachmentSize => "maxAttachmentSize",
             Property::MaxAttachmentText => "maxAttachmentText",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MaxAttachments => "maxAttachments",
             Property::MaxAttachmentsSize => "maxAttachmentsSize",
             Property::MaxAttempts => "maxAttempts",
             Property::MaxAttendees => "maxAttendees",
@@ -2016,9 +3314,11 @@ impl EnumImpl for Property {
             Property::MaxIdentities => "maxIdentities",
             Property::MaxInboundReportSize => "maxInboundReportSize",
             Property::MaxIncludes => "maxIncludes",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MaxInputChars => "maxInputChars",
             Property::MaxItipSize => "maxItipSize",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MaxLinks => "maxLinks",
             Property::MaxLivePropertySize => "maxLivePropertySize",
             Property::MaxLocalVars => "maxLocalVars",
             Property::MaxLockTimeout => "maxLockTimeout",
@@ -2027,7 +3327,8 @@ impl EnumImpl for Property {
             Property::MaxMailboxNameLength => "maxMailboxNameLength",
             Property::MaxMailboxes => "maxMailboxes",
             Property::MaxMailboxesPerEmail => "maxMailboxesPerEmail",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MaxMaskedAddresses => "maxMaskedAddresses",
             Property::MaxMatchVars => "maxMatchVars",
             Property::MaxMediaSize => "maxMediaSize",
             Property::MaxMessageSize => "maxMessageSize",
@@ -2043,7 +3344,8 @@ impl EnumImpl for Property {
             Property::MaxNestedIncludes => "maxNestedIncludes",
             Property::MaxNestedTests => "maxNestedTests",
             Property::MaxOutMessages => "maxOutMessages",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MaxOutputTokens => "maxOutputTokens",
             Property::MaxParticipantIdentities => "maxParticipantIdentities",
             Property::MaxPasskeys => "maxPasskeys",
             Property::MaxPasswordLength => "maxPasswordLength",
@@ -2083,7 +3385,8 @@ impl EnumImpl for Property {
             Property::MaxVarNameLength => "maxVarNameLength",
             Property::MaxVarSize => "maxVarSize",
             Property::MemberGroupIds => "memberGroupIds",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MemberTenantId => "memberTenantId",
             Property::Message => "message",
             Property::MessageIdHostname => "messageIdHostname",
             Property::MessageIds => "messageIds",
@@ -2092,15 +3395,18 @@ impl EnumImpl for Property {
             Property::MessagesLarge => "messagesLarge",
             Property::MessagesLargeTtl => "messagesLargeTtl",
             Property::Method => "method",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Metric => "metric",
             Property::Metrics => "metrics",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MetricsCollectionInterval => "metricsCollectionInterval",
             Property::MetricsPolicy => "metricsPolicy",
             Property::MinAccountSize => "minAccountSize",
             Property::MinHamSamples => "minHamSamples",
             Property::MinPasswordLength => "minPasswordLength",
             Property::MinPasswordStrength => "minPasswordStrength",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::MinProbability => "minProbability",
             Property::MinRetryWait => "minRetryWait",
             Property::MinSpamSamples => "minSpamSamples",
             Property::MinTriggerInterval => "minTriggerInterval",
@@ -2108,7 +3414,8 @@ impl EnumImpl for Property {
             Property::Minute => "minute",
             Property::Mode => "mode",
             Property::Model => "model",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::ModelId => "modelId",
             Property::MtPriority => "mtPriority",
             Property::MtaSts => "mtaSts",
             Property::MtaStsTimeout => "mtaStsTimeout",
@@ -2235,7 +3542,8 @@ impl EnumImpl for Property {
             Property::QueryLogin => "queryLogin",
             Property::QueryMemberOf => "queryMemberOf",
             Property::QueryRecipient => "queryRecipient",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Question => "question",
             Property::QueueId => "queueId",
             Property::QueueName => "queueName",
             Property::QueuedDeletions => "queuedDeletions",
@@ -2250,9 +3558,11 @@ impl EnumImpl for Property {
             Property::RcptToTimeout => "rcptToTimeout",
             Property::ReadBufferCapacity => "readBufferCapacity",
             Property::ReadFromReplicas => "readFromReplicas",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::ReadReplicas => "readReplicas",
             Property::Reason => "reason",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Reasoning => "reasoning",
             Property::ReceivedAt => "receivedAt",
             Property::ReceivedFromIp => "receivedFromIp",
             Property::ReceivedViaPort => "receivedViaPort",
@@ -2310,7 +3620,8 @@ impl EnumImpl for Property {
             Property::RotateAfter => "rotateAfter",
             Property::Route => "route",
             Property::Rua => "rua",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::SampleRate => "sampleRate",
             Property::Sandbox => "sandbox",
             Property::SasToken => "sasToken",
             Property::SaslMechanisms => "saslMechanisms",
@@ -2350,7 +3661,8 @@ impl EnumImpl for Property {
             Property::ShardConnections => "shardConnections",
             Property::ShardIndex => "shardIndex",
             Property::SharedSecret => "sharedSecret",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Signals => "signals",
             Property::SignatureAlgorithm => "signatureAlgorithm",
             Property::SignatureKey => "signatureKey",
             Property::Size => "size",
@@ -2385,12 +3697,14 @@ impl EnumImpl for Property {
             Property::SpfResults => "spfResults",
             Property::Stage => "stage",
             Property::Stages => "stages",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::StartTime => "startTime",
             Property::StartTls => "startTls",
             Property::Status => "status",
             Property::StorageAccount => "storageAccount",
             Property::Store => "store",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Stores => "stores",
             Property::Strategy => "strategy",
             Property::StreamMode => "streamMode",
             Property::StrictKeyWrapEncoding => "strictKeyWrapEncoding",
@@ -2401,7 +3715,8 @@ impl EnumImpl for Property {
             Property::Subscribe => "subscribe",
             Property::SubscriptionCapacity => "subscriptionCapacity",
             Property::SubscriptionId => "subscriptionId",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Sum => "sum",
             Property::Summary => "summary",
             Property::SupportedLanguages => "supportedLanguages",
             Property::Swap => "swap",
@@ -2413,10 +3728,14 @@ impl EnumImpl for Property {
             Property::TcpOnError => "tcpOnError",
             Property::TeamId => "teamId",
             Property::TempFailOnError => "tempFailOnError",
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Temperature => "temperature",
+            #[cfg(feature = "bezenti")]
+            Property::Template => "template",
             Property::TenancyOcid => "tenancyOcid",
             Property::TenantId => "tenantId",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Tenants => "tenants",
             Property::Text => "text",
             Property::Then => "then",
             Property::ThirdParty => "thirdParty",
@@ -2424,11 +3743,13 @@ impl EnumImpl for Property {
             Property::ThreadName => "threadName",
             Property::ThreadsPerNode => "threadsPerNode",
             Property::Throttle => "throttle",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Tiers => "tiers",
             Property::TimeZone => "timeZone",
             Property::Timeout => "timeout",
             Property::Timestamp => "timestamp",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::Title => "title",
             Property::Tls => "tls",
             Property::TlsDisableCipherSuites => "tlsDisableCipherSuites",
             Property::TlsDisableProtocols => "tlsDisableProtocols",
@@ -2445,21 +3766,25 @@ impl EnumImpl for Property {
             Property::TransactionRetryLimit => "transactionRetryLimit",
             Property::TransactionTimeout => "transactionTimeout",
             Property::TransferLimit => "transferLimit",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::TrimQuotes => "trimQuotes",
             Property::Trust => "trust",
             Property::TrustContacts => "trustContacts",
             Property::TrustReplies => "trustReplies",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::TrustedProvider => "trustedProvider",
             Property::TsigAlgorithm => "tsigAlgorithm",
             Property::Ttl => "ttl",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::UncertainBelow => "uncertainBelow",
             Property::UnpackDirectory => "unpackDirectory",
             Property::UnscopedTokens => "unscopedTokens",
             Property::UpdateRecords => "updateRecords",
             Property::UploadQuota => "uploadQuota",
             Property::UploadTtl => "uploadTtl",
             Property::Url => "url",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::UrlFailover => "urlFailover",
             Property::UrlLimit => "urlLimit",
             Property::UrlPrefix => "urlPrefix",
             Property::Urls => "urls",
@@ -2477,7 +3802,12 @@ impl EnumImpl for Property {
             Property::Value => "value",
             Property::VariableName => "variableName",
             Property::VendorNamespaces => "vendorNamespaces",
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::VerbalHigh => "verbalHigh",
+            #[cfg(feature = "bezenti")]
+            Property::VerbalLow => "verbalLow",
+            #[cfg(feature = "bezenti")]
+            Property::VerbalMedium => "verbalMedium",
             Property::VerifyAfterWrite => "verifyAfterWrite",
             Property::Version => "version",
             Property::ViewName => "viewName",
@@ -2487,7 +3817,8 @@ impl EnumImpl for Property {
             Property::Warnings => "warnings",
             Property::WebPushContact => "webPushContact",
             Property::WebPushKey => "webPushKey",
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            Property::WebSearch => "webSearch",
             Property::WebsocketHeartbeat => "websocketHeartbeat",
             Property::WebsocketThrottle => "websocketThrottle",
             Property::WebsocketTimeout => "websocketTimeout",
@@ -2526,7 +3857,8 @@ impl EnumImpl for Property {
             649 => Some(Property::AddAuthResultsHeader),
             650 => Some(Property::AddDateHeader),
             651 => Some(Property::AddDeliveredToHeader),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            841 => Some(Property::AddHeader),
             652 => Some(Property::AddMessageIdHeader),
             653 => Some(Property::AddReceivedHeader),
             654 => Some(Property::AddReceivedSpfHeader),
@@ -2539,7 +3871,12 @@ impl EnumImpl for Property {
             313 => Some(Property::AggregateFromName),
             315 => Some(Property::AggregateOrgName),
             316 => Some(Property::AggregateSendFrequency),
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            887 => Some(Property::AiFacts),
+            #[cfg(feature = "bezenti")]
+            888 => Some(Property::AiGate),
+            #[cfg(feature = "bezenti")]
+            889 => Some(Property::AiVerdict),
             938 => Some(Property::AlarmId),
             957 => Some(Property::AlertAfter),
             1064 => Some(Property::Algorithm),
@@ -2552,7 +3889,8 @@ impl EnumImpl for Property {
             41 => Some(Property::AllowInvalidCerts),
             502 => Some(Property::AllowPlainTextAuth),
             419 => Some(Property::AllowRelaying),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            421 => Some(Property::AllowScimProvisioning),
             446 => Some(Property::AllowSpamTraining),
             475 => Some(Property::AllowedEndpoints),
             63 => Some(Property::AllowedIps),
@@ -2567,7 +3905,16 @@ impl EnumImpl for Property {
             400 => Some(Property::ApplicationSecret),
             337 => Some(Property::ArcResult),
             804 => Some(Property::ArcVerify),
-            // [fragmento SEL eliminado: 14 líneas]
+            #[cfg(feature = "bezenti")]
+            240 => Some(Property::ArchiveDeletedAccountsFor),
+            #[cfg(feature = "bezenti")]
+            241 => Some(Property::ArchiveDeletedItemsFor),
+            #[cfg(feature = "bezenti")]
+            69 => Some(Property::ArchivedAt),
+            #[cfg(feature = "bezenti")]
+            961 => Some(Property::ArchivedItemType),
+            #[cfg(feature = "bezenti")]
+            70 => Some(Property::ArchivedUntil),
             82 => Some(Property::ArrivalDate),
             116 => Some(Property::AsnUrls),
             1017 => Some(Property::AtRestEnable),
@@ -2612,9 +3959,17 @@ impl EnumImpl for Property {
             153 => Some(Property::BlobStore),
             901 => Some(Property::BlockCount),
             1052 => Some(Property::BlockedFingerprints),
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            52 => Some(Property::Body),
+            #[cfg(feature = "bezenti")]
+            842 => Some(Property::BreakerCooldown),
+            #[cfg(feature = "bezenti")]
+            843 => Some(Property::BreakerThreshold),
             767 => Some(Property::Bucket),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            844 => Some(Property::BucketHigh),
+            #[cfg(feature = "bezenti")]
+            845 => Some(Property::BucketMedium),
             764 => Some(Property::BufferSize),
             1004 => Some(Property::Buffered),
             1073 => Some(Property::CaPath),
@@ -2623,7 +3978,8 @@ impl EnumImpl for Property {
             254 => Some(Property::Canonicalization),
             1039 => Some(Property::Capabilities),
             417 => Some(Property::CatchAllAddress),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            846 => Some(Property::Categories),
             1074 => Some(Property::CertPath),
             214 => Some(Property::Certificate),
             413 => Some(Property::CertificateManagement),
@@ -2674,7 +4030,8 @@ impl EnumImpl for Property {
             301 => Some(Property::Count),
             444 => Some(Property::Create),
             60 => Some(Property::CreatedAt),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            551 => Some(Property::CreatedBy),
             730 => Some(Property::CredentialId),
             385 => Some(Property::Credentials),
             4 => Some(Property::CurrentSecret),
@@ -2709,7 +4066,8 @@ impl EnumImpl for Property {
             814 => Some(Property::DefaultReturnPath),
             489 => Some(Property::DefaultSubject),
             826 => Some(Property::DefaultSubjectPrefix),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            122 => Some(Property::DefaultTenantRoleIds),
             120 => Some(Property::DefaultUserRoleIds),
             275 => Some(Property::Definition),
             966 => Some(Property::Delay),
@@ -2784,9 +4142,15 @@ impl EnumImpl for Property {
             469 => Some(Property::EmailAddress),
             180 => Some(Property::EmailAddresses),
             181 => Some(Property::EmailAddressesNegative),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            49 => Some(Property::EmailAlert),
+            #[cfg(feature = "bezenti")]
+            574 => Some(Property::EmailDomain),
             893 => Some(Property::EmailLimit),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            575 => Some(Property::EmailPrefix),
+            #[cfg(feature = "bezenti")]
+            212 => Some(Property::EmailTemplate),
             51 => Some(Property::Enable),
             1005 => Some(Property::EnableAssistedDiscovery),
             349 => Some(Property::EnableEdns),
@@ -2808,16 +4172,21 @@ impl EnumImpl for Property {
             247 => Some(Property::ErrorMessage),
             246 => Some(Property::ErrorType),
             287 => Some(Property::Errors),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            866 => Some(Property::EscalateBelow),
+            #[cfg(feature = "bezenti")]
+            867 => Some(Property::EscalateOn),
             302 => Some(Property::EvaluatedDisposition),
             303 => Some(Property::EvaluatedDkim),
             304 => Some(Property::EvaluatedSpf),
             448 => Some(Property::Event),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            50 => Some(Property::EventAlert),
             941 => Some(Property::EventEnd),
             943 => Some(Property::EventEndTz),
             939 => Some(Property::EventId),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            57 => Some(Property::EventMessage),
             532 => Some(Property::EventSourceThrottle),
             940 => Some(Property::EventStart),
             942 => Some(Property::EventStartTz),
@@ -2828,7 +4197,8 @@ impl EnumImpl for Property {
             61 => Some(Property::ExpiresAt),
             735 => Some(Property::ExpiresAttempts),
             609 => Some(Property::Expiry),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            847 => Some(Property::Explanation),
             617 => Some(Property::Expn),
             236 => Some(Property::ExpungeSchedule),
             235 => Some(Property::ExpungeSchedulingInboxAfter),
@@ -2837,10 +4207,12 @@ impl EnumImpl for Property {
             232 => Some(Property::ExpungeTrashAfter),
             896 => Some(Property::Extension),
             297 => Some(Property::Extensions),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            447 => Some(Property::ExternalId),
             1016 => Some(Property::ExternalPublicKeys),
             283 => Some(Property::ExtraContactInfo),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            32 => Some(Property::ExtraParameters),
             962 => Some(Property::Factor),
             579 => Some(Property::FailOnTimeout),
             968 => Some(Property::FailedAt),
@@ -2877,7 +4249,8 @@ impl EnumImpl for Property {
             144 => Some(Property::FlushChanges),
             145 => Some(Property::FlushInterval),
             410 => Some(Property::FolderId),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            576 => Some(Property::ForDomain),
             493 => Some(Property::Format),
             480 => Some(Property::ForwardedHops),
             76 => Some(Property::From),
@@ -2906,10 +4279,12 @@ impl EnumImpl for Property {
             1032 => Some(Property::HeaderProtection),
             107 => Some(Property::Headers),
             1025 => Some(Property::HkpServers),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            243 => Some(Property::HoldMetricsFor),
             242 => Some(Property::HoldMtaReportsFor),
             872 => Some(Property::HoldSamplesFor),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            244 => Some(Property::HoldTracesFor),
             376 => Some(Property::Host),
             404 => Some(Property::HostedZoneId),
             223 => Some(Property::Hostname),
@@ -2919,7 +4294,8 @@ impl EnumImpl for Property {
             40 => Some(Property::HttpHeaders),
             206 => Some(Property::HttpRsvpEnable),
             207 => Some(Property::HttpRsvpLinkExpiry),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            213 => Some(Property::HttpRsvpTemplate),
             208 => Some(Property::HttpRsvpUrl),
             984 => Some(Property::HttpRua),
             274 => Some(Property::HumanResult),
@@ -2937,10 +4313,16 @@ impl EnumImpl for Property {
             758 => Some(Property::InboundReportAddresses),
             759 => Some(Property::InboundReportForwarding),
             84 => Some(Property::Incidents),
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            848 => Some(Property::IncludeAttachments),
+            #[cfg(feature = "bezenti")]
+            849 => Some(Property::IncludeAuth),
+            #[cfg(feature = "bezenti")]
+            850 => Some(Property::IncludeLinks),
             935 => Some(Property::IncludeSecrets),
             424 => Some(Property::IncludeSource),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            838 => Some(Property::Includes),
             513 => Some(Property::Index),
             108 => Some(Property::IndexAsn),
             109 => Some(Property::IndexAsnName),
@@ -2954,12 +4336,14 @@ impl EnumImpl for Property {
             777 => Some(Property::IndexEmailFields),
             780 => Some(Property::IndexFiles),
             498 => Some(Property::IndexKey),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            778 => Some(Property::IndexTelemetry),
             499 => Some(Property::IndexValue),
             878 => Some(Property::IndicatorParameters),
             963 => Some(Property::InitialDelay),
             264 => Some(Property::InstanceHashes),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            851 => Some(Property::Instructions),
             596 => Some(Property::Interval),
             613 => Some(Property::Intervals),
             714 => Some(Property::IntrospectionAuthMethod),
@@ -2983,7 +4367,8 @@ impl EnumImpl for Property {
             18 => Some(Property::IssuerDomainNames),
             705 => Some(Property::IssuerUrl),
             965 => Some(Property::Jitter),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            46 => Some(Property::KeepAlive),
             375 => Some(Property::Key),
             1061 => Some(Property::KeyId),
             406 => Some(Property::KeyName),
@@ -2991,7 +4376,8 @@ impl EnumImpl for Property {
             141 => Some(Property::KeyPrefix),
             1028 => Some(Property::KeyRefreshInterval),
             1038 => Some(Property::KeyType),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            994 => Some(Property::KeyValues),
             1037 => Some(Property::Kind),
             467 => Some(Property::L1Ratio),
             468 => Some(Property::L2Ratio),
@@ -2999,14 +4385,14 @@ impl EnumImpl for Property {
             224 => Some(Property::LastRenewal),
             1044 => Some(Property::LastSeen),
             702 => Some(Property::LastUsedAt),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            852 => Some(Property::Learn),
             869 => Some(Property::LearnHamFromCard),
             877 => Some(Property::LearnHamFromReply),
             870 => Some(Property::LearnSpamFromRblHits),
             871 => Some(Property::LearnSpamFromTraps),
             718 => Some(Property::LenientIssuerMatch),
             449 => Some(Property::Level),
-            // [fragmento SEL eliminado: 6 líneas]
             358 => Some(Property::Line),
             221 => Some(Property::ListenerIds),
             226 => Some(Property::Listeners),
@@ -3014,7 +4400,8 @@ impl EnumImpl for Property {
             601 => Some(Property::LocalIps),
             7 => Some(Property::Locale),
             412 => Some(Property::Logo),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            45 => Some(Property::Logprobs),
             796 => Some(Property::LoiterBanPeriod),
             795 => Some(Property::LoiterBanRate),
             995 => Some(Property::Lossy),
@@ -3038,7 +4425,8 @@ impl EnumImpl for Property {
             129 => Some(Property::MaxAppPasswords),
             425 => Some(Property::MaxAttachmentSize),
             912 => Some(Property::MaxAttachmentText),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            853 => Some(Property::MaxAttachments),
             202 => Some(Property::MaxAttachmentsSize),
             608 => Some(Property::MaxAttempts),
             191 => Some(Property::MaxAttendees),
@@ -3086,9 +4474,11 @@ impl EnumImpl for Property {
             435 => Some(Property::MaxIdentities),
             762 => Some(Property::MaxInboundReportSize),
             827 => Some(Property::MaxIncludes),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            854 => Some(Property::MaxInputChars),
             210 => Some(Property::MaxItipSize),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            855 => Some(Property::MaxLinks),
             1008 => Some(Property::MaxLivePropertySize),
             828 => Some(Property::MaxLocalVars),
             1006 => Some(Property::MaxLockTimeout),
@@ -3097,7 +4487,8 @@ impl EnumImpl for Property {
             428 => Some(Property::MaxMailboxNameLength),
             436 => Some(Property::MaxMailboxes),
             439 => Some(Property::MaxMailboxesPerEmail),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            437 => Some(Property::MaxMaskedAddresses),
             829 => Some(Property::MaxMatchVars),
             31 => Some(Property::MaxMediaSize),
             426 => Some(Property::MaxMessageSize),
@@ -3113,7 +4504,8 @@ impl EnumImpl for Property {
             816 => Some(Property::MaxNestedIncludes),
             833 => Some(Property::MaxNestedTests),
             817 => Some(Property::MaxOutMessages),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            33 => Some(Property::MaxOutputTokens),
             196 => Some(Property::MaxParticipantIdentities),
             1062 => Some(Property::MaxPasskeys),
             126 => Some(Property::MaxPasswordLength),
@@ -3153,7 +4545,8 @@ impl EnumImpl for Property {
             836 => Some(Property::MaxVarNameLength),
             819 => Some(Property::MaxVarSize),
             953 => Some(Property::MemberGroupIds),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            21 => Some(Property::MemberTenantId),
             106 => Some(Property::Message),
             812 => Some(Property::MessageIdHostname),
             959 => Some(Property::MessageIds),
@@ -3162,15 +4555,18 @@ impl EnumImpl for Property {
             173 => Some(Property::MessagesLarge),
             174 => Some(Property::MessagesLargeTtl),
             1053 => Some(Property::Method),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            577 => Some(Property::Metric),
             594 => Some(Property::Metrics),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            245 => Some(Property::MetricsCollectionInterval),
             595 => Some(Property::MetricsPolicy),
             147 => Some(Property::MinAccountSize),
             873 => Some(Property::MinHamSamples),
             125 => Some(Property::MinPasswordLength),
             127 => Some(Property::MinPasswordStrength),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            839 => Some(Property::MinProbability),
             751 => Some(Property::MinRetryWait),
             874 => Some(Property::MinSpamSamples),
             204 => Some(Property::MinTriggerInterval),
@@ -3178,7 +4574,8 @@ impl EnumImpl for Property {
             229 => Some(Property::Minute),
             662 => Some(Property::Mode),
             37 => Some(Property::Model),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            868 => Some(Property::ModelId),
             619 => Some(Property::MtPriority),
             665 => Some(Property::MtaSts),
             667 => Some(Property::MtaStsTimeout),
@@ -3305,7 +4702,8 @@ impl EnumImpl for Property {
             923 => Some(Property::QueryLogin),
             925 => Some(Property::QueryMemberOf),
             924 => Some(Property::QueryRecipient),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            865 => Some(Property::Question),
             611 => Some(Property::QueueId),
             746 => Some(Property::QueueName),
             516 => Some(Property::QueuedDeletions),
@@ -3320,9 +4718,11 @@ impl EnumImpl for Property {
             607 => Some(Property::RcptToTimeout),
             678 => Some(Property::ReadBufferCapacity),
             752 => Some(Property::ReadFromReplicas),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            591 => Some(Property::ReadReplicas),
             59 => Some(Property::Reason),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            34 => Some(Property::Reasoning),
             77 => Some(Property::ReceivedAt),
             738 => Some(Property::ReceivedFromIp),
             739 => Some(Property::ReceivedViaPort),
@@ -3380,7 +4780,8 @@ impl EnumImpl for Property {
             267 => Some(Property::RotateAfter),
             635 => Some(Property::Route),
             276 => Some(Property::Rua),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            840 => Some(Property::SampleRate),
             389 => Some(Property::Sandbox),
             134 => Some(Property::SasToken),
             644 => Some(Property::SaslMechanisms),
@@ -3420,7 +4821,8 @@ impl EnumImpl for Property {
             1070 => Some(Property::ShardConnections),
             973 => Some(Property::ShardIndex),
             388 => Some(Property::SharedSecret),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            856 => Some(Property::Signals),
             725 => Some(Property::SignatureAlgorithm),
             726 => Some(Property::SignatureKey),
             78 => Some(Property::Size),
@@ -3455,12 +4857,14 @@ impl EnumImpl for Property {
             310 => Some(Property::SpfResults),
             262 => Some(Property::Stage),
             626 => Some(Property::Stages),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            72 => Some(Property::StartTime),
             666 => Some(Property::StartTls),
             75 => Some(Property::Status),
             136 => Some(Property::StorageAccount),
             142 => Some(Property::Store),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            808 => Some(Property::Stores),
             956 => Some(Property::Strategy),
             1071 => Some(Property::StreamMode),
             1054 => Some(Property::StrictKeyWrapEncoding),
@@ -3471,7 +4875,8 @@ impl EnumImpl for Property {
             445 => Some(Property::Subscribe),
             679 => Some(Property::SubscriptionCapacity),
             365 => Some(Property::SubscriptionId),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            590 => Some(Property::Sum),
             949 => Some(Property::Summary),
             771 => Some(Property::SupportedLanguages),
             190 => Some(Property::Swap),
@@ -3483,10 +4888,14 @@ impl EnumImpl for Property {
             351 => Some(Property::TcpOnError),
             408 => Some(Property::TeamId),
             625 => Some(Property::TempFailOnError),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            35 => Some(Property::Temperature),
+            #[cfg(feature = "bezenti")]
+            205 => Some(Property::Template),
             393 => Some(Property::TenancyOcid),
             131 => Some(Property::TenantId),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            184 => Some(Property::Tenants),
             2 => Some(Property::Text),
             453 => Some(Property::Then),
             257 => Some(Property::ThirdParty),
@@ -3494,11 +4903,13 @@ impl EnumImpl for Property {
             958 => Some(Property::ThreadName),
             669 => Some(Property::ThreadsPerNode),
             1003 => Some(Property::Throttle),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            857 => Some(Property::Tiers),
             8 => Some(Property::TimeZone),
             42 => Some(Property::Timeout),
             571 => Some(Property::Timestamp),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            73 => Some(Property::Title),
             637 => Some(Property::Tls),
             691 => Some(Property::TlsDisableCipherSuites),
             692 => Some(Property::TlsDisableProtocols),
@@ -3515,21 +4926,25 @@ impl EnumImpl for Property {
             462 => Some(Property::TransactionRetryLimit),
             463 => Some(Property::TransactionTimeout),
             628 => Some(Property::TransferLimit),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            858 => Some(Property::TrimQuotes),
             1036 => Some(Property::Trust),
             904 => Some(Property::TrustContacts),
             909 => Some(Property::TrustReplies),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            673 => Some(Property::TrustedProvider),
             407 => Some(Property::TsigAlgorithm),
             359 => Some(Property::Ttl),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            859 => Some(Property::UncertainBelow),
             67 => Some(Property::UnpackDirectory),
             715 => Some(Property::UnscopedTokens),
             954 => Some(Property::UpdateRecords),
             530 => Some(Property::UploadQuota),
             531 => Some(Property::UploadTtl),
             38 => Some(Property::Url),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            472 => Some(Property::UrlFailover),
             895 => Some(Property::UrlLimit),
             65 => Some(Property::UrlPrefix),
             749 => Some(Property::Urls),
@@ -3547,7 +4962,12 @@ impl EnumImpl for Property {
             581 => Some(Property::Value),
             789 => Some(Property::VariableName),
             583 => Some(Property::VendorNamespaces),
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            861 => Some(Property::VerbalHigh),
+            #[cfg(feature = "bezenti")]
+            862 => Some(Property::VerbalLow),
+            #[cfg(feature = "bezenti")]
+            863 => Some(Property::VerbalMedium),
             768 => Some(Property::VerifyAfterWrite),
             94 => Some(Property::Version),
             368 => Some(Property::ViewName),
@@ -3557,7 +4977,8 @@ impl EnumImpl for Property {
             757 => Some(Property::Warnings),
             545 => Some(Property::WebPushContact),
             544 => Some(Property::WebPushKey),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            864 => Some(Property::WebSearch),
             540 => Some(Property::WebsocketHeartbeat),
             541 => Some(Property::WebsocketThrottle),
             542 => Some(Property::WebsocketTimeout),
@@ -3600,12 +5021,16 @@ impl ObjectType {
             ObjectType::AcmeProvider => AcmeProvider::FLAGS,
             ObjectType::Action => Action::FLAGS,
             ObjectType::AddressBook => AddressBook::FLAGS,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => AiModel::FLAGS,
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => Alert::FLAGS,
             ObjectType::AllowedIp => AllowedIp::FLAGS,
             ObjectType::ApiKey => ApiKey::FLAGS,
             ObjectType::AppPassword => AppPassword::FLAGS,
             ObjectType::Application => Application::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => ArchivedItem::FLAGS,
             ObjectType::ArfExternalReport => ArfExternalReport::FLAGS,
             ObjectType::Asn => Asn::FLAGS,
             ObjectType::Authentication => Authentication::FLAGS,
@@ -3634,7 +5059,6 @@ impl ObjectType {
             ObjectType::DsnReportSettings => DsnReportSettings::FLAGS,
             ObjectType::Email => Email::FLAGS,
             ObjectType::Encryption => Encryption::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => EventTracingLevel::FLAGS,
             ObjectType::ExternalPublicKey => ExternalPublicKey::FLAGS,
             ObjectType::FileStorage => FileStorage::FLAGS,
@@ -3647,13 +5071,16 @@ impl ObjectType {
             ObjectType::Jmap => Jmap::FLAGS,
             ObjectType::Log => Log::FLAGS,
             ObjectType::MailingList => MailingList::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => MaskedEmail::FLAGS,
             ObjectType::MemoryLookupKey => MemoryLookupKey::FLAGS,
             ObjectType::MemoryLookupKeyValue => MemoryLookupKeyValue::FLAGS,
             ObjectType::Metadata => Metadata::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => Metric::FLAGS,
             ObjectType::Metrics => Metrics::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => MetricsStore::FLAGS,
             ObjectType::MtaConnectionStrategy => MtaConnectionStrategy::FLAGS,
             ObjectType::MtaDeliverySchedule => MtaDeliverySchedule::FLAGS,
             ObjectType::MtaExtensions => MtaExtensions::FLAGS,
@@ -3693,7 +5120,8 @@ impl ObjectType {
             ObjectType::SieveUserInterpreter => SieveUserInterpreter::FLAGS,
             ObjectType::SieveUserScript => SieveUserScript::FLAGS,
             ObjectType::SmimeTrustAnchor => SmimeTrustAnchor::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => SpamAi::FLAGS,
             ObjectType::SpamClassifier => SpamClassifier::FLAGS,
             ObjectType::SpamDnsblServer => SpamDnsblServer::FLAGS,
             ObjectType::SpamDnsblSettings => SpamDnsblSettings::FLAGS,
@@ -3709,13 +5137,16 @@ impl ObjectType {
             ObjectType::SystemSettings => SystemSettings::FLAGS,
             ObjectType::Task => Task::FLAGS,
             ObjectType::TaskManager => TaskManager::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => Tenant::FLAGS,
             ObjectType::TlsExternalReport => TlsExternalReport::FLAGS,
             ObjectType::TlsInternalReport => TlsInternalReport::FLAGS,
             ObjectType::TlsReportSettings => TlsReportSettings::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => Trace::FLAGS,
             ObjectType::Tracer => Tracer::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => TracingStore::FLAGS,
             ObjectType::WebDav => WebDav::FLAGS,
             ObjectType::WebHook => WebHook::FLAGS,
         }
@@ -3739,13 +5170,23 @@ impl ObjectType {
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Id,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::ExternalId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Keyword,
+                ),
                 IndexSchema::new(
                     Property::MemberGroupIds,
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Id,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
                 IndexSchema::new(
                     Property::Name,
                     IndexSchemaType::Search,
@@ -3758,14 +5199,24 @@ impl ObjectType {
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Text,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => vec![IndexSchema::new(
+                Property::Name,
+                IndexSchemaType::Unique,
+                IndexSchemaValueType::Keyword,
+            )],
             ObjectType::AllowedIp => vec![IndexSchema::new(
                 Property::Address,
                 IndexSchemaType::Unique,
                 IndexSchemaValueType::IpMask,
             )],
-            // [fragmento SEL eliminado: 10 líneas]
             ObjectType::BlockedIp => vec![IndexSchema::new(
                 Property::Address,
                 IndexSchemaType::Unique,
@@ -3782,7 +5233,12 @@ impl ObjectType {
                 IndexSchemaValueType::Keyword,
             )],
             ObjectType::Directory => vec![
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
             ObjectType::DkimSignature => vec![
                 IndexSchema::new(
@@ -3790,10 +5246,20 @@ impl ObjectType {
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Id,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
             ObjectType::DnsServer => vec![
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
             ObjectType::Domain => vec![
                 IndexSchema::new(
@@ -3806,7 +5272,12 @@ impl ObjectType {
                     IndexSchemaType::Unique,
                     IndexSchemaValueType::Keyword,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
                 IndexSchema::new(
                     Property::Name,
                     IndexSchemaType::Unique,
@@ -3851,9 +5322,26 @@ impl ObjectType {
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Text,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => vec![
+                IndexSchema::new(
+                    Property::AccountId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
+                IndexSchema::new(
+                    Property::Email,
+                    IndexSchemaType::Unique,
+                    IndexSchemaValueType::Keyword,
+                ),
+            ],
             ObjectType::MemoryLookupKey => vec![IndexSchema::new(
                 Property::Namespace,
                 IndexSchemaType::Search,
@@ -3905,7 +5393,12 @@ impl ObjectType {
                     IndexSchemaType::Unique,
                     IndexSchemaValueType::Keyword,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
             ObjectType::OAuthGrant => vec![
                 IndexSchema::new(
@@ -3930,7 +5423,12 @@ impl ObjectType {
                     IndexSchemaType::Search,
                     IndexSchemaValueType::Text,
                 ),
-                // [fragmento SEL eliminado: 10 líneas]
+                #[cfg(feature = "bezenti")]
+                IndexSchema::new(
+                    Property::MemberTenantId,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Id,
+                ),
             ],
             ObjectType::SieveSystemScript => vec![IndexSchema::new(
                 Property::Name,
@@ -3967,7 +5465,19 @@ impl ObjectType {
                 IndexSchemaType::Search,
                 IndexSchemaValueType::Id,
             )],
-            // [fragmento SEL eliminado: 10 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => vec![
+                IndexSchema::new(
+                    Property::Text,
+                    IndexSchemaType::Search,
+                    IndexSchemaValueType::Text,
+                ),
+                IndexSchema::new(
+                    Property::Name,
+                    IndexSchemaType::Unique,
+                    IndexSchemaValueType::Keyword,
+                ),
+            ],
             _ => vec![],
         }
     }
@@ -3980,12 +5490,16 @@ impl ObjectType {
             ObjectType::AcmeProvider => Permission::SysAcmeProviderGet,
             ObjectType::Action => unreachable!(),
             ObjectType::AddressBook => Permission::SysAddressBookGet,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => Permission::SysAiModelGet,
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => Permission::SysAlertGet,
             ObjectType::AllowedIp => Permission::SysAllowedIpGet,
             ObjectType::ApiKey => Permission::SysApiKeyGet,
             ObjectType::AppPassword => Permission::SysAppPasswordGet,
             ObjectType::Application => Permission::SysApplicationGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => Permission::SysArchivedItemGet,
             ObjectType::ArfExternalReport => Permission::SysArfExternalReportGet,
             ObjectType::Asn => Permission::SysAsnGet,
             ObjectType::Authentication => Permission::SysAuthenticationGet,
@@ -4014,7 +5528,6 @@ impl ObjectType {
             ObjectType::DsnReportSettings => Permission::SysDsnReportSettingsGet,
             ObjectType::Email => Permission::SysEmailGet,
             ObjectType::Encryption => Permission::SysEncryptionGet,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => Permission::SysEventTracingLevelGet,
             ObjectType::ExternalPublicKey => Permission::SysExternalPublicKeyGet,
             ObjectType::FileStorage => Permission::SysFileStorageGet,
@@ -4027,13 +5540,16 @@ impl ObjectType {
             ObjectType::Jmap => Permission::SysJmapGet,
             ObjectType::Log => Permission::SysLogGet,
             ObjectType::MailingList => Permission::SysMailingListGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => Permission::SysMaskedEmailGet,
             ObjectType::MemoryLookupKey => Permission::SysMemoryLookupKeyGet,
             ObjectType::MemoryLookupKeyValue => Permission::SysMemoryLookupKeyValueGet,
             ObjectType::Metadata => Permission::SysMetadataGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => Permission::SysMetricGet,
             ObjectType::Metrics => Permission::SysMetricsGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => Permission::SysMetricsStoreGet,
             ObjectType::MtaConnectionStrategy => Permission::SysMtaConnectionStrategyGet,
             ObjectType::MtaDeliverySchedule => Permission::SysMtaDeliveryScheduleGet,
             ObjectType::MtaExtensions => Permission::SysMtaExtensionsGet,
@@ -4073,7 +5589,8 @@ impl ObjectType {
             ObjectType::SieveUserInterpreter => Permission::SysSieveUserInterpreterGet,
             ObjectType::SieveUserScript => Permission::SysSieveUserScriptGet,
             ObjectType::SmimeTrustAnchor => Permission::SysSmimeTrustAnchorGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => Permission::SysSpamAiGet,
             ObjectType::SpamClassifier => Permission::SysSpamClassifierGet,
             ObjectType::SpamDnsblServer => Permission::SysSpamDnsblServerGet,
             ObjectType::SpamDnsblSettings => Permission::SysSpamDnsblSettingsGet,
@@ -4089,13 +5606,16 @@ impl ObjectType {
             ObjectType::SystemSettings => Permission::SysSystemSettingsGet,
             ObjectType::Task => Permission::SysTaskGet,
             ObjectType::TaskManager => Permission::SysTaskManagerGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => Permission::SysTenantGet,
             ObjectType::TlsExternalReport => Permission::SysTlsExternalReportGet,
             ObjectType::TlsInternalReport => Permission::SysTlsInternalReportGet,
             ObjectType::TlsReportSettings => Permission::SysTlsReportSettingsGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => Permission::SysTraceGet,
             ObjectType::Tracer => Permission::SysTracerGet,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => Permission::SysTracingStoreGet,
             ObjectType::WebDav => Permission::SysWebDavGet,
             ObjectType::WebHook => Permission::SysWebHookGet,
         }
@@ -4105,12 +5625,16 @@ impl ObjectType {
         match self {
             ObjectType::Account => Permission::SysAccountQuery,
             ObjectType::AcmeProvider => Permission::SysAcmeProviderQuery,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => Permission::SysAiModelQuery,
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => Permission::SysAlertQuery,
             ObjectType::AllowedIp => Permission::SysAllowedIpQuery,
             ObjectType::ApiKey => Permission::SysApiKeyQuery,
             ObjectType::AppPassword => Permission::SysAppPasswordQuery,
             ObjectType::Application => Permission::SysApplicationQuery,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => Permission::SysArchivedItemQuery,
             ObjectType::ArfExternalReport => Permission::SysArfExternalReportQuery,
             ObjectType::BlockedIp => Permission::SysBlockedIpQuery,
             ObjectType::Certificate => Permission::SysCertificateQuery,
@@ -4128,10 +5652,12 @@ impl ObjectType {
             ObjectType::IndexQueueStatus => Permission::SysIndexQueueStatusQuery,
             ObjectType::Log => Permission::SysLogQuery,
             ObjectType::MailingList => Permission::SysMailingListQuery,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => Permission::SysMaskedEmailQuery,
             ObjectType::MemoryLookupKey => Permission::SysMemoryLookupKeyQuery,
             ObjectType::MemoryLookupKeyValue => Permission::SysMemoryLookupKeyValueQuery,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => Permission::SysMetricQuery,
             ObjectType::MtaConnectionStrategy => Permission::SysMtaConnectionStrategyQuery,
             ObjectType::MtaDeliverySchedule => Permission::SysMtaDeliveryScheduleQuery,
             ObjectType::MtaHook => Permission::SysMtaHookQuery,
@@ -4160,10 +5686,12 @@ impl ObjectType {
             ObjectType::StoreLookup => Permission::SysStoreLookupQuery,
             ObjectType::SymmetricKey => Permission::SysSymmetricKeyQuery,
             ObjectType::Task => Permission::SysTaskQuery,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => Permission::SysTenantQuery,
             ObjectType::TlsExternalReport => Permission::SysTlsExternalReportQuery,
             ObjectType::TlsInternalReport => Permission::SysTlsInternalReportQuery,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => Permission::SysTraceQuery,
             ObjectType::Tracer => Permission::SysTracerQuery,
             ObjectType::WebHook => Permission::SysWebHookQuery,
             _ => unreachable!(),
@@ -4178,12 +5706,16 @@ impl ObjectType {
             ObjectType::AcmeProvider => Permission::SysAcmeProviderCreate,
             ObjectType::Action => Permission::SysActionCreate,
             ObjectType::AddressBook => Permission::SysAddressBookUpdate,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => Permission::SysAiModelCreate,
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => Permission::SysAlertCreate,
             ObjectType::AllowedIp => Permission::SysAllowedIpCreate,
             ObjectType::ApiKey => Permission::SysApiKeyCreate,
             ObjectType::AppPassword => Permission::SysAppPasswordCreate,
             ObjectType::Application => Permission::SysApplicationCreate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => unreachable!(),
             ObjectType::ArfExternalReport => unreachable!(),
             ObjectType::Asn => Permission::SysAsnUpdate,
             ObjectType::Authentication => Permission::SysAuthenticationUpdate,
@@ -4212,7 +5744,6 @@ impl ObjectType {
             ObjectType::DsnReportSettings => Permission::SysDsnReportSettingsUpdate,
             ObjectType::Email => Permission::SysEmailUpdate,
             ObjectType::Encryption => Permission::SysEncryptionUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => Permission::SysEventTracingLevelCreate,
             ObjectType::ExternalPublicKey => Permission::SysExternalPublicKeyCreate,
             ObjectType::FileStorage => Permission::SysFileStorageUpdate,
@@ -4225,13 +5756,16 @@ impl ObjectType {
             ObjectType::Jmap => Permission::SysJmapUpdate,
             ObjectType::Log => unreachable!(),
             ObjectType::MailingList => Permission::SysMailingListCreate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => Permission::SysMaskedEmailCreate,
             ObjectType::MemoryLookupKey => Permission::SysMemoryLookupKeyCreate,
             ObjectType::MemoryLookupKeyValue => Permission::SysMemoryLookupKeyValueCreate,
             ObjectType::Metadata => Permission::SysMetadataUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => unreachable!(),
             ObjectType::Metrics => Permission::SysMetricsUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => Permission::SysMetricsStoreUpdate,
             ObjectType::MtaConnectionStrategy => Permission::SysMtaConnectionStrategyCreate,
             ObjectType::MtaDeliverySchedule => Permission::SysMtaDeliveryScheduleCreate,
             ObjectType::MtaExtensions => Permission::SysMtaExtensionsUpdate,
@@ -4271,7 +5805,8 @@ impl ObjectType {
             ObjectType::SieveUserInterpreter => Permission::SysSieveUserInterpreterUpdate,
             ObjectType::SieveUserScript => Permission::SysSieveUserScriptCreate,
             ObjectType::SmimeTrustAnchor => Permission::SysSmimeTrustAnchorCreate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => Permission::SysSpamAiUpdate,
             ObjectType::SpamClassifier => Permission::SysSpamClassifierUpdate,
             ObjectType::SpamDnsblServer => Permission::SysSpamDnsblServerCreate,
             ObjectType::SpamDnsblSettings => Permission::SysSpamDnsblSettingsUpdate,
@@ -4287,13 +5822,16 @@ impl ObjectType {
             ObjectType::SystemSettings => Permission::SysSystemSettingsUpdate,
             ObjectType::Task => Permission::SysTaskCreate,
             ObjectType::TaskManager => Permission::SysTaskManagerUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => Permission::SysTenantCreate,
             ObjectType::TlsExternalReport => unreachable!(),
             ObjectType::TlsInternalReport => unreachable!(),
             ObjectType::TlsReportSettings => Permission::SysTlsReportSettingsUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => unreachable!(),
             ObjectType::Tracer => Permission::SysTracerCreate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => Permission::SysTracingStoreUpdate,
             ObjectType::WebDav => Permission::SysWebDavUpdate,
             ObjectType::WebHook => Permission::SysWebHookCreate,
         }
@@ -4307,12 +5845,16 @@ impl ObjectType {
             ObjectType::AcmeProvider => Permission::SysAcmeProviderUpdate,
             ObjectType::Action => unreachable!(),
             ObjectType::AddressBook => Permission::SysAddressBookUpdate,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => Permission::SysAiModelUpdate,
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => Permission::SysAlertUpdate,
             ObjectType::AllowedIp => Permission::SysAllowedIpUpdate,
             ObjectType::ApiKey => Permission::SysApiKeyUpdate,
             ObjectType::AppPassword => Permission::SysAppPasswordUpdate,
             ObjectType::Application => Permission::SysApplicationUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => Permission::SysArchivedItemUpdate,
             ObjectType::ArfExternalReport => unreachable!(),
             ObjectType::Asn => Permission::SysAsnUpdate,
             ObjectType::Authentication => Permission::SysAuthenticationUpdate,
@@ -4341,7 +5883,6 @@ impl ObjectType {
             ObjectType::DsnReportSettings => Permission::SysDsnReportSettingsUpdate,
             ObjectType::Email => Permission::SysEmailUpdate,
             ObjectType::Encryption => Permission::SysEncryptionUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => Permission::SysEventTracingLevelUpdate,
             ObjectType::ExternalPublicKey => Permission::SysExternalPublicKeyUpdate,
             ObjectType::FileStorage => Permission::SysFileStorageUpdate,
@@ -4354,13 +5895,16 @@ impl ObjectType {
             ObjectType::Jmap => Permission::SysJmapUpdate,
             ObjectType::Log => unreachable!(),
             ObjectType::MailingList => Permission::SysMailingListUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => Permission::SysMaskedEmailUpdate,
             ObjectType::MemoryLookupKey => Permission::SysMemoryLookupKeyUpdate,
             ObjectType::MemoryLookupKeyValue => Permission::SysMemoryLookupKeyValueUpdate,
             ObjectType::Metadata => Permission::SysMetadataUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => unreachable!(),
             ObjectType::Metrics => Permission::SysMetricsUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => Permission::SysMetricsStoreUpdate,
             ObjectType::MtaConnectionStrategy => Permission::SysMtaConnectionStrategyUpdate,
             ObjectType::MtaDeliverySchedule => Permission::SysMtaDeliveryScheduleUpdate,
             ObjectType::MtaExtensions => Permission::SysMtaExtensionsUpdate,
@@ -4400,7 +5944,8 @@ impl ObjectType {
             ObjectType::SieveUserInterpreter => Permission::SysSieveUserInterpreterUpdate,
             ObjectType::SieveUserScript => Permission::SysSieveUserScriptUpdate,
             ObjectType::SmimeTrustAnchor => Permission::SysSmimeTrustAnchorUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => Permission::SysSpamAiUpdate,
             ObjectType::SpamClassifier => Permission::SysSpamClassifierUpdate,
             ObjectType::SpamDnsblServer => Permission::SysSpamDnsblServerUpdate,
             ObjectType::SpamDnsblSettings => Permission::SysSpamDnsblSettingsUpdate,
@@ -4416,13 +5961,16 @@ impl ObjectType {
             ObjectType::SystemSettings => Permission::SysSystemSettingsUpdate,
             ObjectType::Task => Permission::SysTaskUpdate,
             ObjectType::TaskManager => Permission::SysTaskManagerUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => Permission::SysTenantUpdate,
             ObjectType::TlsExternalReport => unreachable!(),
             ObjectType::TlsInternalReport => Permission::SysTlsInternalReportUpdate,
             ObjectType::TlsReportSettings => Permission::SysTlsReportSettingsUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => unreachable!(),
             ObjectType::Tracer => Permission::SysTracerUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => Permission::SysTracingStoreUpdate,
             ObjectType::WebDav => Permission::SysWebDavUpdate,
             ObjectType::WebHook => Permission::SysWebHookUpdate,
         }
@@ -4436,12 +5984,16 @@ impl ObjectType {
             ObjectType::AcmeProvider => Permission::SysAcmeProviderDestroy,
             ObjectType::Action => unreachable!(),
             ObjectType::AddressBook => Permission::SysAddressBookUpdate,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => Permission::SysAiModelDestroy,
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => Permission::SysAlertDestroy,
             ObjectType::AllowedIp => Permission::SysAllowedIpDestroy,
             ObjectType::ApiKey => Permission::SysApiKeyDestroy,
             ObjectType::AppPassword => Permission::SysAppPasswordDestroy,
             ObjectType::Application => Permission::SysApplicationDestroy,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => Permission::SysArchivedItemDestroy,
             ObjectType::ArfExternalReport => Permission::SysArfExternalReportDestroy,
             ObjectType::Asn => Permission::SysAsnUpdate,
             ObjectType::Authentication => Permission::SysAuthenticationUpdate,
@@ -4470,7 +6022,6 @@ impl ObjectType {
             ObjectType::DsnReportSettings => Permission::SysDsnReportSettingsUpdate,
             ObjectType::Email => Permission::SysEmailUpdate,
             ObjectType::Encryption => Permission::SysEncryptionUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => Permission::SysEventTracingLevelDestroy,
             ObjectType::ExternalPublicKey => Permission::SysExternalPublicKeyDestroy,
             ObjectType::FileStorage => Permission::SysFileStorageUpdate,
@@ -4483,13 +6034,16 @@ impl ObjectType {
             ObjectType::Jmap => Permission::SysJmapUpdate,
             ObjectType::Log => unreachable!(),
             ObjectType::MailingList => Permission::SysMailingListDestroy,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => Permission::SysMaskedEmailDestroy,
             ObjectType::MemoryLookupKey => Permission::SysMemoryLookupKeyDestroy,
             ObjectType::MemoryLookupKeyValue => Permission::SysMemoryLookupKeyValueDestroy,
             ObjectType::Metadata => Permission::SysMetadataUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => unreachable!(),
             ObjectType::Metrics => Permission::SysMetricsUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => Permission::SysMetricsStoreUpdate,
             ObjectType::MtaConnectionStrategy => Permission::SysMtaConnectionStrategyDestroy,
             ObjectType::MtaDeliverySchedule => Permission::SysMtaDeliveryScheduleDestroy,
             ObjectType::MtaExtensions => Permission::SysMtaExtensionsUpdate,
@@ -4529,7 +6083,8 @@ impl ObjectType {
             ObjectType::SieveUserInterpreter => Permission::SysSieveUserInterpreterUpdate,
             ObjectType::SieveUserScript => Permission::SysSieveUserScriptDestroy,
             ObjectType::SmimeTrustAnchor => Permission::SysSmimeTrustAnchorDestroy,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => Permission::SysSpamAiUpdate,
             ObjectType::SpamClassifier => Permission::SysSpamClassifierUpdate,
             ObjectType::SpamDnsblServer => Permission::SysSpamDnsblServerDestroy,
             ObjectType::SpamDnsblSettings => Permission::SysSpamDnsblSettingsUpdate,
@@ -4545,13 +6100,16 @@ impl ObjectType {
             ObjectType::SystemSettings => Permission::SysSystemSettingsUpdate,
             ObjectType::Task => Permission::SysTaskDestroy,
             ObjectType::TaskManager => Permission::SysTaskManagerUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => Permission::SysTenantDestroy,
             ObjectType::TlsExternalReport => Permission::SysTlsExternalReportDestroy,
             ObjectType::TlsInternalReport => Permission::SysTlsInternalReportDestroy,
             ObjectType::TlsReportSettings => Permission::SysTlsReportSettingsUpdate,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => unreachable!(),
             ObjectType::Tracer => Permission::SysTracerDestroy,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => Permission::SysTracingStoreUpdate,
             ObjectType::WebDav => Permission::SysWebDavUpdate,
             ObjectType::WebHook => Permission::SysWebHookDestroy,
         }
@@ -4559,10 +6117,18 @@ impl ObjectType {
 }
 
 impl ObjectInner {
-    // [fragmento SEL eliminado: 210 líneas]
     pub fn account_id(&self) -> Option<Id> {
         match self {
-            // [fragmento SEL eliminado: 14 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(inner) => match inner.as_ref() {
+                ArchivedItem::Email(obj) => Some(obj.account_id),
+                ArchivedItem::FileNode(obj) => Some(obj.account_id),
+                ArchivedItem::CalendarEvent(obj) => Some(obj.account_id),
+                ArchivedItem::ContactCard(obj) => Some(obj.account_id),
+                ArchivedItem::SieveScript(obj) => Some(obj.account_id),
+            },
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => Some(obj.account_id),
             ObjectInner::OAuthGrant(obj) => Some(obj.account_id),
             ObjectInner::PublicKey(obj) => Some(obj.account_id),
             ObjectInner::SpamTrainingSample(obj) => obj.account_id,
@@ -4571,7 +6137,8 @@ impl ObjectInner {
                 Task::CalendarAlarmNotification(obj) => Some(obj.account_id),
                 Task::CalendarItipMessage(obj) => Some(obj.account_id),
                 Task::MergeThreads(obj) => Some(obj.account_id),
-                // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(feature = "bezenti")]
+                Task::RestoreArchivedItem(obj) => Some(obj.account_id),
                 Task::DestroyAccount(obj) => Some(obj.account_id),
                 Task::AccountMaintenance(obj) => Some(obj.account_id),
                 Task::ShareRevokeCleanup(obj) => Some(obj.account_id),
@@ -4583,7 +6150,16 @@ impl ObjectInner {
 
     pub fn set_account_id(&mut self, id: Id) {
         match self {
-            // [fragmento SEL eliminado: 14 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(inner) => match inner.as_mut() {
+                ArchivedItem::Email(obj) => obj.account_id = id,
+                ArchivedItem::FileNode(obj) => obj.account_id = id,
+                ArchivedItem::CalendarEvent(obj) => obj.account_id = id,
+                ArchivedItem::ContactCard(obj) => obj.account_id = id,
+                ArchivedItem::SieveScript(obj) => obj.account_id = id,
+            },
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => obj.account_id = id,
             ObjectInner::OAuthGrant(obj) => obj.account_id = id,
             ObjectInner::PublicKey(obj) => obj.account_id = id,
             ObjectInner::SpamTrainingSample(obj) => obj.account_id = Some(id),
@@ -4592,7 +6168,8 @@ impl ObjectInner {
                 Task::CalendarAlarmNotification(obj) => obj.account_id = id,
                 Task::CalendarItipMessage(obj) => obj.account_id = id,
                 Task::MergeThreads(obj) => obj.account_id = id,
-                // [fragmento SEL eliminado: 6 líneas]
+                #[cfg(feature = "bezenti")]
+                Task::RestoreArchivedItem(obj) => obj.account_id = id,
                 Task::DestroyAccount(obj) => obj.account_id = id,
                 Task::AccountMaintenance(obj) => obj.account_id = id,
                 Task::ShareRevokeCleanup(obj) => obj.account_id = id,
@@ -4610,12 +6187,16 @@ impl ObjectInner {
             ObjectInner::AcmeProvider(obj) => obj.to_pickled_vec(),
             ObjectInner::Action(_) => unimplemented!("Action is not stored"),
             ObjectInner::AddressBook(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(obj) => obj.to_pickled_vec(),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(obj) => obj.to_pickled_vec(),
             ObjectInner::AllowedIp(obj) => obj.to_pickled_vec(),
             ObjectInner::ApiKey(_) => unimplemented!("ApiKey is not stored"),
             ObjectInner::AppPassword(_) => unimplemented!("AppPassword is not stored"),
             ObjectInner::Application(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(_) => unimplemented!("ArchivedItem is not stored"),
             ObjectInner::ArfExternalReport(obj) => obj.to_pickled_vec(),
             ObjectInner::Asn(obj) => obj.to_pickled_vec(),
             ObjectInner::Authentication(obj) => obj.to_pickled_vec(),
@@ -4644,7 +6225,6 @@ impl ObjectInner {
             ObjectInner::DsnReportSettings(obj) => obj.to_pickled_vec(),
             ObjectInner::Email(obj) => obj.to_pickled_vec(),
             ObjectInner::Encryption(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(obj) => obj.to_pickled_vec(),
             ObjectInner::ExternalPublicKey(obj) => obj.to_pickled_vec(),
             ObjectInner::FileStorage(obj) => obj.to_pickled_vec(),
@@ -4657,13 +6237,16 @@ impl ObjectInner {
             ObjectInner::Jmap(obj) => obj.to_pickled_vec(),
             ObjectInner::Log(_) => unimplemented!("Log is not stored"),
             ObjectInner::MailingList(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => obj.to_pickled_vec(),
             ObjectInner::MemoryLookupKey(obj) => obj.to_pickled_vec(),
             ObjectInner::MemoryLookupKeyValue(obj) => obj.to_pickled_vec(),
             ObjectInner::Metadata(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(_) => unimplemented!("Metric is not stored"),
             ObjectInner::Metrics(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(obj) => obj.to_pickled_vec(),
             ObjectInner::MtaConnectionStrategy(obj) => obj.to_pickled_vec(),
             ObjectInner::MtaDeliverySchedule(obj) => obj.to_pickled_vec(),
             ObjectInner::MtaExtensions(obj) => obj.to_pickled_vec(),
@@ -4703,7 +6286,8 @@ impl ObjectInner {
             ObjectInner::SieveUserInterpreter(obj) => obj.to_pickled_vec(),
             ObjectInner::SieveUserScript(obj) => obj.to_pickled_vec(),
             ObjectInner::SmimeTrustAnchor(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => obj.to_pickled_vec(),
             ObjectInner::SpamClassifier(obj) => obj.to_pickled_vec(),
             ObjectInner::SpamDnsblServer(obj) => obj.to_pickled_vec(),
             ObjectInner::SpamDnsblSettings(obj) => obj.to_pickled_vec(),
@@ -4719,13 +6303,16 @@ impl ObjectInner {
             ObjectInner::SystemSettings(obj) => obj.to_pickled_vec(),
             ObjectInner::Task(obj) => obj.to_pickled_vec(),
             ObjectInner::TaskManager(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(obj) => obj.to_pickled_vec(),
             ObjectInner::TlsExternalReport(obj) => obj.to_pickled_vec(),
             ObjectInner::TlsInternalReport(obj) => obj.to_pickled_vec(),
             ObjectInner::TlsReportSettings(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(_) => unimplemented!("Trace is not stored"),
             ObjectInner::Tracer(obj) => obj.to_pickled_vec(),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(obj) => obj.to_pickled_vec(),
             ObjectInner::WebDav(obj) => obj.to_pickled_vec(),
             ObjectInner::WebHook(obj) => obj.to_pickled_vec(),
         }
@@ -4748,7 +6335,14 @@ impl ObjectInner {
             ObjectType::AddressBook => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::AddressBook(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 12 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::AiModel(Box::new(obj)))
+            }
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::Alert(Box::new(obj)))
+            }
             ObjectType::AllowedIp => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::AllowedIp(Box::new(obj)))
             }
@@ -4757,7 +6351,8 @@ impl ObjectInner {
             ObjectType::Application => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::Application(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => unimplemented!("ArchivedItem is not stored"),
             ObjectType::ArfExternalReport => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::ArfExternalReport(Box::new(obj)))
             }
@@ -4834,7 +6429,6 @@ impl ObjectInner {
             ObjectType::Encryption => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::Encryption(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
             ObjectType::EventTracingLevel => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::EventTracingLevel(Box::new(obj)))
             }
@@ -4867,7 +6461,10 @@ impl ObjectInner {
             ObjectType::MailingList => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::MailingList(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::MaskedEmail(Box::new(obj)))
+            }
             ObjectType::MemoryLookupKey => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::MemoryLookupKey(Box::new(obj)))
             }
@@ -4877,11 +6474,15 @@ impl ObjectInner {
             ObjectType::Metadata => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::Metadata(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => unimplemented!("Metric is not stored"),
             ObjectType::Metrics => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::Metrics(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::MetricsStore(Box::new(obj)))
+            }
             ObjectType::MtaConnectionStrategy => Pickle::unpickle(stream)
                 .map(|obj| ObjectInner::MtaConnectionStrategy(Box::new(obj))),
             ObjectType::MtaDeliverySchedule => {
@@ -4993,7 +6594,10 @@ impl ObjectInner {
             ObjectType::SmimeTrustAnchor => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::SmimeTrustAnchor(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::SpamAi(Box::new(obj)))
+            }
             ObjectType::SpamClassifier => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::SpamClassifier(Box::new(obj)))
             }
@@ -5039,7 +6643,10 @@ impl ObjectInner {
             ObjectType::TaskManager => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::TaskManager(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::Tenant(Box::new(obj)))
+            }
             ObjectType::TlsExternalReport => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::TlsExternalReport(Box::new(obj)))
             }
@@ -5049,11 +6656,15 @@ impl ObjectInner {
             ObjectType::TlsReportSettings => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::TlsReportSettings(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => unimplemented!("Trace is not stored"),
             ObjectType::Tracer => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::Tracer(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => {
+                Pickle::unpickle(stream).map(|obj| ObjectInner::TracingStore(Box::new(obj)))
+            }
             ObjectType::WebDav => {
                 Pickle::unpickle(stream).map(|obj| ObjectInner::WebDav(Box::new(obj)))
             }
@@ -5082,7 +6693,14 @@ impl ObjectInner {
             }
             ObjectType::AddressBook => AddressBook::deserialize(deserializer)
                 .map(|obj| ObjectInner::AddressBook(Box::new(obj))),
-            // [fragmento SEL eliminado: 12 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => {
+                AiModel::deserialize(deserializer).map(|obj| ObjectInner::AiModel(Box::new(obj)))
+            }
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => {
+                Alert::deserialize(deserializer).map(|obj| ObjectInner::Alert(Box::new(obj)))
+            }
             ObjectType::AllowedIp => AllowedIp::deserialize(deserializer)
                 .map(|obj| ObjectInner::AllowedIp(Box::new(obj))),
             ObjectType::ApiKey => {
@@ -5092,7 +6710,9 @@ impl ObjectInner {
                 .map(|obj| ObjectInner::AppPassword(Box::new(obj))),
             ObjectType::Application => Application::deserialize(deserializer)
                 .map(|obj| ObjectInner::Application(Box::new(obj))),
-            // [fragmento SEL eliminado: 7 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => ArchivedItem::deserialize(deserializer)
+                .map(|obj| ObjectInner::ArchivedItem(Box::new(obj))),
             ObjectType::ArfExternalReport => ArfExternalReport::deserialize(deserializer)
                 .map(|obj| ObjectInner::ArfExternalReport(Box::new(obj))),
             ObjectType::Asn => {
@@ -5154,7 +6774,6 @@ impl ObjectInner {
             }
             ObjectType::Encryption => Encryption::deserialize(deserializer)
                 .map(|obj| ObjectInner::Encryption(Box::new(obj))),
-            // [fragmento SEL eliminado: 7 líneas]
             ObjectType::EventTracingLevel => EventTracingLevel::deserialize(deserializer)
                 .map(|obj| ObjectInner::EventTracingLevel(Box::new(obj))),
             ObjectType::ExternalPublicKey => ExternalPublicKey::deserialize(deserializer)
@@ -5184,7 +6803,9 @@ impl ObjectInner {
             }
             ObjectType::MailingList => MailingList::deserialize(deserializer)
                 .map(|obj| ObjectInner::MailingList(Box::new(obj))),
-            // [fragmento SEL eliminado: 7 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => MaskedEmail::deserialize(deserializer)
+                .map(|obj| ObjectInner::MaskedEmail(Box::new(obj))),
             ObjectType::MemoryLookupKey => MemoryLookupKey::deserialize(deserializer)
                 .map(|obj| ObjectInner::MemoryLookupKey(Box::new(obj))),
             ObjectType::MemoryLookupKeyValue => MemoryLookupKeyValue::deserialize(deserializer)
@@ -5192,11 +6813,16 @@ impl ObjectInner {
             ObjectType::Metadata => {
                 Metadata::deserialize(deserializer).map(|obj| ObjectInner::Metadata(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => {
+                Metric::deserialize(deserializer).map(|obj| ObjectInner::Metric(Box::new(obj)))
+            }
             ObjectType::Metrics => {
                 Metrics::deserialize(deserializer).map(|obj| ObjectInner::Metrics(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 7 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => MetricsStore::deserialize(deserializer)
+                .map(|obj| ObjectInner::MetricsStore(Box::new(obj))),
             ObjectType::MtaConnectionStrategy => MtaConnectionStrategy::deserialize(deserializer)
                 .map(|obj| ObjectInner::MtaConnectionStrategy(Box::new(obj))),
             ObjectType::MtaDeliverySchedule => MtaDeliverySchedule::deserialize(deserializer)
@@ -5283,7 +6909,10 @@ impl ObjectInner {
                 .map(|obj| ObjectInner::SieveUserScript(Box::new(obj))),
             ObjectType::SmimeTrustAnchor => SmimeTrustAnchor::deserialize(deserializer)
                 .map(|obj| ObjectInner::SmimeTrustAnchor(Box::new(obj))),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => {
+                SpamAi::deserialize(deserializer).map(|obj| ObjectInner::SpamAi(Box::new(obj)))
+            }
             ObjectType::SpamClassifier => SpamClassifier::deserialize(deserializer)
                 .map(|obj| ObjectInner::SpamClassifier(Box::new(obj))),
             ObjectType::SpamDnsblServer => SpamDnsblServer::deserialize(deserializer)
@@ -5317,18 +6946,26 @@ impl ObjectInner {
             }
             ObjectType::TaskManager => TaskManager::deserialize(deserializer)
                 .map(|obj| ObjectInner::TaskManager(Box::new(obj))),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => {
+                Tenant::deserialize(deserializer).map(|obj| ObjectInner::Tenant(Box::new(obj)))
+            }
             ObjectType::TlsExternalReport => TlsExternalReport::deserialize(deserializer)
                 .map(|obj| ObjectInner::TlsExternalReport(Box::new(obj))),
             ObjectType::TlsInternalReport => TlsInternalReport::deserialize(deserializer)
                 .map(|obj| ObjectInner::TlsInternalReport(Box::new(obj))),
             ObjectType::TlsReportSettings => TlsReportSettings::deserialize(deserializer)
                 .map(|obj| ObjectInner::TlsReportSettings(Box::new(obj))),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => {
+                Trace::deserialize(deserializer).map(|obj| ObjectInner::Trace(Box::new(obj)))
+            }
             ObjectType::Tracer => {
                 Tracer::deserialize(deserializer).map(|obj| ObjectInner::Tracer(Box::new(obj)))
             }
-            // [fragmento SEL eliminado: 7 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => TracingStore::deserialize(deserializer)
+                .map(|obj| ObjectInner::TracingStore(Box::new(obj))),
             ObjectType::WebDav => {
                 WebDav::deserialize(deserializer).map(|obj| ObjectInner::WebDav(Box::new(obj)))
             }
@@ -5340,7 +6977,8 @@ impl ObjectInner {
 
     pub fn expression_ctxs(&self) -> Option<Vec<ExpressionContext<'_>>> {
         match &self {
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(obj) => Some(obj.expression_ctxs()),
             ObjectInner::DkimReportSettings(obj) => Some(obj.expression_ctxs()),
             ObjectInner::DmarcReportSettings(obj) => Some(obj.expression_ctxs()),
             ObjectInner::DsnReportSettings(obj) => Some(obj.expression_ctxs()),
@@ -5364,7 +7002,8 @@ impl ObjectInner {
             ObjectInner::SenderAuth(obj) => Some(obj.expression_ctxs()),
             ObjectInner::SieveSystemInterpreter(obj) => Some(obj.expression_ctxs()),
             ObjectInner::SieveUserInterpreter(obj) => Some(obj.expression_ctxs()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => Some(obj.expression_ctxs()),
             ObjectInner::SpamDnsblServer(obj) => Some(obj.expression_ctxs()),
             ObjectInner::SpamRule(obj) => Some(obj.expression_ctxs()),
             ObjectInner::SpfReportSettings(obj) => Some(obj.expression_ctxs()),
@@ -5383,12 +7022,16 @@ impl Object {
             ObjectInner::AcmeProvider(_) => AcmeProvider::FLAGS,
             ObjectInner::Action(_) => Action::FLAGS,
             ObjectInner::AddressBook(_) => AddressBook::FLAGS,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(_) => AiModel::FLAGS,
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(_) => Alert::FLAGS,
             ObjectInner::AllowedIp(_) => AllowedIp::FLAGS,
             ObjectInner::ApiKey(_) => ApiKey::FLAGS,
             ObjectInner::AppPassword(_) => AppPassword::FLAGS,
             ObjectInner::Application(_) => Application::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(_) => ArchivedItem::FLAGS,
             ObjectInner::ArfExternalReport(_) => ArfExternalReport::FLAGS,
             ObjectInner::Asn(_) => Asn::FLAGS,
             ObjectInner::Authentication(_) => Authentication::FLAGS,
@@ -5417,7 +7060,6 @@ impl Object {
             ObjectInner::DsnReportSettings(_) => DsnReportSettings::FLAGS,
             ObjectInner::Email(_) => Email::FLAGS,
             ObjectInner::Encryption(_) => Encryption::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(_) => EventTracingLevel::FLAGS,
             ObjectInner::ExternalPublicKey(_) => ExternalPublicKey::FLAGS,
             ObjectInner::FileStorage(_) => FileStorage::FLAGS,
@@ -5430,13 +7072,16 @@ impl Object {
             ObjectInner::Jmap(_) => Jmap::FLAGS,
             ObjectInner::Log(_) => Log::FLAGS,
             ObjectInner::MailingList(_) => MailingList::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(_) => MaskedEmail::FLAGS,
             ObjectInner::MemoryLookupKey(_) => MemoryLookupKey::FLAGS,
             ObjectInner::MemoryLookupKeyValue(_) => MemoryLookupKeyValue::FLAGS,
             ObjectInner::Metadata(_) => Metadata::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(_) => Metric::FLAGS,
             ObjectInner::Metrics(_) => Metrics::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(_) => MetricsStore::FLAGS,
             ObjectInner::MtaConnectionStrategy(_) => MtaConnectionStrategy::FLAGS,
             ObjectInner::MtaDeliverySchedule(_) => MtaDeliverySchedule::FLAGS,
             ObjectInner::MtaExtensions(_) => MtaExtensions::FLAGS,
@@ -5476,7 +7121,8 @@ impl Object {
             ObjectInner::SieveUserInterpreter(_) => SieveUserInterpreter::FLAGS,
             ObjectInner::SieveUserScript(_) => SieveUserScript::FLAGS,
             ObjectInner::SmimeTrustAnchor(_) => SmimeTrustAnchor::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(_) => SpamAi::FLAGS,
             ObjectInner::SpamClassifier(_) => SpamClassifier::FLAGS,
             ObjectInner::SpamDnsblServer(_) => SpamDnsblServer::FLAGS,
             ObjectInner::SpamDnsblSettings(_) => SpamDnsblSettings::FLAGS,
@@ -5492,13 +7138,16 @@ impl Object {
             ObjectInner::SystemSettings(_) => SystemSettings::FLAGS,
             ObjectInner::Task(_) => Task::FLAGS,
             ObjectInner::TaskManager(_) => TaskManager::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(_) => Tenant::FLAGS,
             ObjectInner::TlsExternalReport(_) => TlsExternalReport::FLAGS,
             ObjectInner::TlsInternalReport(_) => TlsInternalReport::FLAGS,
             ObjectInner::TlsReportSettings(_) => TlsReportSettings::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(_) => Trace::FLAGS,
             ObjectInner::Tracer(_) => Tracer::FLAGS,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(_) => TracingStore::FLAGS,
             ObjectInner::WebDav(_) => WebDav::FLAGS,
             ObjectInner::WebHook(_) => WebHook::FLAGS,
         }
@@ -5512,12 +7161,16 @@ impl Object {
             ObjectInner::AcmeProvider(_) => ObjectType::AcmeProvider,
             ObjectInner::Action(_) => ObjectType::Action,
             ObjectInner::AddressBook(_) => ObjectType::AddressBook,
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(_) => ObjectType::AiModel,
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(_) => ObjectType::Alert,
             ObjectInner::AllowedIp(_) => ObjectType::AllowedIp,
             ObjectInner::ApiKey(_) => ObjectType::ApiKey,
             ObjectInner::AppPassword(_) => ObjectType::AppPassword,
             ObjectInner::Application(_) => ObjectType::Application,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(_) => ObjectType::ArchivedItem,
             ObjectInner::ArfExternalReport(_) => ObjectType::ArfExternalReport,
             ObjectInner::Asn(_) => ObjectType::Asn,
             ObjectInner::Authentication(_) => ObjectType::Authentication,
@@ -5546,7 +7199,6 @@ impl Object {
             ObjectInner::DsnReportSettings(_) => ObjectType::DsnReportSettings,
             ObjectInner::Email(_) => ObjectType::Email,
             ObjectInner::Encryption(_) => ObjectType::Encryption,
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(_) => ObjectType::EventTracingLevel,
             ObjectInner::ExternalPublicKey(_) => ObjectType::ExternalPublicKey,
             ObjectInner::FileStorage(_) => ObjectType::FileStorage,
@@ -5559,13 +7211,16 @@ impl Object {
             ObjectInner::Jmap(_) => ObjectType::Jmap,
             ObjectInner::Log(_) => ObjectType::Log,
             ObjectInner::MailingList(_) => ObjectType::MailingList,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(_) => ObjectType::MaskedEmail,
             ObjectInner::MemoryLookupKey(_) => ObjectType::MemoryLookupKey,
             ObjectInner::MemoryLookupKeyValue(_) => ObjectType::MemoryLookupKeyValue,
             ObjectInner::Metadata(_) => ObjectType::Metadata,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(_) => ObjectType::Metric,
             ObjectInner::Metrics(_) => ObjectType::Metrics,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(_) => ObjectType::MetricsStore,
             ObjectInner::MtaConnectionStrategy(_) => ObjectType::MtaConnectionStrategy,
             ObjectInner::MtaDeliverySchedule(_) => ObjectType::MtaDeliverySchedule,
             ObjectInner::MtaExtensions(_) => ObjectType::MtaExtensions,
@@ -5605,7 +7260,8 @@ impl Object {
             ObjectInner::SieveUserInterpreter(_) => ObjectType::SieveUserInterpreter,
             ObjectInner::SieveUserScript(_) => ObjectType::SieveUserScript,
             ObjectInner::SmimeTrustAnchor(_) => ObjectType::SmimeTrustAnchor,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(_) => ObjectType::SpamAi,
             ObjectInner::SpamClassifier(_) => ObjectType::SpamClassifier,
             ObjectInner::SpamDnsblServer(_) => ObjectType::SpamDnsblServer,
             ObjectInner::SpamDnsblSettings(_) => ObjectType::SpamDnsblSettings,
@@ -5621,13 +7277,16 @@ impl Object {
             ObjectInner::SystemSettings(_) => ObjectType::SystemSettings,
             ObjectInner::Task(_) => ObjectType::Task,
             ObjectInner::TaskManager(_) => ObjectType::TaskManager,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(_) => ObjectType::Tenant,
             ObjectInner::TlsExternalReport(_) => ObjectType::TlsExternalReport,
             ObjectInner::TlsInternalReport(_) => ObjectType::TlsInternalReport,
             ObjectInner::TlsReportSettings(_) => ObjectType::TlsReportSettings,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(_) => ObjectType::Trace,
             ObjectInner::Tracer(_) => ObjectType::Tracer,
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(_) => ObjectType::TracingStore,
             ObjectInner::WebDav(_) => ObjectType::WebDav,
             ObjectInner::WebHook(_) => ObjectType::WebHook,
         }
@@ -5637,7 +7296,10 @@ impl Object {
         match &self.inner {
             ObjectInner::Account(obj) => Some(obj.object_type().as_str()),
             ObjectInner::Action(obj) => Some(obj.object_type().as_str()),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(obj) => Some(obj.object_type().as_str()),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(obj) => Some(obj.object_type().as_str()),
             ObjectInner::Asn(obj) => Some(obj.object_type().as_str()),
             ObjectInner::BlobStore(obj) => Some(obj.object_type().as_str()),
             ObjectInner::Coordinator(obj) => Some(obj.object_type().as_str()),
@@ -5647,16 +7309,21 @@ impl Object {
             ObjectInner::DnsResolver(obj) => Some(obj.object_type().as_str()),
             ObjectInner::DnsServer(obj) => Some(obj.object_type().as_str()),
             ObjectInner::InMemoryStore(obj) => Some(obj.object_type().as_str()),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(obj) => Some(obj.object_type().as_str()),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(obj) => Some(obj.object_type().as_str()),
             ObjectInner::MtaRoute(obj) => Some(obj.object_type().as_str()),
             ObjectInner::SearchStore(obj) => Some(obj.object_type().as_str()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => Some(obj.object_type().as_str()),
             ObjectInner::SpamDnsblServer(obj) => Some(obj.object_type().as_str()),
             ObjectInner::SpamRule(obj) => Some(obj.object_type().as_str()),
             ObjectInner::SpamTag(obj) => Some(obj.object_type().as_str()),
             ObjectInner::Task(obj) => Some(obj.object_type().as_str()),
             ObjectInner::Tracer(obj) => Some(obj.object_type().as_str()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(obj) => Some(obj.object_type().as_str()),
             _ => None,
         }
     }
@@ -5669,12 +7336,16 @@ impl Object {
             ObjectInner::AcmeProvider(obj) => obj.validate(errors),
             ObjectInner::Action(obj) => obj.validate(errors),
             ObjectInner::AddressBook(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(obj) => obj.validate(errors),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(obj) => obj.validate(errors),
             ObjectInner::AllowedIp(obj) => obj.validate(errors),
             ObjectInner::ApiKey(obj) => obj.validate(errors),
             ObjectInner::AppPassword(obj) => obj.validate(errors),
             ObjectInner::Application(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(obj) => obj.validate(errors),
             ObjectInner::ArfExternalReport(obj) => obj.validate(errors),
             ObjectInner::Asn(obj) => obj.validate(errors),
             ObjectInner::Authentication(obj) => obj.validate(errors),
@@ -5703,7 +7374,6 @@ impl Object {
             ObjectInner::DsnReportSettings(obj) => obj.validate(errors),
             ObjectInner::Email(obj) => obj.validate(errors),
             ObjectInner::Encryption(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(obj) => obj.validate(errors),
             ObjectInner::ExternalPublicKey(obj) => obj.validate(errors),
             ObjectInner::FileStorage(obj) => obj.validate(errors),
@@ -5716,13 +7386,16 @@ impl Object {
             ObjectInner::Jmap(obj) => obj.validate(errors),
             ObjectInner::Log(obj) => obj.validate(errors),
             ObjectInner::MailingList(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => obj.validate(errors),
             ObjectInner::MemoryLookupKey(obj) => obj.validate(errors),
             ObjectInner::MemoryLookupKeyValue(obj) => obj.validate(errors),
             ObjectInner::Metadata(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(obj) => obj.validate(errors),
             ObjectInner::Metrics(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(obj) => obj.validate(errors),
             ObjectInner::MtaConnectionStrategy(obj) => obj.validate(errors),
             ObjectInner::MtaDeliverySchedule(obj) => obj.validate(errors),
             ObjectInner::MtaExtensions(obj) => obj.validate(errors),
@@ -5762,7 +7435,8 @@ impl Object {
             ObjectInner::SieveUserInterpreter(obj) => obj.validate(errors),
             ObjectInner::SieveUserScript(obj) => obj.validate(errors),
             ObjectInner::SmimeTrustAnchor(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => obj.validate(errors),
             ObjectInner::SpamClassifier(obj) => obj.validate(errors),
             ObjectInner::SpamDnsblServer(obj) => obj.validate(errors),
             ObjectInner::SpamDnsblSettings(obj) => obj.validate(errors),
@@ -5778,19 +7452,21 @@ impl Object {
             ObjectInner::SystemSettings(obj) => obj.validate(errors),
             ObjectInner::Task(obj) => obj.validate(errors),
             ObjectInner::TaskManager(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(obj) => obj.validate(errors),
             ObjectInner::TlsExternalReport(obj) => obj.validate(errors),
             ObjectInner::TlsInternalReport(obj) => obj.validate(errors),
             ObjectInner::TlsReportSettings(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(obj) => obj.validate(errors),
             ObjectInner::Tracer(obj) => obj.validate(errors),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(obj) => obj.validate(errors),
             ObjectInner::WebDav(obj) => obj.validate(errors),
             ObjectInner::WebHook(obj) => obj.validate(errors),
         }
     }
 
-    // [fragmento SEL eliminado: 37 líneas]
     pub fn index<'x>(&'x self, i: &mut IndexBuilder<'x>) {
         match &self.inner {
             ObjectInner::Account(obj) => obj.index(i),
@@ -5799,12 +7475,16 @@ impl Object {
             ObjectInner::AcmeProvider(obj) => obj.index(i),
             ObjectInner::Action(obj) => obj.index(i),
             ObjectInner::AddressBook(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(obj) => obj.index(i),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(obj) => obj.index(i),
             ObjectInner::AllowedIp(obj) => obj.index(i),
             ObjectInner::ApiKey(obj) => obj.index(i),
             ObjectInner::AppPassword(obj) => obj.index(i),
             ObjectInner::Application(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(obj) => obj.index(i),
             ObjectInner::ArfExternalReport(obj) => obj.index(i),
             ObjectInner::Asn(obj) => obj.index(i),
             ObjectInner::Authentication(obj) => obj.index(i),
@@ -5833,7 +7513,6 @@ impl Object {
             ObjectInner::DsnReportSettings(obj) => obj.index(i),
             ObjectInner::Email(obj) => obj.index(i),
             ObjectInner::Encryption(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(obj) => obj.index(i),
             ObjectInner::ExternalPublicKey(obj) => obj.index(i),
             ObjectInner::FileStorage(obj) => obj.index(i),
@@ -5846,13 +7525,16 @@ impl Object {
             ObjectInner::Jmap(obj) => obj.index(i),
             ObjectInner::Log(obj) => obj.index(i),
             ObjectInner::MailingList(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => obj.index(i),
             ObjectInner::MemoryLookupKey(obj) => obj.index(i),
             ObjectInner::MemoryLookupKeyValue(obj) => obj.index(i),
             ObjectInner::Metadata(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(obj) => obj.index(i),
             ObjectInner::Metrics(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(obj) => obj.index(i),
             ObjectInner::MtaConnectionStrategy(obj) => obj.index(i),
             ObjectInner::MtaDeliverySchedule(obj) => obj.index(i),
             ObjectInner::MtaExtensions(obj) => obj.index(i),
@@ -5892,7 +7574,8 @@ impl Object {
             ObjectInner::SieveUserInterpreter(obj) => obj.index(i),
             ObjectInner::SieveUserScript(obj) => obj.index(i),
             ObjectInner::SmimeTrustAnchor(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => obj.index(i),
             ObjectInner::SpamClassifier(obj) => obj.index(i),
             ObjectInner::SpamDnsblServer(obj) => obj.index(i),
             ObjectInner::SpamDnsblSettings(obj) => obj.index(i),
@@ -5908,13 +7591,16 @@ impl Object {
             ObjectInner::SystemSettings(obj) => obj.index(i),
             ObjectInner::Task(obj) => obj.index(i),
             ObjectInner::TaskManager(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(obj) => obj.index(i),
             ObjectInner::TlsExternalReport(obj) => obj.index(i),
             ObjectInner::TlsInternalReport(obj) => obj.index(i),
             ObjectInner::TlsReportSettings(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(obj) => obj.index(i),
             ObjectInner::Tracer(obj) => obj.index(i),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(obj) => obj.index(i),
             ObjectInner::WebDav(obj) => obj.index(i),
             ObjectInner::WebHook(obj) => obj.index(i),
         }
@@ -5932,12 +7618,16 @@ impl Object {
             ObjectInner::AcmeProvider(obj) => obj.patch(pointer, value),
             ObjectInner::Action(obj) => obj.patch(pointer, value),
             ObjectInner::AddressBook(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(obj) => obj.patch(pointer, value),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(obj) => obj.patch(pointer, value),
             ObjectInner::AllowedIp(obj) => obj.patch(pointer, value),
             ObjectInner::ApiKey(obj) => obj.patch(pointer, value),
             ObjectInner::AppPassword(obj) => obj.patch(pointer, value),
             ObjectInner::Application(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(obj) => obj.patch(pointer, value),
             ObjectInner::ArfExternalReport(obj) => obj.patch(pointer, value),
             ObjectInner::Asn(obj) => obj.patch(pointer, value),
             ObjectInner::Authentication(obj) => obj.patch(pointer, value),
@@ -5966,7 +7656,6 @@ impl Object {
             ObjectInner::DsnReportSettings(obj) => obj.patch(pointer, value),
             ObjectInner::Email(obj) => obj.patch(pointer, value),
             ObjectInner::Encryption(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(obj) => obj.patch(pointer, value),
             ObjectInner::ExternalPublicKey(obj) => obj.patch(pointer, value),
             ObjectInner::FileStorage(obj) => obj.patch(pointer, value),
@@ -5979,13 +7668,16 @@ impl Object {
             ObjectInner::Jmap(obj) => obj.patch(pointer, value),
             ObjectInner::Log(obj) => obj.patch(pointer, value),
             ObjectInner::MailingList(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => obj.patch(pointer, value),
             ObjectInner::MemoryLookupKey(obj) => obj.patch(pointer, value),
             ObjectInner::MemoryLookupKeyValue(obj) => obj.patch(pointer, value),
             ObjectInner::Metadata(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(obj) => obj.patch(pointer, value),
             ObjectInner::Metrics(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(obj) => obj.patch(pointer, value),
             ObjectInner::MtaConnectionStrategy(obj) => obj.patch(pointer, value),
             ObjectInner::MtaDeliverySchedule(obj) => obj.patch(pointer, value),
             ObjectInner::MtaExtensions(obj) => obj.patch(pointer, value),
@@ -6025,7 +7717,8 @@ impl Object {
             ObjectInner::SieveUserInterpreter(obj) => obj.patch(pointer, value),
             ObjectInner::SieveUserScript(obj) => obj.patch(pointer, value),
             ObjectInner::SmimeTrustAnchor(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => obj.patch(pointer, value),
             ObjectInner::SpamClassifier(obj) => obj.patch(pointer, value),
             ObjectInner::SpamDnsblServer(obj) => obj.patch(pointer, value),
             ObjectInner::SpamDnsblSettings(obj) => obj.patch(pointer, value),
@@ -6041,13 +7734,16 @@ impl Object {
             ObjectInner::SystemSettings(obj) => obj.patch(pointer, value),
             ObjectInner::Task(obj) => obj.patch(pointer, value),
             ObjectInner::TaskManager(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(obj) => obj.patch(pointer, value),
             ObjectInner::TlsExternalReport(obj) => obj.patch(pointer, value),
             ObjectInner::TlsInternalReport(obj) => obj.patch(pointer, value),
             ObjectInner::TlsReportSettings(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(obj) => obj.patch(pointer, value),
             ObjectInner::Tracer(obj) => obj.patch(pointer, value),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(obj) => obj.patch(pointer, value),
             ObjectInner::WebDav(obj) => obj.patch(pointer, value),
             ObjectInner::WebHook(obj) => obj.patch(pointer, value),
         }
@@ -6067,12 +7763,16 @@ impl IntoValue for Object {
             ObjectInner::AcmeProvider(obj) => (*obj).into_value_with(opts),
             ObjectInner::Action(obj) => (*obj).into_value_with(opts),
             ObjectInner::AddressBook(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::AiModel(obj) => (*obj).into_value_with(opts),
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Alert(obj) => (*obj).into_value_with(opts),
             ObjectInner::AllowedIp(obj) => (*obj).into_value_with(opts),
             ObjectInner::ApiKey(obj) => (*obj).into_value_with(opts),
             ObjectInner::AppPassword(obj) => (*obj).into_value_with(opts),
             ObjectInner::Application(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::ArchivedItem(obj) => (*obj).into_value_with(opts),
             ObjectInner::ArfExternalReport(obj) => (*obj).into_value_with(opts),
             ObjectInner::Asn(obj) => (*obj).into_value_with(opts),
             ObjectInner::Authentication(obj) => (*obj).into_value_with(opts),
@@ -6101,7 +7801,6 @@ impl IntoValue for Object {
             ObjectInner::DsnReportSettings(obj) => (*obj).into_value_with(opts),
             ObjectInner::Email(obj) => (*obj).into_value_with(opts),
             ObjectInner::Encryption(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectInner::EventTracingLevel(obj) => (*obj).into_value_with(opts),
             ObjectInner::ExternalPublicKey(obj) => (*obj).into_value_with(opts),
             ObjectInner::FileStorage(obj) => (*obj).into_value_with(opts),
@@ -6114,13 +7813,16 @@ impl IntoValue for Object {
             ObjectInner::Jmap(obj) => (*obj).into_value_with(opts),
             ObjectInner::Log(obj) => (*obj).into_value_with(opts),
             ObjectInner::MailingList(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(obj) => (*obj).into_value_with(opts),
             ObjectInner::MemoryLookupKey(obj) => (*obj).into_value_with(opts),
             ObjectInner::MemoryLookupKeyValue(obj) => (*obj).into_value_with(opts),
             ObjectInner::Metadata(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Metric(obj) => (*obj).into_value_with(opts),
             ObjectInner::Metrics(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MetricsStore(obj) => (*obj).into_value_with(opts),
             ObjectInner::MtaConnectionStrategy(obj) => (*obj).into_value_with(opts),
             ObjectInner::MtaDeliverySchedule(obj) => (*obj).into_value_with(opts),
             ObjectInner::MtaExtensions(obj) => (*obj).into_value_with(opts),
@@ -6160,7 +7862,8 @@ impl IntoValue for Object {
             ObjectInner::SieveUserInterpreter(obj) => (*obj).into_value_with(opts),
             ObjectInner::SieveUserScript(obj) => (*obj).into_value_with(opts),
             ObjectInner::SmimeTrustAnchor(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::SpamAi(obj) => (*obj).into_value_with(opts),
             ObjectInner::SpamClassifier(obj) => (*obj).into_value_with(opts),
             ObjectInner::SpamDnsblServer(obj) => (*obj).into_value_with(opts),
             ObjectInner::SpamDnsblSettings(obj) => (*obj).into_value_with(opts),
@@ -6176,13 +7879,16 @@ impl IntoValue for Object {
             ObjectInner::SystemSettings(obj) => (*obj).into_value_with(opts),
             ObjectInner::Task(obj) => (*obj).into_value_with(opts),
             ObjectInner::TaskManager(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Tenant(obj) => (*obj).into_value_with(opts),
             ObjectInner::TlsExternalReport(obj) => (*obj).into_value_with(opts),
             ObjectInner::TlsInternalReport(obj) => (*obj).into_value_with(opts),
             ObjectInner::TlsReportSettings(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::Trace(obj) => (*obj).into_value_with(opts),
             ObjectInner::Tracer(obj) => (*obj).into_value_with(opts),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectInner::TracingStore(obj) => (*obj).into_value_with(opts),
             ObjectInner::WebDav(obj) => (*obj).into_value_with(opts),
             ObjectInner::WebHook(obj) => (*obj).into_value_with(opts),
         }
@@ -6198,12 +7904,16 @@ impl From<ObjectType> for ObjectInner {
             ObjectType::AcmeProvider => ObjectInner::AcmeProvider(Box::default()),
             ObjectType::Action => ObjectInner::Action(Box::default()),
             ObjectType::AddressBook => ObjectInner::AddressBook(Box::default()),
-            // [fragmento SEL eliminado: 8 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel => ObjectInner::AiModel(Box::default()),
+            #[cfg(feature = "bezenti")]
+            ObjectType::Alert => ObjectInner::Alert(Box::default()),
             ObjectType::AllowedIp => ObjectInner::AllowedIp(Box::default()),
             ObjectType::ApiKey => ObjectInner::ApiKey(Box::default()),
             ObjectType::AppPassword => ObjectInner::AppPassword(Box::default()),
             ObjectType::Application => ObjectInner::Application(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => ObjectInner::ArchivedItem(Box::default()),
             ObjectType::ArfExternalReport => ObjectInner::ArfExternalReport(Box::default()),
             ObjectType::Asn => ObjectInner::Asn(Box::default()),
             ObjectType::Authentication => ObjectInner::Authentication(Box::default()),
@@ -6232,7 +7942,6 @@ impl From<ObjectType> for ObjectInner {
             ObjectType::DsnReportSettings => ObjectInner::DsnReportSettings(Box::default()),
             ObjectType::Email => ObjectInner::Email(Box::default()),
             ObjectType::Encryption => ObjectInner::Encryption(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
             ObjectType::EventTracingLevel => ObjectInner::EventTracingLevel(Box::default()),
             ObjectType::ExternalPublicKey => ObjectInner::ExternalPublicKey(Box::default()),
             ObjectType::FileStorage => ObjectInner::FileStorage(Box::default()),
@@ -6245,13 +7954,16 @@ impl From<ObjectType> for ObjectInner {
             ObjectType::Jmap => ObjectInner::Jmap(Box::default()),
             ObjectType::Log => ObjectInner::Log(Box::default()),
             ObjectType::MailingList => ObjectInner::MailingList(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MaskedEmail => ObjectInner::MaskedEmail(Box::default()),
             ObjectType::MemoryLookupKey => ObjectInner::MemoryLookupKey(Box::default()),
             ObjectType::MemoryLookupKeyValue => ObjectInner::MemoryLookupKeyValue(Box::default()),
             ObjectType::Metadata => ObjectInner::Metadata(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Metric => ObjectInner::Metric(Box::default()),
             ObjectType::Metrics => ObjectInner::Metrics(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::MetricsStore => ObjectInner::MetricsStore(Box::default()),
             ObjectType::MtaConnectionStrategy => ObjectInner::MtaConnectionStrategy(Box::default()),
             ObjectType::MtaDeliverySchedule => ObjectInner::MtaDeliverySchedule(Box::default()),
             ObjectType::MtaExtensions => ObjectInner::MtaExtensions(Box::default()),
@@ -6293,7 +8005,8 @@ impl From<ObjectType> for ObjectInner {
             ObjectType::SieveUserInterpreter => ObjectInner::SieveUserInterpreter(Box::default()),
             ObjectType::SieveUserScript => ObjectInner::SieveUserScript(Box::default()),
             ObjectType::SmimeTrustAnchor => ObjectInner::SmimeTrustAnchor(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::SpamAi => ObjectInner::SpamAi(Box::default()),
             ObjectType::SpamClassifier => ObjectInner::SpamClassifier(Box::default()),
             ObjectType::SpamDnsblServer => ObjectInner::SpamDnsblServer(Box::default()),
             ObjectType::SpamDnsblSettings => ObjectInner::SpamDnsblSettings(Box::default()),
@@ -6309,13 +8022,16 @@ impl From<ObjectType> for ObjectInner {
             ObjectType::SystemSettings => ObjectInner::SystemSettings(Box::default()),
             ObjectType::Task => ObjectInner::Task(Box::default()),
             ObjectType::TaskManager => ObjectInner::TaskManager(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Tenant => ObjectInner::Tenant(Box::default()),
             ObjectType::TlsExternalReport => ObjectInner::TlsExternalReport(Box::default()),
             ObjectType::TlsInternalReport => ObjectInner::TlsInternalReport(Box::default()),
             ObjectType::TlsReportSettings => ObjectInner::TlsReportSettings(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::Trace => ObjectInner::Trace(Box::default()),
             ObjectType::Tracer => ObjectInner::Tracer(Box::default()),
-            // [fragmento SEL eliminado: 6 líneas]
+            #[cfg(feature = "bezenti")]
+            ObjectType::TracingStore => ObjectInner::TracingStore(Box::default()),
             ObjectType::WebDav => ObjectInner::WebDav(Box::default()),
             ObjectType::WebHook => ObjectInner::WebHook(Box::default()),
         }
@@ -6412,7 +8128,40 @@ impl From<Object> for AddressBook {
     }
 }
 
-// [fragmento SEL eliminado: 38 líneas]
+#[cfg(feature = "bezenti")]
+impl From<AiModel> for ObjectInner {
+    fn from(value: AiModel) -> Self {
+        ObjectInner::AiModel(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for AiModel {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::AiModel(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Alert> for ObjectInner {
+    fn from(value: Alert) -> Self {
+        ObjectInner::Alert(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for Alert {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::Alert(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<AllowedIp> for ObjectInner {
     fn from(value: AllowedIp) -> Self {
         ObjectInner::AllowedIp(Box::new(value))
@@ -6473,7 +8222,23 @@ impl From<Object> for Application {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<ArchivedItem> for ObjectInner {
+    fn from(value: ArchivedItem) -> Self {
+        ObjectInner::ArchivedItem(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for ArchivedItem {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::ArchivedItem(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<ArfExternalReport> for ObjectInner {
     fn from(value: ArfExternalReport) -> Self {
         ObjectInner::ArfExternalReport(Box::new(value))
@@ -6894,7 +8659,6 @@ impl From<Object> for Encryption {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
 impl From<EventTracingLevel> for ObjectInner {
     fn from(value: EventTracingLevel) -> Self {
         ObjectInner::EventTracingLevel(Box::new(value))
@@ -7075,7 +8839,23 @@ impl From<Object> for MailingList {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<MaskedEmail> for ObjectInner {
+    fn from(value: MaskedEmail) -> Self {
+        ObjectInner::MaskedEmail(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for MaskedEmail {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::MaskedEmail(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<MemoryLookupKey> for ObjectInner {
     fn from(value: MemoryLookupKey) -> Self {
         ObjectInner::MemoryLookupKey(Box::new(value))
@@ -7121,7 +8901,23 @@ impl From<Object> for Metadata {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<Metric> for ObjectInner {
+    fn from(value: Metric) -> Self {
+        ObjectInner::Metric(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for Metric {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::Metric(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<Metrics> for ObjectInner {
     fn from(value: Metrics) -> Self {
         ObjectInner::Metrics(Box::new(value))
@@ -7137,7 +8933,23 @@ impl From<Object> for Metrics {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<MetricsStore> for ObjectInner {
+    fn from(value: MetricsStore) -> Self {
+        ObjectInner::MetricsStore(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for MetricsStore {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::MetricsStore(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<MtaConnectionStrategy> for ObjectInner {
     fn from(value: MtaConnectionStrategy) -> Self {
         ObjectInner::MtaConnectionStrategy(Box::new(value))
@@ -7723,7 +9535,23 @@ impl From<Object> for SmimeTrustAnchor {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<SpamAi> for ObjectInner {
+    fn from(value: SpamAi) -> Self {
+        ObjectInner::SpamAi(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for SpamAi {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::SpamAi(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<SpamClassifier> for ObjectInner {
     fn from(value: SpamClassifier) -> Self {
         ObjectInner::SpamClassifier(Box::new(value))
@@ -7949,7 +9777,23 @@ impl From<Object> for TaskManager {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<Tenant> for ObjectInner {
+    fn from(value: Tenant) -> Self {
+        ObjectInner::Tenant(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for Tenant {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::Tenant(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<TlsExternalReport> for ObjectInner {
     fn from(value: TlsExternalReport) -> Self {
         ObjectInner::TlsExternalReport(Box::new(value))
@@ -7995,7 +9839,23 @@ impl From<Object> for TlsReportSettings {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<Trace> for ObjectInner {
+    fn from(value: Trace) -> Self {
+        ObjectInner::Trace(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for Trace {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::Trace(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<Tracer> for ObjectInner {
     fn from(value: Tracer) -> Self {
         ObjectInner::Tracer(Box::new(value))
@@ -8011,7 +9871,23 @@ impl From<Object> for Tracer {
     }
 }
 
-// [fragmento SEL eliminado: 21 líneas]
+#[cfg(feature = "bezenti")]
+impl From<TracingStore> for ObjectInner {
+    fn from(value: TracingStore) -> Self {
+        ObjectInner::TracingStore(Box::new(value))
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl From<Object> for TracingStore {
+    fn from(obj: Object) -> Self {
+        match obj.inner {
+            ObjectInner::TracingStore(obj) => *obj,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<WebDav> for ObjectInner {
     fn from(value: WebDav) -> Self {
         ObjectInner::WebDav(Box::new(value))

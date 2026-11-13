@@ -53,6 +53,8 @@ memchr = "2.8"
 [features]
 dev_mode = []
 enterprise = ["store/enterprise", "http_proto/enterprise", "jmap_proto/enterprise", "smtp/enterprise", "utils/enterprise", "common/enterprise", "services/enterprise", "directory/enterprise", "trc/enterprise", "spam-filter/enterprise", "email/enterprise", "groupware/enterprise", "registry/enterprise"]
+# bezenti: edición bezenti (ver bezenti/README.md).
+bezenti = ["registry/bezenti", "smtp/bezenti", "services/bezenti"]
 
 [lints]
 workspace = true

@@ -53,12 +53,14 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends build-essential clang cmake pkg-config libssl-dev protobuf-compiler
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: Compilar (release)
         run: cargo build --release --manifest-path crates/main/Cargo.toml --no-default-features --features "$FEATURES"
       - name: Pruebas de la edición bezenti
         run: |
-          # Cada fase añade aquí sus crates/pruebas. Fase 0: solo que compila.
+          # Cada fase añade sus pruebas a bezenti/pruebas.sh (fase 1: fidelidad del generador y modelo de pago).
           if [ -f bezenti/pruebas.sh ]; then bash bezenti/pruebas.sh; else echo "sin pruebas propias todavía"; fi
       - name: Empaquetar
         if: startsWith(github.ref, 'refs/tags/bezenti-v') || github.event_name == 'workflow_dispatch'

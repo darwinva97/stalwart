@@ -363,5 +363,11 @@ async fn execute(server: &Server, task: &Task, server_instance: Arc<ServerInstan
             server.external_public_key_maintenance(task).await
         }
         Task::BlobRecode(task) => server.blob_recode(task).await,
+        // bezenti: el modelo existe desde la fase 1; la lógica llega en las fases 2 (inquilinos) y 3 (archivo).
+        // Mientras tanto estas tareas no se programan (ver `is_enabled`) y, si llegan, fallan sin reintentos.
+        #[cfg(feature = "bezenti")]
+        Task::RestoreArchivedItem(_) | Task::TenantMaintenance(_) => {
+            Outcome::Fatal("tarea de la edición bezenti todavía no implementada".to_string())
+        }
     }
 }

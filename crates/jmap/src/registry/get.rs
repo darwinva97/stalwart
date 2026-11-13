@@ -217,6 +217,18 @@ impl RegistryGet for Server {
             | ObjectType::AppPassword
             | ObjectType::Passkey => account_get(get).await.map(|get| get.into_response()),
             ObjectType::Action => Ok(get.not_found_any().into_response()),
+            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 2 a 5).
+            #[cfg(feature = "bezenti")]
+            ObjectType::AiModel
+            | ObjectType::Alert
+            | ObjectType::ArchivedItem
+            | ObjectType::MaskedEmail
+            | ObjectType::Metric
+            | ObjectType::MetricsStore
+            | ObjectType::SpamAi
+            | ObjectType::Tenant
+            | ObjectType::Trace
+            | ObjectType::TracingStore => Ok(get.not_found_any().into_response()),
         }
     }
 }
