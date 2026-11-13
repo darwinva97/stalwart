@@ -93,6 +93,26 @@ else
   python3 -I bezenti/pruebas/replicas_reparto.py "$BIN"
 fi
 
-echo "### Fases 2 a 6: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
+echo "### Fase 7: pruebas unitarias de SCIM (filtros, rutas de PATCH, esquema, recursos, Bulk; eventos scim.* en trc)"
+cargo test "${JOBS[@]}" -p bezenti-scim
+cargo test "${JOBS[@]}" -p trc --features bezenti --lib scim::
+
+echo "### Fase 7: integración SCIM 2.0 contra el servidor real (HTTP /scim/v2, JMAP, SMTP, IMAP; Entra, Okta, inquilinos)"
+python3 -I bezenti/pruebas/scim.py "$BIN"
+
+echo "### Fase 7: conformidad con una herramienta pública (scim2-tester, python-scim)"
+# SCIM2_TESTER_SITE = directorio con `pip install --target DIR 'scim2-tester[httpx2]'`. En la CI se instala aquí.
+SITIO="${SCIM2_TESTER_SITE:-}"
+if [ -z "$SITIO" ] && [ -n "${CI:-}" ]; then
+  SITIO="$(mktemp -d)"
+  python3 -m pip install -q --disable-pip-version-check --target "$SITIO" 'scim2-tester[httpx2]'
+fi
+if [ -n "$SITIO" ]; then
+  python3 -I bezenti/pruebas/scim_conformidad.py "$BIN" "$SITIO"
+else
+  echo "sin scim2-tester (define SCIM2_TESTER_SITE): se omite la prueba de conformidad"
+fi
+
+echo "### Fases 2 a 7: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
 cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0 -p trc -p spam-filter -p smtp -p coordinator -p directory
 cargo check "${JOBS[@]}" -p store --features "postgres mysql redis s3"

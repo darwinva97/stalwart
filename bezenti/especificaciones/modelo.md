@@ -171,9 +171,9 @@ Están en `bezenti/generador/decisiones.json` con su porqué; se pueden revisar 
 - Fase 4: `trc::Key` ya tiene las claves de IA y `trc::EventType`/`MetricType` los eventos y métricas `ai.*`
   (tras la feature `bezenti` de `trc`; identificadores en [`ia.md`](ia.md), §6). Fase 5: eventos
   `telemetry.alert-event`, `telemetry.alert-message` y `telemetry.metrics-stored` y sus métricas (identificadores
-  en [`telemetria.md`](telemetria.md), §9). Faltan los de otras fases (`scim.*`, `limit.tenant-quota`, …): se
+  en [`telemetria.md`](telemetria.md), §9). Fase 7: eventos `scim.*` (identificadores en [`scim.md`](scim.md), §13). Faltan los de otras fases (`limit.tenant-quota`, …): se
   añadirán en `trc` en cada fase, sin reutilizar los identificadores ya asignados.
 - Toda la lógica: cuotas y aislamiento por inquilino (hecho en la fase 2, [`multi-inquilino.md`](multi-inquilino.md)),
   asignación y entrega de direcciones enmascaradas y archivo y restauración (hechos en la fase 3,
-  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA (hechos en la fase 4, [`ia.md`](ia.md)), almacenes de métricas/trazas (hechos en la fase 5, [`telemetria.md`](telemetria.md)), réplicas y almacenes repartidos, SCIM.
+  [`enmascaradas.md`](enmascaradas.md) y [`archivo.md`](archivo.md)), clientes de IA (hechos en la fase 4, [`ia.md`](ia.md)), almacenes de métricas/trazas (hechos en la fase 5, [`telemetria.md`](telemetria.md)), réplicas y almacenes repartidos (hechos en la fase 6), SCIM (hecho en la fase 7, [`scim.md`](scim.md)).
   En el código limpio, las marcas `[fragmento SEL eliminado]` fuera del registro indican dónde engancharla.

@@ -143,6 +143,11 @@ impl Server {
                 if domain.allow_relaying {
                     flags |= DOMAIN_FLAG_RELAY;
                 }
+                // bezenti (fase 7): autoridad de SCIM sobre las cuentas del dominio.
+                #[cfg(feature = "bezenti")]
+                if domain.allow_scim_provisioning {
+                    flags |= crate::auth::DOMAIN_FLAG_SCIM;
+                }
 
                 // [fragmento SEL eliminado: 8 líneas]
 

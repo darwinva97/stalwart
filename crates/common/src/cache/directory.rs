@@ -41,6 +41,16 @@ impl Server {
     async fn sync_account(&self, account: directory::Account) -> trc::Result<AccountWithId> {
         let (local, domain) = self.validate_address(&account.email).await?;
 
+        // bezenti (fase 7): en un dominio abierto a SCIM, el proveedor de identidad es quien crea y cambia las
+        // cuentas. La sincronización al iniciar sesión solo lee: no crea la cuenta ni escribe nada en ella
+        // (bezenti/especificaciones/scim.md, §12).
+        #[cfg(feature = "bezenti")]
+        if domain.flags & crate::auth::DOMAIN_FLAG_SCIM != 0 {
+            return self
+                .sync_account_scim_read_only(local, &domain, &account.email)
+                .await;
+        }
+
         match self
             .account_id_from_parts(local, domain.id)
             .await
@@ -478,6 +488,42 @@ impl Server {
                 .caused_by(trc::location!())
                 .map(|domain| domain.map(|domain| (local, domain))),
             None => Ok(None),
+        }
+    }
+}
+
+#[cfg(feature = "bezenti")]
+impl Server {
+    /// Sincronización de solo lectura para los dominios abiertos a SCIM: la cuenta debe existir ya (la crea el
+    /// proveedor de identidad por SCIM) y se devuelve tal cual. Si no existe, falla la autenticación.
+    async fn sync_account_scim_read_only(
+        &self,
+        local: &str,
+        domain: &DomainCache,
+        email: &str,
+    ) -> trc::Result<AccountWithId> {
+        let not_provisioned = || {
+            trc::AuthEvent::Failed
+                .into_err()
+                .details("The account has not been provisioned through SCIM yet")
+                .ctx(trc::Key::AccountName, email.to_string())
+        };
+        let account_id = self
+            .account_id_from_parts(local, domain.id)
+            .await
+            .caused_by(trc::location!())?
+            .ok_or_else(not_provisioned)?;
+        match self
+            .registry()
+            .object::<Account>(Id::from(account_id))
+            .await
+            .caused_by(trc::location!())?
+        {
+            Some(account @ Account::User(_)) => Ok(AccountWithId {
+                id: account_id,
+                account,
+            }),
+            _ => Err(not_provisioned()),
         }
     }
 }

@@ -18,6 +18,11 @@ impl EventType {
         if let Some(item) = crate::event::ia::AiEvent::parse(value).map(EventType::Ai) {
             return Some(item);
         }
+        // bezenti: SCIM (fase 7, ver event/scim.rs).
+        #[cfg(feature = "bezenti")]
+        if let Some(item) = crate::event::scim::ScimEvent::parse(value).map(EventType::Scim) {
+            return Some(item);
+        }
         hashify::map! {
             value.as_bytes(),
             EventType,
@@ -697,6 +702,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.as_str(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.as_str(),
             EventType::Acme(AcmeEvent::AuthStart) => "acme.auth-start",
             EventType::Acme(AcmeEvent::AuthPending) => "acme.auth-pending",
             EventType::Acme(AcmeEvent::AuthValid) => "acme.auth-valid",
@@ -1522,6 +1529,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.to_id(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.to_id(),
             EventType::Acme(AcmeEvent::AuthStart) => 3,
             EventType::Acme(AcmeEvent::AuthPending) => 2,
             EventType::Acme(AcmeEvent::AuthValid) => 5,
@@ -2191,6 +2200,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             609..=614 => AiEvent::from_id(id).map(EventType::Ai),
+            #[cfg(feature = "bezenti")]
+            349 | 350 | 615..=624 => ScimEvent::from_id(id).map(EventType::Scim),
             3 => Some(EventType::Acme(AcmeEvent::AuthStart)),
             2 => Some(EventType::Acme(AcmeEvent::AuthPending)),
             5 => Some(EventType::Acme(AcmeEvent::AuthValid)),
@@ -2903,6 +2914,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.level(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.level(),
             EventType::Acme(AcmeEvent::Error) => Level::Error,
             EventType::Auth(AuthEvent::Error) => Level::Error,
             EventType::Cluster(ClusterEvent::SubscriberError) => Level::Error,
@@ -3274,6 +3287,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.description(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.description(),
             EventType::Acme(AcmeEvent::AuthStart) => "ACME authentication started",
             EventType::Acme(AcmeEvent::AuthPending) => "ACME authentication pending",
             EventType::Acme(AcmeEvent::AuthValid) => "ACME authentication valid",
@@ -4107,6 +4122,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.message(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.message(),
             EventType::Auth(AuthEvent::Success) => "Authentication error",
             EventType::Auth(AuthEvent::Failed) => "Authentication failed",
             EventType::Auth(AuthEvent::TokenExpired) => "Authentication error",
@@ -4413,6 +4430,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.otel_metric_name(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.otel_metric_name(),
             EventType::Acme(AcmeEvent::AuthError) => "stalwart.acme.auth_error",
             EventType::Acme(AcmeEvent::AuthTooManyAttempts) => {
                 "stalwart.acme.auth_too_many_attempts"
@@ -4990,6 +5009,8 @@ impl EventType {
             // bezenti: IA (fase 4, ver event/ia.rs).
             #[cfg(feature = "bezenti")]
             EventType::Ai(event) => event.prom_metric_name(),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(event) => event.prom_metric_name(),
             EventType::Acme(AcmeEvent::AuthError) => "stalwart_acme_auth_error_total",
             EventType::Acme(AcmeEvent::AuthTooManyAttempts) => {
                 "stalwart_acme_auth_too_many_attempts_total"
@@ -5700,6 +5721,30 @@ impl EventType {
             EventType::Ai(AiEvent::SpamSkipped),
             #[cfg(feature = "bezenti")]
             EventType::Ai(AiEvent::BreakerOpen),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::Request),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::Forbidden),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::Conflict),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::Error),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::ResourceCreated),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::ResourceUpdated),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::ResourceDeleted),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::Query),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::AttributeIgnored),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::BulkProcessed),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::BulkAborted),
+            #[cfg(feature = "bezenti")]
+            EventType::Scim(ScimEvent::RollbackFailed),
             EventType::Acme(AcmeEvent::AuthStart),
             EventType::Acme(AcmeEvent::AuthPending),
             EventType::Acme(AcmeEvent::AuthValid),

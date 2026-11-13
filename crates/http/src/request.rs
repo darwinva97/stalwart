@@ -727,6 +727,40 @@ impl ParseHttp for Server {
                 _ => (),
             },
             // [fragmento SEL eliminado: 39 líneas]
+            // bezenti (fase 7): aprovisionamiento SCIM 2.0 en /scim/v2 (bezenti/especificaciones/scim.md).
+            #[cfg(feature = "bezenti")]
+            "scim" => {
+                use bezenti_scim::ScimServidor;
+
+                let ruta: Vec<String> = path
+                    .map(|segment| percent_decode_str(segment).decode_utf8_lossy().into_owned())
+                    .collect();
+                // Los endpoints de descubrimiento no piden credencial; el resto, un token de portador (Basic → 401).
+                let autenticado = if bezenti_scim::necesita_credencial(req.method(), &ruta) {
+                    if let Some(response) = bezenti_scim::rechaza_basic(&req) {
+                        return Ok(response);
+                    }
+                    match self.authenticate_headers(&req, &session).await {
+                        Ok(autenticado) => Some(autenticado),
+                        Err(err) => {
+                            return Ok(bezenti_scim::error_autenticacion(err, session.session_id));
+                        }
+                    }
+                } else {
+                    // Limit anonymous requests
+                    self.is_http_anonymous_request_allowed(session.remote_ip)
+                        .await?;
+                    None
+                };
+                return Ok(self
+                    .handle_scim_request(
+                        &mut req,
+                        &session,
+                        ruta,
+                        autenticado.as_ref().map(|a| &a.access_token),
+                    )
+                    .await);
+            }
             "form" => {
                 if let Some(form) = &self.core.network.contact_form {
                     match *req.method() {

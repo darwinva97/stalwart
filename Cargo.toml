@@ -16,6 +16,7 @@ members = [
     "crates/dav-proto",
     "crates/scim-proto",
     "crates/scim",
+    "crates/bezenti-scim",
     "crates/dav",
     "crates/groupware",
     "crates/spam-filter",

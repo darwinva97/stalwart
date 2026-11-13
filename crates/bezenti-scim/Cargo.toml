@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 bezenti
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Edición bezenti, fase 7: proveedor de servicio SCIM 2.0 (RFC 7643/7644). Crate nuevo, 100 % AGPL-3.0-only:
+# no tiene nada que ver con los crates `scim`/`scim-proto` (eran SEL y están vacíos en esta rama). Solo lo usa
+# `http` con su feature `bezenti`; por eso activa la feature `bezenti` de sus dependencias.
+# Especificación: bezenti/especificaciones/scim.md.
+[package]
+name = "bezenti-scim"
+version = "1.1.0"
+edition = "2024"
+license = "AGPL-3.0-only"
+
+[dependencies]
+common = { path = "../common", features = ["bezenti"] }
+jmap = { path = "../jmap", features = ["bezenti"] }
+jmap_proto = { path = "../jmap-proto" }
+registry = { path = "../registry", features = ["bezenti"] }
+store = { path = "../store", features = ["bezenti"] }
+trc = { path = "../trc", features = ["bezenti"] }
+types = { path = "../types" }
+http_proto = { path = "../http-proto" }
+hyper = { version = "1.12.0", features = ["server", "http1", "http2"] }
+serde_json = "1.0"
+xxhash-rust = { version = "0.8.19", features = ["xxh3"] }
+compact_str = "0.10.0"
+
+[dev-dependencies]
+
+[lints]
+workspace = true

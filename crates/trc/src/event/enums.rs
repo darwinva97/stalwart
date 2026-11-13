@@ -11,6 +11,8 @@ pub const TOTAL_METRIC_COUNT: usize = 399;
 
 #[cfg(feature = "bezenti")]
 pub use super::ia::AiEvent;
+#[cfg(feature = "bezenti")]
+pub use super::scim::ScimEvent;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EventType {
@@ -18,6 +20,9 @@ pub enum EventType {
     // bezenti: eventos de la IA (fase 4, ver event/ia.rs).
     #[cfg(feature = "bezenti")]
     Ai(AiEvent),
+    // bezenti: eventos del aprovisionamiento SCIM (fase 7, ver event/scim.rs).
+    #[cfg(feature = "bezenti")]
+    Scim(ScimEvent),
     // [fragmento SEL eliminado: 6 líneas]
     Arc(ArcEvent),
     Auth(AuthEvent),

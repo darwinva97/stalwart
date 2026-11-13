@@ -77,6 +77,9 @@ pub struct DomainCache {
 
 pub const DOMAIN_FLAG_RELAY: u8 = 1;
 pub const DOMAIN_FLAG_SUB_ADDRESSING: u8 = 1 << 1;
+/// bezenti (fase 7): el dominio está abierto a SCIM (`allowScimProvisioning`); SCIM manda sobre sus cuentas.
+#[cfg(feature = "bezenti")]
+pub const DOMAIN_FLAG_SCIM: u8 = 1 << 2;
 
 // [fragmento SEL eliminado: 5 líneas]
 

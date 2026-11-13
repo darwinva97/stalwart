@@ -12,6 +12,8 @@ pub mod enums;
 pub mod enums_impl;
 #[cfg(feature = "bezenti")]
 pub mod ia;
+#[cfg(feature = "bezenti")]
+pub mod scim;
 
 use compact_str::ToCompactString;
 use std::{fmt::Display, mem};
