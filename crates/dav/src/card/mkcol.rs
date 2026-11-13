@@ -1,0 +1,185 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use super::proppatch::CardPropPatchRequestHandler;
+use crate::{
+    DavError, DavMethod, PropStatBuilder,
+    common::{
+        ExtractETag,
+        dead::{DeadPatch, DeadTarget, DisplayName},
+        lock::{LockRequestHandler, ResourceState},
+        uri::DavUriResource,
+    },
+};
+use common::{Server, auth::AccessToken, storage::index::PresenceFlags};
+use dav_proto::{
+    RequestHeaders, Return,
+    schema::{Namespace, request::MkCol, response::MkColResponse},
+};
+use groupware::{
+    cache::GroupwareCache,
+    contact::{AddressBook, AddressBookPreferences},
+};
+use http_proto::HttpResponse;
+use hyper::StatusCode;
+use registry::schema::enums::StorageQuota;
+use store::write::BatchBuilder;
+use trc::AddContext;
+use types::{
+    collection::{Collection, SyncCollection},
+    metadata::MetadataKinds,
+};
+
+pub(crate) trait CardMkColRequestHandler: Sync + Send {
+    fn handle_card_mkcol_request(
+        &self,
+        access_token: &AccessToken,
+        headers: &RequestHeaders<'_>,
+        request: Option<MkCol>,
+    ) -> impl Future<Output = crate::Result<HttpResponse>> + Send;
+}
+
+impl CardMkColRequestHandler for Server {
+    async fn handle_card_mkcol_request(
+        &self,
+        access_token: &AccessToken,
+        headers: &RequestHeaders<'_>,
+        request: Option<MkCol>,
+    ) -> crate::Result<HttpResponse> {
+        // Validate URI
+        let resource = self
+            .validate_uri(access_token, headers.uri)
+            .await?
+            .into_owned_uri()?;
+        let account_id = resource.account_id;
+        let name = resource
+            .resource
+            .ok_or(DavError::Code(StatusCode::FORBIDDEN))?;
+        if !access_token.is_member(account_id) {
+            return Err(DavError::Code(StatusCode::FORBIDDEN));
+        }
+        let resources = self
+            .fetch_groupware_resources(
+                access_token.account_id(),
+                account_id,
+                SyncCollection::AddressBook,
+            )
+            .await
+            .caused_by(trc::location!())?;
+        if name.contains('/') || resources.by_path(name).is_some() {
+            return Err(DavError::Code(StatusCode::METHOD_NOT_ALLOWED));
+        }
+
+        // Validate quota
+        self.assert_object_quota(
+            &*self.account(account_id).await?,
+            StorageQuota::MaxAddressBooks,
+            1,
+            || resources.resources.count(true),
+        )?;
+
+        // Validate headers
+        self.validate_headers(
+            access_token,
+            headers,
+            vec![ResourceState {
+                account_id,
+                collection: resource.collection,
+                document_id: Some(u32::MAX),
+                path: name,
+                ..Default::default()
+            }],
+            Default::default(),
+            DavMethod::MKCOL,
+        )
+        .await?;
+
+        // Build file container
+        let mut book = AddressBook {
+            name: name.to_string(),
+            preferences: vec![AddressBookPreferences {
+                account_id,
+                name: "Address Book".to_string(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        // Apply MKCOL properties
+        let mut batch = BatchBuilder::new();
+        let document_id = batch.reserve_document_id(account_id, Collection::AddressBook);
+        let mut return_prop_stat = None;
+        let mut dead_write = None;
+        if let Some(mut mkcol) = request {
+            let mut prop_stat = PropStatBuilder::default();
+            let dead = DeadPatch::take_values(&mut mkcol.props, DisplayName::Live);
+            self.apply_addressbook_properties(
+                access_token.personal_id(account_id, Collection::AddressBook),
+                &mut book,
+                mkcol.props,
+                &mut prop_stat,
+            );
+            dead_write = dead
+                .apply(
+                    self,
+                    DeadTarget::container(
+                        account_id,
+                        Collection::AddressBook,
+                        document_id,
+                        MetadataKinds::NONE,
+                    ),
+                    &mut prop_stat,
+                )
+                .await
+                .caused_by(trc::location!())?;
+            if prop_stat.has_errors() {
+                prop_stat.fail_dependencies();
+                return Ok(HttpResponse::new(StatusCode::FORBIDDEN).with_xml_body(
+                    MkColResponse::new(prop_stat.build())
+                        .with_namespace(Namespace::CardDav)
+                        .to_string(),
+                ));
+            }
+            if headers.ret != Return::Minimal {
+                return_prop_stat = Some(prop_stat);
+            }
+        }
+
+        // Prepare write batch
+        if let Some(dead_write) = &dead_write {
+            book.set_metadata_kinds(dead_write.kinds);
+        }
+        if let Some(write) = dead_write.and_then(|dead_write| dead_write.write) {
+            write
+                .build(document_id.into(), &mut batch)
+                .caused_by(trc::location!())?;
+        }
+        book.insert(
+            access_token.changed_by(),
+            account_id,
+            document_id,
+            &mut batch,
+        )
+        .caused_by(trc::location!())?;
+        let etag = self
+            .commit_batch(batch)
+            .await
+            .caused_by(trc::location!())?
+            .etag();
+
+        if let Some(prop_stat) = return_prop_stat {
+            Ok(HttpResponse::new(StatusCode::CREATED)
+                .with_xml_body(
+                    MkColResponse::new(prop_stat.build())
+                        .with_namespace(Namespace::CardDav)
+                        .to_string(),
+                )
+                .with_etag_opt(etag))
+        } else {
+            Ok(HttpResponse::new(StatusCode::CREATED).with_etag_opt(etag))
+        }
+    }
+}

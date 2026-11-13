@@ -1,0 +1,251 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use super::{ImapResponse, authenticate::Mechanism};
+use crate::protocol::push_int;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Response {
+    pub capabilities: Vec<Capability>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Capability {
+    IMAP4rev2,
+    IMAP4rev1,
+    StartTLS,
+    LoginDisabled,
+    Idle,
+    Namespace,
+    Id,
+    Rights,
+    Children,
+    MultiAppend,
+    Binary,
+    Unselect,
+    ACL,
+    UIDPlus,
+    ESearch,
+    SASLIR, //SASL-IR
+    Within,
+    Enable,
+    SearchRes,
+    Sort,
+    Thread,       //THREAD=REFERENCES
+    ListExtended, //LIST-EXTENDED
+    ListStatus,   //LIST-STATUS
+    ESort,
+    SortDisplay,      //SORT=DISPLAY
+    SpecialUse,       //SPECIAL-USE
+    CreateSpecialUse, //CREATE-SPECIAL-USEE
+    Move,
+    CondStore,
+    QResync,
+    LiteralPlus, //LITERAL+
+    UnAuthenticate,
+    StatusSize, //STATUS=SIZE
+    ObjectIdPlus,
+    Preview,
+    Utf8Accept,
+    Auth(Mechanism),
+    Quota,
+    QuotaResource(QuotaResourceName),
+    QuotaSet,
+    JmapAccess,
+    UidOnly,
+    UidBatches,
+    MessageLimit(u32),
+    SaveLimit(u32),
+    Metadata,
+    MetadataServer,
+    ListMetadata,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AuthCapability {
+    Disabled,
+    Plain,
+    PlainAndBearer,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QuotaResourceName {
+    Storage,
+    Message,
+    Mailbox,
+    AnnotationStorage,
+}
+
+impl Capability {
+    pub fn serialize(&self, buf: &mut Vec<u8>) {
+        buf.extend_from_slice(match self {
+            Capability::Auth(mechanism) => {
+                buf.extend_from_slice(b"AUTH=");
+                mechanism.serialize(buf);
+                return;
+            }
+            Capability::IMAP4rev2 => b"IMAP4rev2",
+            Capability::IMAP4rev1 => b"IMAP4rev1",
+            Capability::StartTLS => b"STARTTLS",
+            Capability::LoginDisabled => b"LOGINDISABLED",
+            Capability::CondStore => b"CONDSTORE",
+            Capability::QResync => b"QRESYNC",
+            Capability::LiteralPlus => b"LITERAL+",
+            Capability::UnAuthenticate => b"UNAUTHENTICATE",
+            Capability::StatusSize => b"STATUS=SIZE",
+            Capability::ObjectIdPlus => b"OBJECTID+",
+            Capability::Preview => b"PREVIEW",
+            Capability::Idle => b"IDLE",
+            Capability::Namespace => b"NAMESPACE",
+            Capability::Id => b"ID",
+            Capability::Children => b"CHILDREN",
+            Capability::MultiAppend => b"MULTIAPPEND",
+            Capability::Binary => b"BINARY",
+            Capability::Unselect => b"UNSELECT",
+            Capability::ACL => b"ACL",
+            Capability::Rights => b"RIGHTS=texkn",
+            Capability::UIDPlus => b"UIDPLUS",
+            Capability::ESearch => b"ESEARCH",
+            Capability::SASLIR => b"SASL-IR",
+            Capability::Within => b"WITHIN",
+            Capability::Enable => b"ENABLE",
+            Capability::SearchRes => b"SEARCHRES",
+            Capability::Sort => b"SORT",
+            Capability::Thread => b"THREAD=REFERENCES",
+            Capability::ListExtended => b"LIST-EXTENDED",
+            Capability::ListStatus => b"LIST-STATUS",
+            Capability::ESort => b"ESORT",
+            Capability::SortDisplay => b"SORT=DISPLAY",
+            Capability::SpecialUse => b"SPECIAL-USE",
+            Capability::CreateSpecialUse => b"CREATE-SPECIAL-USE",
+            Capability::Move => b"MOVE",
+            Capability::Utf8Accept => b"UTF8=ACCEPT",
+            Capability::Quota => b"QUOTA",
+            Capability::QuotaResource(quota_resource) => {
+                buf.extend_from_slice(b"QUOTA=RES-");
+                buf.extend_from_slice(match quota_resource {
+                    QuotaResourceName::Storage => b"STORAGE",
+                    QuotaResourceName::Message => b"MESSAGE",
+                    QuotaResourceName::Mailbox => b"MAILBOX",
+                    QuotaResourceName::AnnotationStorage => b"ANNOTATION-STORAGE",
+                });
+                return;
+            }
+            Capability::QuotaSet => b"QUOTA=SET",
+            Capability::JmapAccess => b"JMAPACCESS",
+            Capability::UidOnly => b"UIDONLY",
+            Capability::UidBatches => b"UIDBATCHES",
+            Capability::Metadata => b"METADATA",
+            Capability::MetadataServer => b"METADATA-SERVER",
+            Capability::ListMetadata => b"LIST-METADATA",
+            Capability::MessageLimit(limit) => {
+                buf.extend_from_slice(b"MESSAGELIMIT=");
+                push_int(buf, *limit);
+                return;
+            }
+            Capability::SaveLimit(limit) => {
+                buf.extend_from_slice(b"SAVELIMIT=");
+                push_int(buf, *limit);
+                return;
+            }
+        });
+    }
+
+    pub fn all_capabilities(
+        is_authenticated: bool,
+        offer_tls: bool,
+        auth: AuthCapability,
+        message_limit: u32,
+        save_limit: u32,
+    ) -> Vec<Capability> {
+        let mut capabilities = vec![
+            Capability::IMAP4rev2,
+            Capability::IMAP4rev1,
+            Capability::Enable,
+            Capability::SASLIR,
+            Capability::LiteralPlus,
+            Capability::Id,
+            Capability::Utf8Accept,
+        ];
+
+        if is_authenticated {
+            capabilities.extend([
+                Capability::JmapAccess,
+                Capability::Idle,
+                Capability::Namespace,
+                Capability::Children,
+                Capability::MultiAppend,
+                Capability::Binary,
+                Capability::Unselect,
+                Capability::ACL,
+                Capability::UIDPlus,
+                Capability::ESearch,
+                Capability::Within,
+                Capability::SearchRes,
+                Capability::Sort,
+                Capability::Thread,
+                Capability::ListExtended,
+                Capability::ListStatus,
+                Capability::ESort,
+                Capability::SortDisplay,
+                Capability::SpecialUse,
+                Capability::CreateSpecialUse,
+                Capability::Move,
+                Capability::CondStore,
+                Capability::QResync,
+                Capability::UnAuthenticate,
+                Capability::StatusSize,
+                Capability::ObjectIdPlus,
+                Capability::Preview,
+                Capability::Rights,
+                Capability::Quota,
+                Capability::QuotaResource(QuotaResourceName::Storage),
+                Capability::UidOnly,
+                Capability::UidBatches,
+                Capability::MessageLimit(message_limit),
+                Capability::SaveLimit(save_limit),
+            ]);
+        } else {
+            match auth {
+                AuthCapability::PlainAndBearer => capabilities.extend([
+                    Capability::Auth(Mechanism::Plain),
+                    Capability::Auth(Mechanism::OAuthBearer),
+                    Capability::Auth(Mechanism::XOauth2),
+                ]),
+                AuthCapability::Plain => capabilities.push(Capability::Auth(Mechanism::Plain)),
+                AuthCapability::Disabled => capabilities.push(Capability::LoginDisabled),
+            }
+        }
+        if offer_tls {
+            capabilities.push(Capability::StartTLS);
+        }
+
+        capabilities
+    }
+}
+
+impl ImapResponse for Response {
+    fn serialize_into(&self, buf: &mut Vec<u8>) {
+        buf.extend_from_slice(b"* CAPABILITY");
+        for capability in self.capabilities.iter() {
+            buf.push(b' ');
+            capability.serialize(buf);
+        }
+        buf.extend_from_slice(b"\r\n");
+    }
+
+    fn size_hint(&self) -> usize {
+        const FRAMING_LEN: usize = 16;
+        const CAPABILITY_LEN: usize = 20;
+
+        FRAMING_LEN + self.capabilities.len() * CAPABILITY_LEN
+    }
+}
+
+#[cfg(all(test, stalwart_tests))]
+#[rustfmt::skip]
+#[path = "../../../../../stalwart-tests/unit/imap-proto/src/protocol/capability/tests.rs"]
+mod tests;

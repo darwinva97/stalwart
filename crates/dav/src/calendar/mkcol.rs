@@ -1,0 +1,195 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use super::proppatch::CalendarPropPatchRequestHandler;
+use crate::{
+    DavError, DavMethod, PropStatBuilder,
+    common::{
+        ExtractETag,
+        dead::{DeadPatch, DeadTarget, DisplayName},
+        lock::{LockRequestHandler, ResourceState},
+        uri::DavUriResource,
+    },
+};
+use common::{Server, auth::AccessToken, storage::index::PresenceFlags};
+use dav_proto::{
+    RequestHeaders, Return,
+    schema::{Namespace, request::MkCol, response::MkColResponse},
+};
+use groupware::{
+    cache::GroupwareCache,
+    calendar::{CALENDAR_SUBSCRIBED, Calendar, CalendarPreferences},
+};
+use http_proto::HttpResponse;
+use hyper::StatusCode;
+use registry::schema::enums::StorageQuota;
+use store::write::BatchBuilder;
+use trc::AddContext;
+use types::{
+    collection::{Collection, SyncCollection},
+    metadata::MetadataKinds,
+};
+
+pub(crate) trait CalendarMkColRequestHandler: Sync + Send {
+    fn handle_calendar_mkcol_request(
+        &self,
+        access_token: &AccessToken,
+        headers: &RequestHeaders<'_>,
+        request: Option<MkCol>,
+    ) -> impl Future<Output = crate::Result<HttpResponse>> + Send;
+}
+
+impl CalendarMkColRequestHandler for Server {
+    async fn handle_calendar_mkcol_request(
+        &self,
+        access_token: &AccessToken,
+        headers: &RequestHeaders<'_>,
+        request: Option<MkCol>,
+    ) -> crate::Result<HttpResponse> {
+        // Validate URI
+        let resource = self
+            .validate_uri(access_token, headers.uri)
+            .await?
+            .into_owned_uri()?;
+        let account_id = resource.account_id;
+        let name = resource
+            .resource
+            .ok_or(DavError::Code(StatusCode::FORBIDDEN))?;
+        if !access_token.is_member(account_id) {
+            return Err(DavError::Code(StatusCode::FORBIDDEN));
+        }
+        let resources = self
+            .fetch_groupware_resources(
+                access_token.account_id(),
+                account_id,
+                SyncCollection::Calendar,
+            )
+            .await
+            .caused_by(trc::location!())?;
+        if name.contains('/') || resources.by_path(name).is_some() {
+            return Err(DavError::Code(StatusCode::METHOD_NOT_ALLOWED));
+        }
+
+        // Validate quota
+        self.assert_object_quota(
+            &*self.account(account_id).await?,
+            StorageQuota::MaxCalendars,
+            1,
+            || resources.resources.count(true),
+        )?;
+
+        // Validate headers
+        self.validate_headers(
+            access_token,
+            headers,
+            vec![ResourceState {
+                account_id,
+                collection: resource.collection,
+                document_id: Some(u32::MAX),
+                path: name,
+                ..Default::default()
+            }],
+            Default::default(),
+            DavMethod::MKCOL,
+        )
+        .await?;
+
+        // Build file container
+        let mut calendar = Calendar {
+            name: name.to_string(),
+            preferences: vec![CalendarPreferences {
+                account_id,
+                name: name.to_string(),
+                flags: CALENDAR_SUBSCRIBED,
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        // Apply MKCOL properties
+        let personal_id = access_token.personal_id(account_id, Collection::Calendar);
+        calendar.preferences_mut(personal_id).flags |= CALENDAR_SUBSCRIBED;
+        let mut batch = BatchBuilder::new();
+        let document_id = batch.reserve_document_id(account_id, Collection::Calendar);
+        let mut return_prop_stat = None;
+        let mut is_mkcalendar = false;
+        let mut dead_write = None;
+        if let Some(mut mkcol) = request {
+            let mut prop_stat = PropStatBuilder::default();
+            is_mkcalendar = mkcol.is_mkcalendar;
+            let dead = DeadPatch::take_values(&mut mkcol.props, DisplayName::Live);
+            self.apply_calendar_properties(
+                personal_id,
+                &mut calendar,
+                false,
+                mkcol.props,
+                &mut prop_stat,
+            );
+            dead_write = dead
+                .apply(
+                    self,
+                    DeadTarget::container(
+                        account_id,
+                        Collection::Calendar,
+                        document_id,
+                        MetadataKinds::NONE,
+                    ),
+                    &mut prop_stat,
+                )
+                .await
+                .caused_by(trc::location!())?;
+            if prop_stat.has_errors() {
+                prop_stat.fail_dependencies();
+                return Ok(HttpResponse::new(StatusCode::FORBIDDEN).with_xml_body(
+                    MkColResponse::new(prop_stat.build())
+                        .with_namespace(Namespace::CalDav)
+                        .with_mkcalendar(is_mkcalendar)
+                        .to_string(),
+                ));
+            }
+            if headers.ret != Return::Minimal {
+                return_prop_stat = Some(prop_stat);
+            }
+        }
+
+        // Prepare write batch
+        calendar.sync_owner_preferences(account_id, personal_id);
+        if let Some(dead_write) = &dead_write {
+            calendar.set_metadata_kinds(dead_write.kinds);
+        }
+        if let Some(write) = dead_write.and_then(|dead_write| dead_write.write) {
+            write
+                .build(document_id.into(), &mut batch)
+                .caused_by(trc::location!())?;
+        }
+        calendar
+            .insert(
+                access_token.changed_by(),
+                account_id,
+                document_id,
+                &mut batch,
+            )
+            .caused_by(trc::location!())?;
+        let etag = self
+            .commit_batch(batch)
+            .await
+            .caused_by(trc::location!())?
+            .etag();
+
+        if let Some(prop_stat) = return_prop_stat {
+            Ok(HttpResponse::new(StatusCode::CREATED)
+                .with_xml_body(
+                    MkColResponse::new(prop_stat.build())
+                        .with_namespace(Namespace::CalDav)
+                        .with_mkcalendar(is_mkcalendar)
+                        .to_string(),
+                )
+                .with_etag_opt(etag))
+        } else {
+            Ok(HttpResponse::new(StatusCode::CREATED).with_etag_opt(etag))
+        }
+    }
+}

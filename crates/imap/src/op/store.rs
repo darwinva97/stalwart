@@ -1,0 +1,617 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use super::{ImapContext, IntoImapError};
+use crate::core::{SelectedMailbox, Session, SessionData, rights::MailboxRights};
+use common::{
+    MessageStoreCache,
+    cache::email::MessageRef,
+    config::mailstore::limits::{EmailLimitError, EmailLimits},
+    network::SessionStream,
+};
+use compact_str::{CompactString, format_compact};
+use email::{
+    cache::{
+        MessageCacheFetch,
+        email::{KeywordWrites, MessageCacheAccess},
+    },
+    mailbox::TRASH_ID,
+    message::{
+        ingest::{EmailIngest, SpamSamples},
+        messagedata::{KeywordDiff, SERVER_SET_KEYWORDS, merge_keywords},
+    },
+};
+use imap_proto::{
+    Command, ResponseCode, ResponseType, StatusResponse,
+    protocol::{
+        Flag, ImapResponse,
+        fetch::{DataItem, FetchItem},
+        select::PermanentFlags,
+        store::{Arguments, Operation, Response},
+    },
+    receiver::Request,
+};
+use registry::schema::enums::Permission;
+use std::{sync::Arc, time::Instant};
+use store::write::{BatchBuilder, PendingId};
+use tokio::sync::OwnedSemaphorePermit;
+use trc::AddContext;
+use types::{
+    collection::{Collection, SyncCollection},
+    keyword::{DELETED, Keyword},
+};
+
+impl<T: SessionStream> Session<T> {
+    pub async fn handle_store(
+        &mut self,
+        request: Request<Command>,
+        is_uid: bool,
+        _permit: Option<OwnedSemaphorePermit>,
+    ) -> trc::Result<()> {
+        // Validate access
+        self.assert_has_permission(Permission::ImapStore)?;
+
+        let op_start = Instant::now();
+        let arguments = request.parse_store()?;
+        let (data, mailbox) = self.state.select_data();
+        let is_condstore = self.is_condstore || mailbox.is_condstore;
+        let is_uidonly = self.is_uidonly;
+        let message_limit = self.server.core.imap.max_messages_per_command;
+
+        let response = data
+            .store(
+                arguments,
+                mailbox,
+                is_uid,
+                is_condstore,
+                is_uidonly,
+                message_limit,
+                op_start,
+            )
+            .await?;
+
+        data.write_bytes(response).await
+    }
+}
+
+const DELETED_BIT: u32 = 1 << DELETED;
+
+#[derive(Default)]
+struct KeywordEdit {
+    added: u32,
+    removed: u32,
+    added_extra: Vec<CompactString>,
+    removed_extra: Vec<CompactString>,
+}
+
+impl KeywordEdit {
+    fn compute(
+        cache: &MessageStoreCache,
+        message: MessageRef<'_>,
+        operation: &Operation,
+        keywords: &[Keyword],
+    ) -> Self {
+        let mut edit = KeywordEdit::default();
+        match operation {
+            Operation::Set => {
+                edit.add_missing(cache, message, keywords);
+                for keyword in cache.expand_keywords(message).filter(|keyword| {
+                    !matches!(keyword, Keyword::HasAttachment | Keyword::HasNoAttachment)
+                        && !keywords.contains(keyword)
+                }) {
+                    match keyword.into_id() {
+                        Ok(id) => edit.removed |= 1 << id,
+                        Err(name) => edit.removed_extra.push(name),
+                    }
+                }
+            }
+            Operation::Add => {
+                edit.add_missing(cache, message, keywords);
+            }
+            Operation::Clear => {
+                for keyword in keywords
+                    .iter()
+                    .filter(|keyword| cache.has_keyword(message, keyword))
+                {
+                    match keyword.id() {
+                        Ok(id) => edit.removed |= 1 << id,
+                        Err(name) => edit.removed_extra.push(name.into()),
+                    }
+                }
+            }
+        }
+        edit
+    }
+
+    fn restrict(&mut self, rights: PermanentFlags) {
+        match rights {
+            PermanentFlags::All => {}
+            PermanentFlags::AllButDeleted => {
+                self.added &= !DELETED_BIT;
+                self.removed &= !DELETED_BIT;
+            }
+            PermanentFlags::DeletedOnly => {
+                self.added &= DELETED_BIT;
+                self.removed &= DELETED_BIT;
+                self.added_extra.clear();
+                self.removed_extra.clear();
+            }
+            PermanentFlags::None => *self = KeywordEdit::default(),
+        }
+    }
+
+    fn add_missing(
+        &mut self,
+        cache: &MessageStoreCache,
+        message: MessageRef<'_>,
+        keywords: &[Keyword],
+    ) {
+        for keyword in keywords
+            .iter()
+            .filter(|keyword| !cache.has_keyword(message, keyword))
+        {
+            match keyword.id() {
+                Ok(id) => self.added |= 1 << id,
+                Err(name) => self.added_extra.push(name.into()),
+            }
+        }
+    }
+
+    fn net_change(&self) -> isize {
+        ((self.added & !SERVER_SET_KEYWORDS).count_ones() as isize
+            + self.added_extra.len() as isize)
+            - ((self.removed & !SERVER_SET_KEYWORDS).count_ones() as isize
+                + self.removed_extra.len() as isize)
+    }
+
+    fn validate_limits(
+        &self,
+        cache: &MessageStoreCache,
+        message: MessageRef<'_>,
+        limits: &EmailLimits,
+    ) -> Result<(), EmailLimitError> {
+        if self.added & !SERVER_SET_KEYWORDS == 0 && self.added_extra.is_empty() {
+            return Ok(());
+        }
+        let prev_count = cache.keyword_count(message);
+        limits.validate_keyword_change(
+            prev_count,
+            prev_count.saturating_add_signed(self.net_change()),
+        )?;
+        limits.validate_keyword_names(self.added_extra.iter().map(|name| name.as_str()))
+    }
+
+    fn is_empty(&self) -> bool {
+        self.added == 0
+            && self.removed == 0
+            && self.added_extra.is_empty()
+            && self.removed_extra.is_empty()
+    }
+
+    fn adds(&self, keyword: &Keyword) -> bool {
+        match keyword.id() {
+            Ok(id) => self.added & (1 << id) != 0,
+            Err(name) => self.added_extra.iter().any(|extra| extra == name),
+        }
+    }
+
+    fn removes(&self, keyword: &Keyword) -> bool {
+        match keyword.id() {
+            Ok(id) => self.removed & (1 << id) != 0,
+            Err(name) => self.removed_extra.iter().any(|extra| extra == name),
+        }
+    }
+
+    fn spam_training(&self, message: MessageRef<'_>) -> Option<bool> {
+        if self.adds(&Keyword::Junk) {
+            Some(true)
+        } else if !message.has_mailbox_id(TRASH_ID)
+            && (self.adds(&Keyword::NotJunk) || self.removes(&Keyword::Junk))
+        {
+            Some(false)
+        } else {
+            None
+        }
+    }
+
+    fn flags(
+        &self,
+        cache: &MessageStoreCache,
+        message: MessageRef<'_>,
+        keywords: &[Keyword],
+    ) -> Vec<Flag> {
+        cache
+            .expand_keywords(message)
+            .filter(|keyword| !self.removes(keyword))
+            .chain(
+                keywords
+                    .iter()
+                    .filter(|keyword| self.adds(keyword))
+                    .cloned(),
+            )
+            .map(Flag::from)
+            .collect()
+    }
+
+    fn into_diff(
+        self,
+        operation: &Operation,
+        keywords: &[Keyword],
+        rights: PermanentFlags,
+    ) -> KeywordDiff {
+        if *operation == Operation::Set && rights == PermanentFlags::All {
+            KeywordDiff::replace(keywords.to_vec())
+        } else {
+            KeywordDiff::Patch {
+                added: self.added,
+                removed: self.removed,
+                added_extra: self.added_extra,
+                removed_extra: self.removed_extra,
+            }
+        }
+    }
+}
+
+impl<T: SessionStream> SessionData<T> {
+    #[allow(clippy::too_many_arguments)]
+    pub async fn store(
+        &self,
+        arguments: Arguments,
+        mailbox: Arc<SelectedMailbox>,
+        is_uid: bool,
+        is_condstore: bool,
+        is_uidonly: bool,
+        message_limit: u32,
+        op_start: Instant,
+    ) -> trc::Result<Vec<u8>> {
+        // Resync messages if needed
+        let account_id = mailbox.id.account_id;
+        let cache = self
+            .server
+            .get_cached_messages(account_id)
+            .await
+            .imap_ctx(&arguments.tag, trc::location!())?;
+        self.sync_view(&mailbox, &cache, None)
+            .await
+            .imap_ctx(&arguments.tag, trc::location!())?;
+
+        // Convert IMAP ids to JMAP ids.
+        let mut ids = mailbox
+            .resolve(&arguments.sequence_set, is_uid)
+            .await
+            .imap_ctx(&arguments.tag, trc::location!())?;
+        if ids.is_empty() {
+            return Ok(StatusResponse::completed(Command::Store(is_uid))
+                .with_tag(arguments.tag)
+                .into_bytes());
+        }
+
+        // Verify that the user can modify messages in this mailbox.
+        let access_token = self
+            .refresh_access_token()
+            .await
+            .imap_ctx(&arguments.tag, trc::location!())?;
+        let mut rights = MailboxRights::new(&access_token, account_id);
+        if !rights
+            .permanent_flags(&cache, [mailbox.id.mailbox_id])
+            .permits_any(&arguments.operation, &arguments.keywords)
+        {
+            return Err(trc::ImapEvent::Error
+                .into_err()
+                .details(
+                    "You do not have the required permissions to modify messages in this mailbox.",
+                )
+                .id(arguments.tag)
+                .code(ResponseCode::NoPerm)
+                .caused_by(trc::location!()));
+        }
+
+        // Filter out unchanged since ids
+        let mut response_code = None;
+        let mut unchanged_failed = false;
+        if let Some(unchanged_since) = arguments.unchanged_since {
+            let (mut modified, expunged) =
+                mailbox.missing_in(&arguments.sequence_set, is_uid).await;
+            unchanged_failed = expunged && !is_uid;
+
+            ids.retain(|resolved| {
+                let is_modified = cache
+                    .email_by_id(&resolved.id)
+                    .is_none_or(|message| message.change_id() >= unchanged_since);
+                if is_modified {
+                    let imap_id = resolved.imap_id(is_uid);
+                    modified.push((imap_id, imap_id));
+                }
+                !is_modified
+            });
+
+            if !modified.is_empty() {
+                modified.sort_unstable();
+                modified.dedup_by(|next, prev| {
+                    if next.0 <= prev.1.saturating_add(1) {
+                        prev.1 = prev.1.max(next.1);
+                        true
+                    } else {
+                        false
+                    }
+                });
+                response_code = ResponseCode::Modified { ranges: modified }.into();
+            }
+        }
+
+        // Build response
+        let mut response = if !unchanged_failed {
+            StatusResponse::completed(Command::Store(is_uid))
+        } else {
+            StatusResponse::no("Some of the messages no longer exist.")
+        }
+        .with_tag(arguments.tag);
+        if let Some(response_code) = response_code {
+            response = response.with_code(response_code)
+        }
+        if ids.is_empty() {
+            trc::event!(
+                Imap(trc::ImapEvent::Store),
+                SpanId = self.session_id,
+                AccountId = mailbox.id.account_id,
+                MailboxId = mailbox.id.mailbox_id,
+                Type = format_compact!("{:?}", arguments.operation),
+                Details = arguments
+                    .keywords
+                    .iter()
+                    .map(|c| trc::Value::from(format_compact!("{c:?}")))
+                    .collect::<Vec<_>>(),
+                Elapsed = op_start.elapsed()
+            );
+
+            return Ok(response.into_bytes());
+        }
+
+        // RFC 9738 requires the highest UIDs to be processed first when truncating.
+        let message_limit = message_limit as usize;
+        let mut untagged = Vec::new();
+        if ids.len() > message_limit {
+            let cutoff = ids.len() - message_limit;
+            ids.select_nth_unstable_by_key(cutoff, |resolved| resolved.uid);
+            ids.drain(..cutoff);
+            ids.sort_unstable_by_key(|resolved| resolved.uid);
+            let lowest_uid = ids.first().map_or(0, |resolved| resolved.uid);
+
+            let code = ResponseCode::MessageLimit {
+                limit: message_limit as u32,
+                uid: lowest_uid.into(),
+            };
+            if response.code.is_none() {
+                response = response.with_code(code);
+            } else {
+                untagged = StatusResponse::ok("Some messages were not modified.")
+                    .with_code(code)
+                    .into_bytes();
+            }
+        }
+
+        let mut items = Response {
+            items: Vec::with_capacity(ids.len()),
+        };
+
+        // Process each change
+        let set_keywords = arguments
+            .keywords
+            .iter()
+            .map(|keyword| Keyword::from(keyword.clone()))
+            .collect::<Vec<_>>();
+        let mut changed_mailboxes: Vec<u32> = Vec::new();
+        let mut unchanged = Vec::new();
+        let is_unchanged_since = arguments.unchanged_since.is_some();
+        let mut batch = BatchBuilder::new();
+        let mut spam_samples = SpamSamples::default();
+        let mut writes = self
+            .server
+            .core
+            .storage
+            .data
+            .is_embedded()
+            .then(|| KeywordWrites::with_capacity(ids.len()));
+
+        for resolved in &ids {
+            // Obtain message data
+            let Some(message) = cache.email_by_id(&resolved.id) else {
+                continue;
+            };
+
+            // Apply changes
+            let mut edit =
+                KeywordEdit::compute(&cache, message, &arguments.operation, &set_keywords);
+            let is_requested = !edit.is_empty();
+            let message_rights = rights.permanent_flags(
+                &cache,
+                message
+                    .mailboxes()
+                    .iter()
+                    .map(|membership| membership.mailbox_id),
+            );
+            edit.restrict(message_rights);
+            if edit.is_empty() {
+                if (is_requested && !arguments.is_silent) || is_unchanged_since {
+                    let mut data_items = Vec::with_capacity(3);
+                    if !arguments.is_silent {
+                        data_items.push(DataItem::Flags {
+                            flags: edit.flags(&cache, message, &set_keywords),
+                        });
+                    }
+                    if is_uid {
+                        data_items.push(DataItem::Uid { uid: resolved.uid });
+                    }
+                    if is_condstore || is_unchanged_since {
+                        data_items.push(DataItem::ModSeq {
+                            modseq: message.change_id() + 1,
+                        });
+                    }
+                    unchanged.push(FetchItem {
+                        id: resolved.imap_id(is_uidonly),
+                        is_uidonly,
+                        items: data_items,
+                    });
+                }
+                continue;
+            }
+            if let Err(err) = edit.validate_limits(&cache, message, &self.server.core.email.limits)
+            {
+                return Err(err.into_imap_error().id(response.tag.unwrap_or_default()));
+            }
+
+            // Train spam filter
+            let train_spam = edit.spam_training(message);
+
+            // Convert keywords to flags
+            let flags = if !arguments.is_silent {
+                edit.flags(&cache, message, &set_keywords)
+            } else {
+                vec![]
+            };
+
+            // Set all current mailboxes as changed if the Seen tag changed
+            if edit.adds(&Keyword::Seen) || edit.removes(&Keyword::Seen) {
+                for membership in message.mailboxes() {
+                    if !changed_mailboxes.contains(&membership.mailbox_id) {
+                        changed_mailboxes.push(membership.mailbox_id);
+                    }
+                }
+            }
+
+            // Write changes
+            batch
+                .with_account_id(account_id)
+                .with_collection(Collection::Email)
+                .with_document(resolved.id);
+            let diff = edit.into_diff(&arguments.operation, &set_keywords, message_rights);
+            if let Some(pending) = &mut writes
+                && !pending.push(message, &diff, batch.commit_point_count())
+            {
+                writes = None;
+            }
+            merge_keywords(&mut batch, message.thread_id(), diff);
+
+            // Add spam train task
+            if let Some(learn_spam) = train_spam {
+                spam_samples.add(resolved.id, learn_spam);
+            }
+
+            // Set commit point
+            batch.commit_point();
+
+            // Add item to response
+            if !arguments.is_silent {
+                let mut data_items = vec![DataItem::Flags { flags }];
+                if is_uid {
+                    data_items.push(DataItem::Uid { uid: resolved.uid });
+                }
+                items.items.push(FetchItem {
+                    id: resolved.imap_id(is_uidonly),
+                    is_uidonly,
+                    items: data_items,
+                });
+            } else if is_condstore {
+                items.items.push(FetchItem {
+                    id: resolved.imap_id(is_uidonly),
+                    is_uidonly,
+                    items: if is_uid {
+                        vec![DataItem::Uid { uid: resolved.uid }]
+                    } else {
+                        vec![]
+                    },
+                });
+            }
+        }
+
+        if let Some(pending) = &mut writes {
+            if !spam_samples.is_empty() {
+                writes = None;
+            } else if !changed_mailboxes.is_empty() {
+                pending.set_mailboxes_changed();
+            }
+        }
+        self.server
+            .add_account_spam_samples(&mut batch, account_id, spam_samples, self.session_id)
+            .await
+            .imap_ctx(
+                response.tag.as_deref().unwrap_or_default(),
+                trc::location!(),
+            )?;
+
+        // Log mailbox changes
+        for parent_id in changed_mailboxes {
+            batch.log_container_property_change(
+                SyncCollection::Email,
+                PendingId::Assigned(parent_id),
+            );
+        }
+
+        // Write changes
+        if !batch.is_empty() {
+            match self
+                .server
+                .commit_batch(batch)
+                .await
+                .caused_by(trc::location!())
+            {
+                Ok(assigned_ids) => {
+                    if let Some(writes) = &writes {
+                        self.server
+                            .apply_keyword_writes(account_id, &cache, writes, &assigned_ids);
+                    }
+                    if is_condstore {
+                        let modseq =
+                            assigned_ids.last_change_id(account_id, SyncCollection::Email) + 1;
+                        for item in items.items.iter_mut() {
+                            item.items.push(DataItem::ModSeq { modseq });
+                        }
+                    }
+                }
+                Err(err) if err.is_assertion_failure() => {
+                    items.items.clear();
+                    response.rtype = ResponseType::No;
+                    response.message = "Some messages were modified by another process.".into();
+                }
+                Err(err) => {
+                    return Err(err.id(response.tag.unwrap()));
+                }
+            }
+        }
+        items.items.extend(unchanged);
+
+        trc::event!(
+            Imap(trc::ImapEvent::Store),
+            SpanId = self.session_id,
+            AccountId = mailbox.id.account_id,
+            MailboxId = mailbox.id.mailbox_id,
+            DocumentId = ids
+                .iter()
+                .map(|resolved| trc::Value::from(resolved.id))
+                .collect::<Vec<_>>(),
+            Type = format_compact!("{:?}", arguments.operation),
+            Details = arguments
+                .keywords
+                .iter()
+                .map(|c| trc::Value::from(format_compact!("{c:?}")))
+                .collect::<Vec<_>>(),
+            Elapsed = op_start.elapsed()
+        );
+
+        // Send response
+        Ok(if untagged.is_empty() {
+            response.serialize_after(&items)
+        } else {
+            items.serialize_into(&mut untagged);
+            response.serialize(untagged)
+        })
+    }
+}
+
+#[cfg(all(test, stalwart_tests))]
+#[rustfmt::skip]
+#[path = "../../../../../stalwart-tests/unit/imap/src/op/store/tests.rs"]
+mod tests;

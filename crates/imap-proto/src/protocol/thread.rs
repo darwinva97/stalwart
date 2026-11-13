@@ -1,0 +1,62 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+use crate::protocol::push_int;
+use compact_str::CompactString;
+
+use super::{ImapResponse, search::Filter};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Arguments {
+    pub tag: CompactString,
+    pub filter: Vec<Filter>,
+    pub algorithm: Algorithm,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Algorithm {
+    OrderedSubject,
+    References,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Response {
+    pub is_uid: bool,
+    pub threads: Vec<Vec<u32>>,
+}
+
+impl ImapResponse for Response {
+    fn serialize_into(&self, buf: &mut Vec<u8>) {
+        buf.extend_from_slice(b"* THREAD ");
+        for thread in &self.threads {
+            buf.push(b'(');
+            for (pos, id) in thread.iter().enumerate() {
+                if pos > 0 {
+                    buf.push(b' ');
+                }
+                push_int(buf, *id);
+            }
+            buf.push(b')');
+        }
+        buf.extend_from_slice(b"\r\n");
+    }
+
+    fn size_hint(&self) -> usize {
+        const FRAMING_LEN: usize = 12;
+        const ID_LEN: usize = 11;
+
+        FRAMING_LEN
+            + self
+                .threads
+                .iter()
+                .map(|thread| 2 + thread.len() * ID_LEN)
+                .sum::<usize>()
+    }
+}
+
+#[cfg(all(test, stalwart_tests))]
+#[rustfmt::skip]
+#[path = "../../../../../stalwart-tests/unit/imap-proto/src/protocol/thread/tests.rs"]
+mod tests;

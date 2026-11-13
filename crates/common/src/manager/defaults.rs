@@ -1,0 +1,661 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use crate::auth::permissions::DefaultPermissions;
+use aws_lc_rs::{
+    rand::SystemRandom,
+    signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair},
+};
+use registry::{
+    schema::{
+        enums::*,
+        prelude::{Id, Object, ObjectType, SocketAddr},
+        structs::*,
+    },
+    types::{EnumImpl, duration::Duration, error::Error, id::ObjectId, list::List, map::Map},
+};
+use std::str::FromStr;
+use store::{
+    rand::{RngExt, distr::Alphanumeric, rng},
+    registry::{
+        bootstrap::Bootstrap,
+        write::{RegistryWrite, RegistryWriteResult},
+    },
+};
+
+pub const ASN_IPV4: &str =
+    "https://github.com/sapics/ip-location-db/releases/download/latest/origin-asn-ipv4.csv";
+pub const ASN_IPV6: &str =
+    "https://github.com/sapics/ip-location-db/releases/download/latest/origin-asn-ipv6.csv";
+pub const GEO_IPV4: &str =
+    "https://github.com/sapics/ip-location-db/releases/download/latest/user-country-ipv4.csv";
+pub const GEO_IPV6: &str =
+    "https://github.com/sapics/ip-location-db/releases/download/latest/user-country-ipv6.csv";
+
+pub trait BootstrapDefaults {
+    fn insert_safe_defaults(&mut self) -> impl Future<Output = ()> + Send;
+}
+
+impl BootstrapDefaults for Bootstrap {
+    async fn insert_safe_defaults(&mut self) {
+        if let Err(error) = insert_safe_defaults(self).await {
+            self.errors.push(Error::Internal {
+                object_id: None,
+                error,
+            });
+        }
+    }
+}
+
+async fn insert_safe_defaults(bp: &mut Bootstrap) -> trc::Result<()> {
+    let is_recovery_mode = bp.registry.is_recovery_mode();
+    let is_bootstrap_mode = bp.registry.is_bootstrap_mode();
+
+    #[cfg(not(stalwart_tests))]
+    if bp.registry.count_object(ObjectType::Application).await? == 0 {
+        bp.registry
+            .write(RegistryWrite::insert(
+                &Application {
+                    description: "Stalwart Web Interface".to_string(),
+                    enable: true,
+                    #[cfg(not(feature = "dev_mode"))]
+                    resource_url:
+                        "https://github.com/stalwartlabs/webui/releases/download/v2/webui.zip"
+                            .into(),
+                    #[cfg(feature = "dev_mode")]
+                    resource_url: "file://../webui/.ignore/webui.zip".into(),
+                    url_prefix: Map::new(vec!["/admin".into(), "/account".into()]),
+                    ..Default::default()
+                }
+                .into(),
+            ))
+            .await?;
+    }
+
+    if is_bootstrap_mode {
+        #[cfg(not(any(feature = "dev_mode", stalwart_tests)))]
+        if bp.registry.count_object(ObjectType::SystemSettings).await? == 0 {
+            bp.registry
+                .write(RegistryWrite::insert(
+                    &SystemSettings {
+                        default_hostname: bp.registry.local_hostname().to_string(),
+                        ..Default::default()
+                    }
+                    .into(),
+                ))
+                .await?;
+        }
+
+        return insert_oidc_provider(bp).await;
+    }
+
+    if is_recovery_mode {
+        return insert_oidc_provider(bp).await;
+    }
+
+    if bp.registry.count_object(ObjectType::MtaQueueQuota).await? == 0 {
+        bp.registry
+            .write(RegistryWrite::insert(
+                &MtaQueueQuota {
+                    description: "Global queue quota".to_string().into(),
+                    enable: true,
+                    messages: 100000.into(),
+                    size: 10737418240.into(),
+                    ..Default::default()
+                }
+                .into(),
+            ))
+            .await?;
+    }
+
+    if bp
+        .registry
+        .count_object(ObjectType::MtaInboundThrottle)
+        .await?
+        == 0
+    {
+        for object in [
+            MtaInboundThrottle {
+                description: "Sender IP throttle".to_string(),
+                enable: true,
+                key: Map::new(vec![MtaInboundThrottleKey::RemoteIp]),
+                rate: Rate {
+                    count: 5,
+                    period: Duration::from_millis(1000),
+                },
+                ..Default::default()
+            },
+            MtaInboundThrottle {
+                description: "Sender address to recipient throttle".to_string(),
+                enable: true,
+                key: Map::new(vec![
+                    MtaInboundThrottleKey::SenderDomain,
+                    MtaInboundThrottleKey::Rcpt,
+                ]),
+                rate: Rate {
+                    count: 25,
+                    period: Duration::from_millis(60 * 60 * 1000),
+                },
+                ..Default::default()
+            },
+        ] {
+            bp.registry
+                .write(RegistryWrite::insert(&object.into()))
+                .await?;
+        }
+    }
+
+    if bp
+        .registry
+        .count_object(ObjectType::MtaVirtualQueue)
+        .await?
+        == 0
+        && bp
+            .registry
+            .count_object(ObjectType::MtaDeliverySchedule)
+            .await?
+            == 0
+    {
+        for (id, object) in [
+            MtaVirtualQueue {
+                description: "Local delivery queue".to_string().into(),
+                name: "local".into(),
+                threads_per_node: 25,
+            },
+            MtaVirtualQueue {
+                description: "Remote delivery queue".to_string().into(),
+                name: "remote".into(),
+                threads_per_node: 50,
+            },
+            MtaVirtualQueue {
+                description: "Delivery Status Notification delivery queue"
+                    .to_string()
+                    .into(),
+                name: "dsn".into(),
+                threads_per_node: 16,
+            },
+            MtaVirtualQueue {
+                description: "DMARC and TLS report delivery queue".to_string().into(),
+                name: "report".into(),
+                threads_per_node: 8,
+            },
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            bp.registry
+                .write(RegistryWrite::insert_with_id(
+                    (id as u64).into(),
+                    &object.into(),
+                ))
+                .await?;
+        }
+
+        for (id, object) in [
+            MtaDeliverySchedule {
+                name: "local".into(),
+                description: "Local delivery schedule".to_string().into(),
+                expiry: MtaDeliveryExpiration::Ttl(MtaDeliveryExpirationTtl {
+                    expire: Duration::from_millis(3 * 24 * 60 * 60 * 1000),
+                }),
+                notify: MtaDeliveryScheduleIntervalsOrDefault::Default,
+                retry: MtaDeliveryScheduleIntervalsOrDefault::Default,
+                queue_id: 0u64.into(),
+            },
+            MtaDeliverySchedule {
+                name: "remote".into(),
+                description: "Remote delivery schedule".to_string().into(),
+                expiry: MtaDeliveryExpiration::Ttl(MtaDeliveryExpirationTtl {
+                    expire: Duration::from_millis(3 * 24 * 60 * 60 * 1000),
+                }),
+                notify: MtaDeliveryScheduleIntervalsOrDefault::Default,
+                retry: MtaDeliveryScheduleIntervalsOrDefault::Default,
+                queue_id: 1u64.into(),
+            },
+            MtaDeliverySchedule {
+                name: "dsn".into(),
+                description: "Delivery Status Notification delivery schedule"
+                    .to_string()
+                    .into(),
+                expiry: MtaDeliveryExpiration::Attempts(MtaDeliveryExpirationAttempts {
+                    max_attempts: 10,
+                }),
+                notify: MtaDeliveryScheduleIntervalsOrDefault::Default,
+                retry: MtaDeliveryScheduleIntervalsOrDefault::Custom(
+                    MtaDeliveryScheduleIntervals {
+                        intervals: List::from_iter([
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(15 * 60 * 1000),
+                            },
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(30 * 60 * 1000),
+                            },
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(60 * 60 * 1000),
+                            },
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(2 * 60 * 60 * 1000),
+                            },
+                        ]),
+                    },
+                ),
+                queue_id: 2u64.into(),
+            },
+            MtaDeliverySchedule {
+                name: "report".into(),
+                description: "DMARC and TLS report delivery schedule".to_string().into(),
+                expiry: MtaDeliveryExpiration::Attempts(MtaDeliveryExpirationAttempts {
+                    max_attempts: 8,
+                }),
+                notify: MtaDeliveryScheduleIntervalsOrDefault::Default,
+                retry: MtaDeliveryScheduleIntervalsOrDefault::Custom(
+                    MtaDeliveryScheduleIntervals {
+                        intervals: List::from_iter([
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(30 * 60 * 1000),
+                            },
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(60 * 60 * 1000),
+                            },
+                            MtaDeliveryScheduleInterval {
+                                duration: Duration::from_millis(2 * 60 * 60 * 1000),
+                            },
+                        ]),
+                    },
+                ),
+                queue_id: 3u64.into(),
+            },
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            bp.registry
+                .write(RegistryWrite::insert_with_id(
+                    (id as u64).into(),
+                    &object.into(),
+                ))
+                .await?;
+        }
+    }
+
+    if bp.registry.count_object(ObjectType::MtaTlsStrategy).await? == 0 {
+        for object in [
+            MtaTlsStrategy {
+                name: "invalid-tls".into(),
+                description: "Allow invalid TLS certificates".to_string().into(),
+                allow_invalid_certs: true,
+                ..Default::default()
+            },
+            MtaTlsStrategy {
+                name: "default".into(),
+                description: "Default TLS settings".to_string().into(),
+                allow_invalid_certs: false,
+                ..Default::default()
+            },
+        ] {
+            bp.registry
+                .write(RegistryWrite::insert(&object.into()))
+                .await?;
+        }
+    }
+
+    if bp.registry.count_object(ObjectType::MtaRoute).await? == 0 {
+        for object in [
+            MtaRoute::Mx(MtaRouteMx {
+                description: "MX delivery route".to_string().into(),
+                ip_lookup_strategy: MtaIpStrategy::V4ThenV6,
+                max_multihomed: 2,
+                max_mx_hosts: 2,
+                name: "mx".into(),
+            }),
+            MtaRoute::Local(MtaRouteCommon {
+                description: "Local delivery route".to_string().into(),
+                name: "local".into(),
+            }),
+        ] {
+            bp.registry
+                .write(RegistryWrite::insert(&object.into()))
+                .await?;
+        }
+    }
+
+    if bp
+        .registry
+        .count_object(ObjectType::MtaConnectionStrategy)
+        .await?
+        == 0
+    {
+        bp.registry
+            .write(RegistryWrite::insert(
+                &MtaConnectionStrategy {
+                    name: "default".into(),
+                    description: "Default connection strategy".to_string().into(),
+                    ..Default::default()
+                }
+                .into(),
+            ))
+            .await?;
+    }
+
+    insert_oidc_provider(bp).await?;
+
+    // Generate a Web Push VAPID signing key (RFC 9749)
+    if bp.registry.count_object(ObjectType::Jmap).await? == 0 {
+        match crate::network::webpush::generate_pkcs8_pem() {
+            Ok(web_push_pem) => {
+                bp.registry
+                    .write(RegistryWrite::insert(
+                        &Jmap {
+                            web_push_key: SecretTextOptional::Text(SecretTextValue {
+                                secret: web_push_pem,
+                            }),
+                            ..Default::default()
+                        }
+                        .into(),
+                    ))
+                    .await?;
+            }
+            Err(err) => {
+                trc::event!(
+                    Server(trc::ServerEvent::Startup),
+                    Details = "Failed to generate Web Push VAPID key",
+                    Reason = err
+                );
+            }
+        }
+    }
+
+    if bp.registry.count_object(ObjectType::Role).await? == 0 {
+        let permissions = DefaultPermissions::default();
+        let roles = [
+            Role {
+                description: "User".into(),
+                enabled_permissions: Map::new(permissions.user),
+                ..Default::default()
+            },
+            Role {
+                description: "Group".into(),
+                enabled_permissions: Map::new(permissions.group),
+                ..Default::default()
+            },
+            // [fragmento SEL eliminado: 10 líneas]
+            Role {
+                description: "System Administrator".into(),
+                enabled_permissions: Map::new(permissions.superuser),
+                ..Default::default()
+            },
+        ];
+        let num_roles = roles.len();
+        let mut role_ids = Vec::with_capacity(num_roles);
+
+        for role in roles {
+            match bp
+                .registry
+                .write(RegistryWrite::insert(&role.into()))
+                .await?
+            {
+                RegistryWriteResult::Success(id) => role_ids.push(id),
+                err => {
+                    bp.build_error(
+                        ObjectType::Role.singleton(),
+                        format!("Failed to insert default role: {err}"),
+                    );
+                }
+            }
+        }
+
+        if role_ids.len() == num_roles {
+            let object_id = ObjectType::Authentication.singleton();
+            let old_object = bp.registry.get(object_id).await?;
+            let mut authentication = old_object
+                .as_ref()
+                .map(|old_object| Authentication::from(old_object.clone()))
+                .unwrap_or_default();
+            authentication.default_user_role_ids = Map::new(vec![role_ids[0]]);
+            authentication.default_group_role_ids = Map::new(vec![role_ids[1]]);
+            // [fragmento SEL eliminado: 8 líneas]
+            authentication.default_admin_role_ids =
+                Map::new(vec![role_ids[num_roles - 1], role_ids[0]]);
+
+            let result = match &old_object {
+                Some(old_object) => {
+                    let new_object = Object {
+                        inner: authentication.into(),
+                        revision: old_object.revision,
+                    };
+                    bp.registry
+                        .write(RegistryWrite::update(
+                            Id::singleton(),
+                            &new_object,
+                            old_object,
+                        ))
+                        .await?
+                }
+                None => {
+                    bp.registry
+                        .write(RegistryWrite::insert(&authentication.into()))
+                        .await?
+                }
+            };
+            if !matches!(result, RegistryWriteResult::Success(_)) {
+                bp.build_error(
+                    object_id,
+                    format!("Failed to assign default roles: {result}"),
+                );
+            }
+        }
+    } else if bp.registry.update_role_permissions() {
+        update_role_permissions(bp).await?;
+    }
+
+    if bp
+        .registry
+        .count_object(ObjectType::NetworkListener)
+        .await?
+        == 0
+    {
+        for (protocol, name, port, implicit_tls) in [
+            (NetworkListenerProtocol::Smtp, "smtp", 25, false),
+            (NetworkListenerProtocol::Smtp, "submissions", 465, true),
+            (NetworkListenerProtocol::Imap, "imaps", 993, true),
+            (NetworkListenerProtocol::Pop3, "pop3s", 995, true),
+            (NetworkListenerProtocol::ManageSieve, "sieve", 4190, false),
+            (NetworkListenerProtocol::Http, "https", 443, true),
+            (NetworkListenerProtocol::Http, "http", 8080, false),
+        ] {
+            bp.registry
+                .write(RegistryWrite::insert(
+                    &NetworkListener {
+                        bind: Map::new(vec![
+                            SocketAddr::from_str(&format!("[::]:{port}")).unwrap(),
+                        ]),
+                        name: name.to_string(),
+                        protocol,
+                        use_tls: true,
+                        implicit_tls,
+                        ..Default::default()
+                    }
+                    .into(),
+                ))
+                .await?;
+        }
+    }
+
+    #[cfg(not(any(feature = "dev_mode", stalwart_tests)))]
+    if bp.registry.count_object(ObjectType::Asn).await? == 0 {
+        bp.registry
+            .write(RegistryWrite::insert(
+                &Asn::Resource(AsnResource {
+                    asn_urls: Map::new(vec![ASN_IPV4.into(), ASN_IPV6.into()]),
+                    geo_urls: Map::new(vec![GEO_IPV4.into(), GEO_IPV6.into()]),
+                    max_size: 104857600,
+                    refresh_interval: Duration::from_millis(24 * 60 * 60 * 1000),
+                    timeout: Duration::from_millis(5 * 60 * 1000),
+                    ..Default::default()
+                })
+                .into(),
+            ))
+            .await?;
+    }
+
+    // [fragmento SEL eliminado: 19 líneas]
+
+    if bp.registry.count_object(ObjectType::Tracer).await? == 0 {
+        bp.registry
+            .write(RegistryWrite::insert(
+                &Tracer::Log(TracerLog {
+                    enable: true,
+                    ansi: false,
+                    prefix: "stalwart.log".into(),
+                    rotate: LogRotateFrequency::Daily,
+                    path: "/var/log/stalwart".into(),
+                    ..Default::default()
+                })
+                .into(),
+            ))
+            .await?;
+    }
+
+    #[cfg(not(stalwart_tests))]
+    {
+        use store::write::BatchBuilder;
+        use types::id::Id;
+
+        if bp.registry.count_object(ObjectType::SpamRule).await? == 0
+            && bp
+                .registry
+                .object::<SpamSettings>(Id::singleton())
+                .await?
+                .is_none_or(|spam| spam.spam_filter_rules_url.is_some())
+        {
+            let mut batch = BatchBuilder::new();
+            batch.schedule_task(Task::SpamFilterMaintenance(TaskSpamFilterMaintenance {
+                maintenance_type: TaskSpamFilterMaintenanceType::UpdateRules,
+                status: TaskStatus::now(),
+            }));
+            bp.data_store.write_batch(&mut batch).await?;
+        }
+    }
+
+    Ok(())
+}
+
+const V1_0_0_LAST_PERMISSION: Permission = Permission::SysWebHookQuery;
+
+async fn update_role_permissions(bp: &mut Bootstrap) -> trc::Result<()> {
+    let authentication = bp.setting::<Authentication>().await?;
+    let permissions = DefaultPermissions::default();
+    let mut roles: Vec<(Id, &[Permission])> = Vec::new();
+
+    for (role_ids, defaults) in [
+        (
+            authentication.default_user_role_ids.as_slice(),
+            permissions.user.as_slice(),
+        ),
+        (
+            authentication.default_group_role_ids.as_slice(),
+            permissions.group.as_slice(),
+        ),
+        // [fragmento SEL eliminado: 9 líneas]
+        (
+            authentication.default_admin_role_ids.as_slice(),
+            permissions.superuser.as_slice(),
+        ),
+    ] {
+        for role_id in role_ids {
+            if !roles.iter().any(|(id, _)| id == role_id) {
+                roles.push((*role_id, defaults));
+            }
+        }
+    }
+
+    let baseline = V1_0_0_LAST_PERMISSION.to_id();
+    for (role_id, defaults) in roles {
+        let object_id = ObjectId::new(ObjectType::Role, role_id);
+        let Some(old_object) = bp.registry.get(object_id).await? else {
+            continue;
+        };
+        let mut role = Role::from(old_object.clone());
+        let mut added = Vec::new();
+        for permission in defaults {
+            if permission.to_id() > baseline
+                && !role.enabled_permissions.contains(permission)
+                && !role.disabled_permissions.contains(permission)
+            {
+                role.enabled_permissions.push_unchecked(*permission);
+                added.push(permission.as_str());
+            }
+        }
+        if added.is_empty() {
+            continue;
+        }
+
+        let description = role.description.clone();
+        let new_object = Object {
+            inner: role.into(),
+            revision: old_object.revision,
+        };
+        match bp
+            .registry
+            .write(RegistryWrite::update(role_id, &new_object, &old_object))
+            .await?
+        {
+            RegistryWriteResult::Success(_) => {
+                trc::event!(
+                    Server(trc::ServerEvent::Startup),
+                    Details = "Added new permissions to default role",
+                    Id = role_id.id(),
+                    Name = description,
+                    Contents = added
+                );
+            }
+            err => {
+                bp.build_error(
+                    object_id,
+                    format!("Failed to add new permissions to default role: {err}"),
+                );
+            }
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn insert_oidc_provider(bp: &mut Bootstrap) -> trc::Result<()> {
+    if bp.registry.count_object(ObjectType::OidcProvider).await? == 0 {
+        let pkcs8_doc =
+            EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &SystemRandom::new())
+                .map_err(|err| {
+                    trc::EventType::Server(trc::ServerEvent::Startup)
+                        .into_err()
+                        .reason(err)
+                        .caused_by(trc::location!())
+                })?;
+        let signature_pem = pem::encode(&pem::Pem::new("PRIVATE KEY", pkcs8_doc.as_ref()));
+
+        bp.registry
+            .write(RegistryWrite::insert(
+                &OidcProvider {
+                    encryption_key: SecretKey::Value(SecretKeyValue {
+                        secret: rng()
+                            .sample_iter(Alphanumeric)
+                            .take(64)
+                            .map(char::from)
+                            .collect::<String>(),
+                    }),
+                    signature_key: SecretText::Text(SecretTextValue {
+                        secret: signature_pem,
+                    }),
+                    signature_algorithm: JwtSignatureAlgorithm::Es256,
+                    ..Default::default()
+                }
+                .into(),
+            ))
+            .await?;
+    }
+
+    Ok(())
+}

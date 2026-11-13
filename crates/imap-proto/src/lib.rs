@@ -1,0 +1,349 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use compact_str::CompactString;
+use protocol::ObjectId;
+use protocol::capability::Capability;
+use protocol::metadata::MetadataCode;
+use std::borrow::Cow;
+
+pub mod parser;
+pub mod protocol;
+pub mod receiver;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Command {
+    // Client Commands - Any State
+    Capability,
+    #[default]
+    Noop,
+    Logout,
+
+    // Client Commands - Not Authenticated State
+    StartTls,
+    Authenticate,
+    Login,
+
+    // Client Commands - Authenticated State
+    Enable,
+    Select,
+    Examine,
+    Create,
+    Delete,
+    Rename,
+    Subscribe,
+    Unsubscribe,
+    List,
+    Namespace,
+    Status,
+    Append,
+    Idle,
+
+    // Client Commands - Selected State
+    Close,
+    Unselect,
+    Expunge(bool),
+    Search(bool),
+    Fetch(bool),
+    Store(bool),
+    Copy(bool),
+    Move(bool),
+
+    // IMAP4rev1
+    Lsub,
+    Check,
+
+    // RFC 5256
+    Sort(bool),
+    Thread(bool),
+
+    // RFC 4314
+    SetAcl,
+    DeleteAcl,
+    GetAcl,
+    ListRights,
+    MyRights,
+
+    // RFC 8437
+    Unauthenticate,
+
+    // RFC 2971
+    Id,
+
+    // RFC 9208
+    GetQuota,
+    GetQuotaRoot,
+
+    // RFC 9698
+    GetJmapAccess,
+
+    // RFC 10022
+    UidBatches,
+
+    GetMetadata,
+    SetMetadata,
+}
+
+impl Command {
+    pub fn is_uid(&self) -> bool {
+        matches!(
+            self,
+            Command::Fetch(true)
+                | Command::Search(true)
+                | Command::Copy(true)
+                | Command::Move(true)
+                | Command::Store(true)
+                | Command::Expunge(true)
+                | Command::Sort(true)
+                | Command::Thread(true)
+        )
+    }
+
+    pub fn requires_uid(&self) -> bool {
+        matches!(
+            self,
+            Command::Fetch(false)
+                | Command::Search(false)
+                | Command::Copy(false)
+                | Command::Move(false)
+                | Command::Store(false)
+                | Command::Sort(false)
+                | Command::Thread(false)
+        )
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        let message = self.completed_message();
+        &message[..message.len() - COMPLETED_SUFFIX.len()]
+    }
+
+    pub fn completed_message(&self) -> &'static str {
+        match self {
+            Command::UidBatches => "UIDBATCHES completed",
+            Command::Capability => "CAPABILITY completed",
+            Command::Noop => "NOOP completed",
+            Command::Logout => "LOGOUT completed",
+            Command::StartTls => "STARTTLS completed",
+            Command::Authenticate => "AUTHENTICATE completed",
+            Command::Login => "LOGIN completed",
+            Command::Enable => "ENABLE completed",
+            Command::Select => "SELECT completed",
+            Command::Examine => "EXAMINE completed",
+            Command::Create => "CREATE completed",
+            Command::Delete => "DELETE completed",
+            Command::Rename => "RENAME completed",
+            Command::Subscribe => "SUBSCRIBE completed",
+            Command::Unsubscribe => "UNSUBSCRIBE completed",
+            Command::List => "LIST completed",
+            Command::Namespace => "NAMESPACE completed",
+            Command::Status => "STATUS completed",
+            Command::Append => "APPEND completed",
+            Command::Idle => "IDLE completed",
+            Command::Close => "CLOSE completed",
+            Command::Unselect => "UNSELECT completed",
+            Command::Expunge(false) => "EXPUNGE completed",
+            Command::Search(false) => "SEARCH completed",
+            Command::Fetch(false) => "FETCH completed",
+            Command::Store(false) => "STORE completed",
+            Command::Copy(false) => "COPY completed",
+            Command::Move(false) => "MOVE completed",
+            Command::Sort(false) => "SORT completed",
+            Command::Thread(false) => "THREAD completed",
+            Command::Expunge(true) => "UID EXPUNGE completed",
+            Command::Search(true) => "UID SEARCH completed",
+            Command::Fetch(true) => "UID FETCH completed",
+            Command::Store(true) => "UID STORE completed",
+            Command::Copy(true) => "UID COPY completed",
+            Command::Move(true) => "UID MOVE completed",
+            Command::Sort(true) => "UID SORT completed",
+            Command::Thread(true) => "UID THREAD completed",
+            Command::Lsub => "LSUB completed",
+            Command::Check => "CHECK completed",
+            Command::SetAcl => "SETACL completed",
+            Command::DeleteAcl => "DELETEACL completed",
+            Command::GetAcl => "GETACL completed",
+            Command::ListRights => "LISTRIGHTS completed",
+            Command::MyRights => "MYRIGHTS completed",
+            Command::Unauthenticate => "UNAUTHENTICATE completed",
+            Command::Id => "ID completed",
+            Command::GetQuota => "GETQUOTA completed",
+            Command::GetQuotaRoot => "GETQUOTAROOT completed",
+            Command::GetJmapAccess => "GETJMAPACCESS completed",
+            Command::GetMetadata => "GETMETADATA completed",
+            Command::SetMetadata => "SETMETADATA completed",
+        }
+    }
+}
+
+const COMPLETED_SUFFIX: &str = " completed";
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ResponseCode {
+    Alert,
+    AlreadyExists,
+    AppendUid {
+        uid_validity: u32,
+        uids: Vec<u32>,
+    },
+    AuthenticationFailed,
+    AuthorizationFailed,
+    BadCharset,
+    Cannot,
+    Capability {
+        capabilities: Vec<Capability>,
+    },
+    ClientBug,
+    Closed,
+    ContactAdmin,
+    CopyUid {
+        uid_validity: u32,
+        src_uids: Vec<u32>,
+        dest_uids: Vec<u32>,
+    },
+    Corruption,
+    Expired,
+    ExpungeIssued,
+    HasChildren,
+    InUse,
+    Limit,
+    NonExistent,
+    NoPerm,
+    OverQuota,
+    Parse,
+    PermanentFlags,
+    PrivacyRequired,
+    ReadOnly,
+    ReadWrite,
+    ServerBug,
+    TryCreate,
+    UidNext,
+    UidNotSticky,
+    UidValidity,
+    Unavailable,
+    UnknownCte,
+
+    // CONDSTORE
+    Modified {
+        ranges: Vec<(u32, u32)>,
+    },
+    HighestModseq {
+        modseq: u64,
+    },
+
+    // ObjectID
+    ObjectId(ObjectId),
+
+    // USEATTR
+    UseAttr,
+
+    // UIDONLY
+    UidRequired,
+
+    // UIDBATCHES
+    TooFew,
+    TooMany,
+
+    // LITERAL+, CATENATE
+    TooBig,
+
+    // MESSAGELIMIT
+    MessageLimit {
+        limit: u32,
+        uid: Option<u32>,
+    },
+
+    Metadata(MetadataCode),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StatusResponse {
+    pub tag: Option<CompactString>,
+    pub code: Option<ResponseCode>,
+    pub message: Cow<'static, str>,
+    pub rtype: ResponseType,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ResponseType {
+    Ok,
+    No,
+    Bad,
+    PreAuth,
+    Bye,
+}
+
+impl ResponseCode {
+    pub fn highest_modseq(modseq: u64) -> Self {
+        ResponseCode::HighestModseq {
+            modseq: if modseq > 0 { modseq + 1 } else { 0 },
+        }
+    }
+}
+
+impl StatusResponse {
+    pub fn bad(message: impl Into<Cow<'static, str>>) -> Self {
+        StatusResponse {
+            tag: None,
+            code: None,
+            message: message.into(),
+            rtype: ResponseType::Bad,
+        }
+    }
+
+    pub fn parse_error(message: impl Into<Cow<'static, str>>) -> Self {
+        StatusResponse {
+            tag: None,
+            code: ResponseCode::Parse.into(),
+            message: message.into(),
+            rtype: ResponseType::Bad,
+        }
+    }
+
+    pub fn database_failure() -> Self {
+        StatusResponse::no("Database failure.").with_code(ResponseCode::ContactAdmin)
+    }
+
+    pub fn completed(command: Command) -> Self {
+        StatusResponse::ok(command.completed_message())
+    }
+
+    pub fn with_code(mut self, code: ResponseCode) -> Self {
+        self.code = Some(code);
+        self
+    }
+
+    pub fn with_tag(mut self, tag: impl Into<CompactString>) -> Self {
+        self.tag = Some(tag.into());
+        self
+    }
+
+    pub fn no(message: impl Into<Cow<'static, str>>) -> Self {
+        StatusResponse {
+            tag: None,
+            code: None,
+            message: message.into(),
+            rtype: ResponseType::No,
+        }
+    }
+
+    pub fn ok(message: impl Into<Cow<'static, str>>) -> Self {
+        StatusResponse {
+            tag: None,
+            code: None,
+            message: message.into(),
+            rtype: ResponseType::Ok,
+        }
+    }
+
+    pub fn bye(message: impl Into<Cow<'static, str>>) -> Self {
+        StatusResponse {
+            tag: None,
+            code: None,
+            message: message.into(),
+            rtype: ResponseType::Bye,
+        }
+    }
+}

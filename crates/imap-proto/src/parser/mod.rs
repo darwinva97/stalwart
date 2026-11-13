@@ -1,0 +1,671 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+pub mod acl;
+pub mod append;
+pub mod authenticate;
+pub mod copy_move;
+pub mod create;
+pub mod delete;
+pub mod enable;
+pub mod fetch;
+pub mod id;
+pub mod list;
+pub mod login;
+pub mod lsub;
+pub mod metadata;
+pub mod quota;
+pub mod rename;
+pub mod search;
+pub mod select;
+pub mod sort;
+pub mod status;
+pub mod store;
+pub mod subscribe;
+pub mod thread;
+pub mod uidbatches;
+
+use crate::{
+    Command,
+    protocol::{Flag, Sequence},
+    receiver::{ArgumentBytes, CommandParser},
+};
+use compact_str::CompactString;
+use jiff::{civil::Time, fmt::strtime, tz::Offset};
+use std::{borrow::Cow, str::FromStr};
+
+pub type Result<T> = std::result::Result<T, Cow<'static, str>>;
+
+impl CommandParser for Command {
+    fn parse(value: &[u8], uid: bool) -> Option<Self> {
+        hashify::fnc_map!(value,
+            "CAPABILITY" => Some(Command::Capability),
+            "NOOP" => Some(Command::Noop),
+            "LOGOUT" => Some(Command::Logout),
+            "STARTTLS" => Some(Command::StartTls),
+            "AUTHENTICATE" => Some(Command::Authenticate),
+            "LOGIN" => Some(Command::Login),
+            "ENABLE" => Some(Command::Enable),
+            "SELECT" => Some(Command::Select),
+            "EXAMINE" => Some(Command::Examine),
+            "CREATE" => Some(Command::Create),
+            "DELETE" => Some(Command::Delete),
+            "RENAME" => Some(Command::Rename),
+            "SUBSCRIBE" => Some(Command::Subscribe),
+            "UNSUBSCRIBE" => Some(Command::Unsubscribe),
+            "LIST" => Some(Command::List),
+            "NAMESPACE" => Some(Command::Namespace),
+            "STATUS" => Some(Command::Status),
+            "APPEND" => Some(Command::Append),
+            "IDLE" => Some(Command::Idle),
+            "CLOSE" => Some(Command::Close),
+            "UNSELECT" => Some(Command::Unselect),
+            "EXPUNGE" => Some(Command::Expunge(uid)),
+            "SEARCH" => Some(Command::Search(uid)),
+            "FETCH" => Some(Command::Fetch(uid)),
+            "STORE" => Some(Command::Store(uid)),
+            "COPY" => Some(Command::Copy(uid)),
+            "MOVE" => Some(Command::Move(uid)),
+            "SORT" => Some(Command::Sort(uid)),
+            "THREAD" => Some(Command::Thread(uid)),
+            "LSUB" => Some(Command::Lsub),
+            "CHECK" => Some(Command::Check),
+            "SETACL" => Some(Command::SetAcl),
+            "DELETEACL" => Some(Command::DeleteAcl),
+            "GETACL" => Some(Command::GetAcl),
+            "LISTRIGHTS" => Some(Command::ListRights),
+            "MYRIGHTS" => Some(Command::MyRights),
+            "UNAUTHENTICATE" => Some(Command::Unauthenticate),
+            "ID" => Some(Command::Id),
+            "GETQUOTA" => Some(Command::GetQuota),
+            "GETQUOTAROOT" => Some(Command::GetQuotaRoot),
+            "GETJMAPACCESS" => Some(Command::GetJmapAccess),
+            "UIDBATCHES" => Some(Command::UidBatches),
+            "GETMETADATA" => Some(Command::GetMetadata),
+            "SETMETADATA" => Some(Command::SetMetadata),
+            _ => None,
+        )
+    }
+
+    #[inline(always)]
+    fn tokenize_brackets(&self) -> bool {
+        matches!(self, Command::Fetch(_))
+    }
+
+    #[inline(always)]
+    fn tokenize_nil(&self) -> bool {
+        matches!(self, Command::SetMetadata)
+    }
+}
+
+impl Flag {
+    pub fn parse_imap(value: ArgumentBytes) -> Result<Self> {
+        if !value.is_empty() {
+            let flag = hashify::fnc_map_ignore_case!(value.as_slice(),
+                "\\Seen" => Some(Flag::Seen),
+                "\\Answered" => Some(Flag::Answered),
+                "\\Flagged" => Some(Flag::Flagged),
+                "\\Deleted" => Some(Flag::Deleted),
+                "\\Draft" => Some(Flag::Draft),
+                "\\Recent" => Some(Flag::Recent),
+                "\\Important" => Some(Flag::Important),
+                "$Forwarded" => Some(Flag::Forwarded),
+                "$MDNSent" => Some(Flag::MDNSent),
+                "$Junk" => Some(Flag::Junk),
+                "$NotJunk" => Some(Flag::NotJunk),
+                "$Phishing" => Some(Flag::Phishing),
+                "$Important" => Some(Flag::Important),
+                "$autosent" => Some(Flag::Autosent),
+                "$canunsubscribe" => Some(Flag::CanUnsubscribe),
+                "$followed" => Some(Flag::Followed),
+                "$hasattachment" => Some(Flag::HasAttachment),
+                "$hasmemo" => Some(Flag::HasMemo),
+                "$hasnoattachment" => Some(Flag::HasNoAttachment),
+                "$imported" => Some(Flag::Imported),
+                "$istrusted" => Some(Flag::IsTrusted),
+                "$MailFlagBit0" => Some(Flag::MailFlagBit0),
+                "$MailFlagBit1" => Some(Flag::MailFlagBit1),
+                "$MailFlagBit2" => Some(Flag::MailFlagBit2),
+                "$maskedemail" => Some(Flag::MaskedEmail),
+                "$memo" => Some(Flag::Memo),
+                "$muted" => Some(Flag::Muted),
+                "$new" => Some(Flag::New),
+                "$notify" => Some(Flag::Notify),
+                "$unsubscribed" => Some(Flag::Unsubscribed),
+                _ => None,
+            );
+
+            if let Some(flag) = flag {
+                Ok(flag)
+            } else if value.spilled() {
+                String::from_utf8(value.into_vec())
+                    .map_err(|_| Cow::from("Invalid UTF-8."))
+                    .map(|keyword| Flag::Keyword(CompactString::from_string_buffer(keyword)))
+            } else {
+                CompactString::from_utf8(value.as_slice())
+                    .map_err(|_| Cow::from("Invalid UTF-8."))
+                    .map(Flag::Keyword)
+            }
+        } else {
+            Err(Cow::from("Null flags are not allowed."))
+        }
+    }
+
+    pub fn parse_jmap(value: String) -> Self {
+        if value.starts_with('$') {
+            hashify::fnc_map_ignore_case!(value.as_bytes(),
+                "$seen" => Some(Flag::Seen),
+                "$draft" => Some(Flag::Draft),
+                "$flagged" => Some(Flag::Flagged),
+                "$answered" => Some(Flag::Answered),
+                "$recent" => Some(Flag::Recent),
+                "$important" => Some(Flag::Important),
+                "$phishing" => Some(Flag::Phishing),
+                "$junk" => Some(Flag::Junk),
+                "$notjunk" => Some(Flag::NotJunk),
+                "$deleted" => Some(Flag::Deleted),
+                "$forwarded" => Some(Flag::Forwarded),
+                "$mdnsent" => Some(Flag::MDNSent),
+                "$autosent" => Some(Flag::Autosent),
+                "$canunsubscribe" => Some(Flag::CanUnsubscribe),
+                "$followed" => Some(Flag::Followed),
+                "$hasattachment" => Some(Flag::HasAttachment),
+                "$hasmemo" => Some(Flag::HasMemo),
+                "$hasnoattachment" => Some(Flag::HasNoAttachment),
+                "$imported" => Some(Flag::Imported),
+                "$istrusted" => Some(Flag::IsTrusted),
+                "$MailFlagBit0" => Some(Flag::MailFlagBit0),
+                "$MailFlagBit1" => Some(Flag::MailFlagBit1),
+                "$MailFlagBit2" => Some(Flag::MailFlagBit2),
+                "$maskedemail" => Some(Flag::MaskedEmail),
+                "$memo" => Some(Flag::Memo),
+                "$muted" => Some(Flag::Muted),
+                "$new" => Some(Flag::New),
+                "$notify" => Some(Flag::Notify),
+                "$unsubscribed" => Some(Flag::Unsubscribed),
+                _ => None,
+            )
+            .unwrap_or_else(|| Flag::Keyword(value.into()))
+        } else {
+            let mut keyword = String::with_capacity(value.len());
+            for c in value.chars() {
+                if c.is_ascii_alphanumeric() {
+                    keyword.push(c);
+                } else {
+                    keyword.push('_');
+                }
+            }
+            Flag::Keyword(keyword.into())
+        }
+    }
+}
+
+const SECONDS_PER_DAY: i64 = 86_400;
+
+#[inline(always)]
+fn short_month(m0: u8, m1: u8, m2: u8) -> Option<u32> {
+    Some(match (m0 | 32, m1 | 32, m2 | 32) {
+        (b'j', b'a', b'n') => 1,
+        (b'f', b'e', b'b') => 2,
+        (b'm', b'a', b'r') => 3,
+        (b'a', b'p', b'r') => 4,
+        (b'm', b'a', b'y') => 5,
+        (b'j', b'u', b'n') => 6,
+        (b'j', b'u', b'l') => 7,
+        (b'a', b'u', b'g') => 8,
+        (b's', b'e', b'p') => 9,
+        (b'o', b'c', b't') => 10,
+        (b'n', b'o', b'v') => 11,
+        (b'd', b'e', b'c') => 12,
+        _ => return None,
+    })
+}
+
+#[inline(always)]
+fn days_in_month(year: i32, month: u32) -> u32 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        _ if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => 29,
+        _ => 28,
+    }
+}
+
+#[inline(always)]
+fn days_from_civil(year: i32, month: u32, day: u32) -> i64 {
+    let year = year - (month <= 2) as i32;
+    let era = if year >= 0 { year } else { year - 399 } / 400;
+    let year_of_era = (year - era * 400) as i64;
+    let month_of_year = (if month > 2 { month - 3 } else { month + 9 }) as i64;
+    let day_of_year = (153 * month_of_year + 2) / 5 + day as i64 - 1;
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    era as i64 * 146_097 + day_of_era - 719_468
+}
+
+#[inline(always)]
+fn two_digits(d0: u8, d1: u8) -> Option<u32> {
+    (d0.is_ascii_digit() && d1.is_ascii_digit()).then(|| ((d0 - b'0') * 10 + (d1 - b'0')) as u32)
+}
+
+#[inline(always)]
+fn parse_civil_date(value: &[u8]) -> Option<(i64, &[u8])> {
+    let (day, rest) = match value {
+        [d0, d1, b'-', rest @ ..] if d0.is_ascii_digit() && d1.is_ascii_digit() => {
+            (two_digits(*d0, *d1)?, rest)
+        }
+        [d0, b'-', rest @ ..] if d0.is_ascii_digit() => ((*d0 - b'0') as u32, rest),
+        _ => return None,
+    };
+    let [m0, m1, m2, b'-', rest @ ..] = rest else {
+        return None;
+    };
+    let month = short_month(*m0, *m1, *m2)?;
+    let [y0, y1, y2, y3, rest @ ..] = rest else {
+        return None;
+    };
+    let year = (two_digits(*y0, *y1)? * 100 + two_digits(*y2, *y3)?) as i32;
+
+    if day == 0 || day > days_in_month(year, month) {
+        return None;
+    }
+
+    Some((days_from_civil(year, month, day), rest))
+}
+
+fn parse_datetime_fast(value: &[u8]) -> Option<i64> {
+    let (days, rest) = parse_civil_date(value)?;
+    let [
+        b' ',
+        h0,
+        h1,
+        b':',
+        m0,
+        m1,
+        b':',
+        s0,
+        s1,
+        b' ',
+        sign,
+        z0,
+        z1,
+        z2,
+        z3,
+    ] = rest
+    else {
+        return None;
+    };
+    let hour = two_digits(*h0, *h1)?;
+    let minute = two_digits(*m0, *m1)?;
+    let second = two_digits(*s0, *s1)?;
+    let zone_hour = two_digits(*z0, *z1)?;
+    let zone_minute = two_digits(*z2, *z3)?;
+
+    if hour > 23 || minute > 59 || second > 59 || zone_hour > 23 || zone_minute > 59 {
+        return None;
+    }
+
+    let zone = (zone_hour * 3600 + zone_minute * 60) as i64;
+    let zone = match sign {
+        b'+' => -zone,
+        b'-' => zone,
+        _ => return None,
+    };
+
+    Some(days * SECONDS_PER_DAY + (hour * 3600 + minute * 60 + second) as i64 + zone)
+}
+
+fn parse_date_fast(value: &[u8]) -> Option<i64> {
+    let (days, rest) = parse_civil_date(value)?;
+    rest.is_empty().then(|| days * SECONDS_PER_DAY)
+}
+
+pub fn parse_datetime(value: &[u8]) -> Result<i64> {
+    if let Some(timestamp) = parse_datetime_fast(value.trim_ascii()) {
+        return Ok(timestamp);
+    }
+
+    parse_datetime_slow(value)
+}
+
+#[inline(never)]
+fn parse_datetime_slow(value: &[u8]) -> Result<i64> {
+    std::str::from_utf8(value)
+        .map_err(|_| Cow::from("Expected date/time, found an invalid UTF-8 string."))
+        .and_then(|datetime| {
+            strtime::parse("%d-%b-%Y %H:%M:%S %z", datetime.trim())
+                .and_then(|parsed| parsed.to_timestamp())
+                .map(|timestamp| timestamp.as_second())
+                .map_err(|_| Cow::from(format!("Failed to parse date/time '{}'.", datetime)))
+        })
+}
+
+pub fn parse_date(value: &[u8]) -> Result<i64> {
+    if let Some(timestamp) = parse_date_fast(value.trim_ascii()) {
+        return Ok(timestamp);
+    }
+
+    parse_date_slow(value)
+}
+
+#[inline(never)]
+fn parse_date_slow(value: &[u8]) -> Result<i64> {
+    std::str::from_utf8(value)
+        .map_err(|_| Cow::from("Expected date, found an invalid UTF-8 string."))
+        .and_then(|date| {
+            strtime::parse("%d-%b-%Y", date.trim())
+                .and_then(|parsed| parsed.to_date())
+                .and_then(|parsed| Offset::UTC.to_timestamp(parsed.to_datetime(Time::midnight())))
+                .map(|timestamp| timestamp.as_second())
+                .map_err(|_| Cow::from(format!("Failed to parse date '{}'.", date)))
+        })
+}
+
+pub fn parse_number<T: FromStr>(value: &[u8]) -> Result<T> {
+    std::str::from_utf8(value)
+        .map_err(|_| Cow::from("Expected a number, found an invalid UTF-8 string."))
+        .and_then(|string| {
+            string
+                .parse::<T>()
+                .map_err(|_| Cow::from(format!("Expected a number, found {:?}.", string)))
+        })
+}
+
+#[inline(always)]
+fn sequence_number(value: &[u8]) -> Option<(u32, &[u8])> {
+    let digits = value
+        .iter()
+        .position(|ch| !ch.is_ascii_digit())
+        .unwrap_or(value.len());
+    let (number, tail) = value.split_at(digits);
+    if number.is_empty() || number.len() > 10 {
+        return None;
+    }
+    let number = number
+        .iter()
+        .fold(0u64, |acc, ch| acc * 10 + (ch - b'0') as u64);
+    (number <= u32::MAX as u64).then_some((number as u32, tail))
+}
+
+#[inline(always)]
+fn sequence_item(value: &[u8]) -> Option<(Sequence, &[u8])> {
+    match value {
+        [b'$', tail @ ..] => Some((Sequence::SavedSearch, tail)),
+        [b'*', b':', b'*', tail @ ..] => Some((
+            Sequence::Range {
+                start: None,
+                end: None,
+            },
+            tail,
+        )),
+        [b'*', b':', tail @ ..] => {
+            let (end, tail) = sequence_number(tail)?;
+            Some((
+                Sequence::Range {
+                    start: None,
+                    end: Some(end),
+                },
+                tail,
+            ))
+        }
+        [b'*', tail @ ..] => Some((
+            Sequence::Range {
+                start: None,
+                end: None,
+            },
+            tail,
+        )),
+        _ => {
+            let (start, tail) = sequence_number(value)?;
+            match tail {
+                [b':', b'*', tail @ ..] => Some((
+                    Sequence::Range {
+                        start: Some(start),
+                        end: None,
+                    },
+                    tail,
+                )),
+                [b':', tail @ ..] => {
+                    let (end, tail) = sequence_number(tail)?;
+                    Some((
+                        Sequence::Range {
+                            start: Some(start),
+                            end: Some(end),
+                        },
+                        tail,
+                    ))
+                }
+                _ => Some((Sequence::Number { value: start }, tail)),
+            }
+        }
+    }
+}
+
+fn parse_sequence_set_fast(value: &[u8]) -> Option<Sequence> {
+    let (first, tail) = sequence_item(value)?;
+    let mut rest = match tail {
+        [] => return Some(first),
+        [b',', rest @ ..] => rest,
+        _ => return None,
+    };
+
+    let commas = rest.iter().filter(|&&ch| ch == b',').count();
+    let mut items = Vec::with_capacity(commas + 2);
+    items.push(first);
+    loop {
+        let (item, tail) = sequence_item(rest)?;
+        items.push(item);
+        match tail {
+            [b',', tail @ ..] => rest = tail,
+            [] => return Some(Sequence::List { items }),
+            _ => return None,
+        }
+    }
+}
+
+pub fn parse_sequence_set(value: &[u8]) -> Result<Sequence> {
+    if let Some(sequence_set) = parse_sequence_set_fast(value) {
+        return Ok(sequence_set);
+    }
+
+    parse_sequence_set_slow(value)
+}
+
+#[inline(never)]
+fn parse_sequence_set_slow(value: &[u8]) -> Result<Sequence> {
+    let mut sequence_set = Vec::with_capacity(value.iter().filter(|&&ch| ch == b',').count() + 1);
+
+    let mut range_start = None;
+    let mut token_start = None;
+
+    let mut is_wildcard = false;
+    let mut is_range = false;
+    let mut is_saved_search = false;
+
+    for (mut pos, ch) in value.iter().enumerate() {
+        let mut add_token = false;
+        match ch {
+            b',' => {
+                add_token = true;
+            }
+            b':' => {
+                if !is_range {
+                    if let Some(from_pos) = token_start {
+                        range_start =
+                            parse_number::<u32>(value.get(from_pos..pos).ok_or_else(|| {
+                                Cow::from(format!(
+                                    "Invalid sequence set {:?}, parse error.",
+                                    String::from_utf8_lossy(value)
+                                ))
+                            })?)?
+                            .into();
+                        token_start = None;
+                    } else if is_wildcard {
+                        is_wildcard = false;
+                    } else {
+                        return Err(Cow::from(format!(
+                            "Invalid sequence set {:?}, number expected before ':'.",
+                            String::from_utf8_lossy(value)
+                        )));
+                    }
+                    is_range = true;
+                } else {
+                    return Err(Cow::from(format!(
+                        "Invalid sequence set {:?}, ':' appears multiple times.",
+                        String::from_utf8_lossy(value)
+                    )));
+                }
+            }
+            b'*' => {
+                if !is_wildcard {
+                    if value.len() == 1 {
+                        return Ok(Sequence::Range {
+                            start: None,
+                            end: None,
+                        });
+                    } else if token_start.is_none() {
+                        is_wildcard = true;
+                    } else {
+                        return Err(Cow::from(format!(
+                            "Invalid sequence set {:?}, invalid use of '*'.",
+                            String::from_utf8_lossy(value)
+                        )));
+                    }
+                } else {
+                    return Err(Cow::from(format!(
+                        "Invalid sequence set {:?}, '*' appears multiple times.",
+                        String::from_utf8_lossy(value)
+                    )));
+                }
+            }
+            b'$' => {
+                if value.get(pos + 1).is_none_or(|&ch| ch == b',') {
+                    is_saved_search = true;
+                } else {
+                    return Err(Cow::from(format!(
+                        "Invalid sequence set {:?}, unexpected token after '$'.",
+                        String::from_utf8_lossy(value)
+                    )));
+                }
+            }
+            _ => {
+                if ch.is_ascii_digit() {
+                    if is_wildcard {
+                        return Err(Cow::from(format!(
+                            "Invalid sequence set {:?}, invalid use of '*'.",
+                            String::from_utf8_lossy(value)
+                        )));
+                    }
+                    if token_start.is_none() {
+                        token_start = pos.into();
+                    }
+                } else {
+                    return Err(Cow::from(format!(
+                        "Invalid sequence set {:?}, found invalid character '{}' at position {}.",
+                        String::from_utf8_lossy(value),
+                        ch,
+                        pos
+                    )));
+                }
+            }
+        }
+
+        if add_token || pos == value.len() - 1 {
+            if is_range {
+                sequence_set.push(Sequence::Range {
+                    start: range_start,
+                    end: if !is_wildcard {
+                        if !add_token {
+                            pos += 1;
+                        }
+                        parse_number::<u32>(
+                            value
+                                .get(
+                                    token_start.ok_or_else(|| {
+                                        Cow::from(format!(
+                                            "Invalid sequence set {:?}, expected number.",
+                                            String::from_utf8_lossy(value)
+                                        ))
+                                    })?..pos,
+                                )
+                                .ok_or_else(|| {
+                                    Cow::from(format!(
+                                        "Invalid sequence set {:?}, parse error.",
+                                        String::from_utf8_lossy(value)
+                                    ))
+                                })?,
+                        )?
+                        .into()
+                    } else {
+                        is_wildcard = false;
+                        None
+                    },
+                });
+                is_range = false;
+                range_start = None;
+            } else {
+                if !add_token {
+                    pos += 1;
+                }
+                if is_wildcard {
+                    sequence_set.push(Sequence::Range {
+                        start: None,
+                        end: None,
+                    });
+                    is_wildcard = false;
+                } else if is_saved_search {
+                    sequence_set.push(Sequence::SavedSearch);
+                    is_saved_search = false;
+                } else {
+                    sequence_set.push(Sequence::Number {
+                        value: parse_number(
+                            value
+                                .get(
+                                    token_start.ok_or_else(|| {
+                                        Cow::from(format!(
+                                            "Invalid sequence set {:?}, expected number.",
+                                            String::from_utf8_lossy(value)
+                                        ))
+                                    })?..pos,
+                                )
+                                .ok_or_else(|| {
+                                    Cow::from(format!(
+                                        "Invalid sequence set {:?}, parse error.",
+                                        String::from_utf8_lossy(value)
+                                    ))
+                                })?,
+                        )?,
+                    });
+                }
+            }
+            token_start = None;
+        }
+    }
+
+    match sequence_set.len() {
+        1 => Ok(sequence_set.pop().unwrap()),
+        0 => Err(Cow::from("Invalid empty sequence set.")),
+        _ => Ok(Sequence::List {
+            items: sequence_set,
+        }),
+    }
+}
+
+pub trait PushUnique<T> {
+    fn push_unique(&mut self, value: T);
+}
+
+impl<T: PartialEq> PushUnique<T> for Vec<T> {
+    fn push_unique(&mut self, value: T) {
+        if !self.contains(&value) {
+            self.push(value);
+        }
+    }
+}
+
+#[cfg(all(test, stalwart_tests))]
+#[rustfmt::skip]
+#[path = "../../../../../stalwart-tests/unit/imap-proto/src/parser/tests.rs"]
+mod tests;

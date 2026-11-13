@@ -1,0 +1,33 @@
+[package]
+name = "dav"
+version = "1.1.0"
+edition = "2024"
+
+[dependencies]
+dav-proto = { path =  "../dav-proto" }
+common = { path = "../common" }
+store = { path = "../store" }
+utils = { path = "../utils" }
+groupware = { path = "../groupware" }
+nlp = { path = "../nlp" }
+directory = { path = "../directory" }
+registry = { path = "../registry" }
+http_proto = { path = "../http-proto" }
+types = { path = "../types" }
+trc = { path = "../trc" }
+calcard = { path = "../calcard", features = ["rkyv"] }
+hashify = { version = "0.3" }
+hyper = { version = "1.12.0", features = ["server", "http1", "http2"] }
+percent-encoding = "2.3.2"
+rkyv.workspace = true
+compact_str = "0.10.0"
+tokio = { version = "1.54", features = ["time"] }
+
+[dev-dependencies]
+
+[features]
+dev_mode = []
+enterprise = ["dav-proto/enterprise", "common/enterprise", "store/enterprise", "utils/enterprise", "groupware/enterprise", "directory/enterprise", "registry/enterprise", "http_proto/enterprise", "trc/enterprise"]
+
+[lints]
+workspace = true

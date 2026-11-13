@@ -1,0 +1,22 @@
+[package]
+name = "imap_proto"
+version = "1.1.0"
+edition = "2024"
+
+[dependencies]
+types = { path = "../types" }
+utils = { path = "../utils" }
+mail-parser = { version = "1.0", features = ["full_encoding"] } 
+ahash = { version = "0.8" }
+encodify = "1.0"
+jiff = "0.2.38"
+trc = { path = "../trc" }
+hashify = { version = "0.3" }
+compact_str = "0.10.0"
+smallvec = { version = "1", features = ["union"] }
+itoa = "1"
+
+[dev-dependencies]
+
+[lints]
+workspace = true

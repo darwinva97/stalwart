@@ -1,0 +1,108 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+use compact_str::CompactString;
+
+use super::{ImapResponse, capability::QuotaResourceName, push_int, quoted_string};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Arguments {
+    pub tag: CompactString,
+    pub name: CompactString,
+}
+
+pub struct QuotaItem {
+    pub name: CompactString,
+    pub resources: Vec<QuotaResource>,
+}
+
+pub struct QuotaResource {
+    pub resource: QuotaResourceName,
+    pub total: u64,
+    pub used: u64,
+}
+
+pub struct Response {
+    pub quota_root_items: Vec<CompactString>,
+    pub quota_items: Vec<QuotaItem>,
+}
+
+impl ImapResponse for Response {
+    fn serialize_into(&self, buf: &mut Vec<u8>) {
+        if !self.quota_root_items.is_empty() {
+            buf.extend_from_slice(b"* QUOTAROOT");
+            for item in &self.quota_root_items {
+                buf.push(b' ');
+                quoted_string(buf, item);
+            }
+            buf.extend_from_slice(b"\r\n");
+        }
+
+        if !self.quota_items.is_empty() {
+            for item in &self.quota_items {
+                buf.extend_from_slice(b"* QUOTA ");
+                quoted_string(buf, &item.name);
+                buf.extend_from_slice(b" (");
+                for (pos, resource) in item.resources.iter().enumerate() {
+                    if pos > 0 {
+                        buf.push(b' ');
+                    }
+
+                    let mut total = resource.total;
+                    let mut used = resource.used;
+
+                    match resource.resource {
+                        QuotaResourceName::Storage => {
+                            total /= 1024;
+                            used /= 1024;
+
+                            buf.extend_from_slice(b"STORAGE ")
+                        }
+                        QuotaResourceName::Message => buf.extend_from_slice(b"MESSAGE "),
+                        QuotaResourceName::Mailbox => buf.extend_from_slice(b"MAILBOX "),
+                        QuotaResourceName::AnnotationStorage => {
+                            buf.extend_from_slice(b"ANNOTATION-STORAGE ")
+                        }
+                    }
+
+                    push_int(buf, used);
+                    buf.push(b' ');
+                    push_int(buf, total);
+                }
+                buf.extend_from_slice(b")\r\n");
+            }
+        }
+    }
+
+    fn size_hint(&self) -> usize {
+        const QUOTA_ROOT_FRAMING_LEN: usize = 16;
+        const QUOTA_FRAMING_LEN: usize = 16;
+        const RESOURCE_LEN: usize = 64;
+
+        let quota_roots = if self.quota_root_items.is_empty() {
+            0
+        } else {
+            QUOTA_ROOT_FRAMING_LEN
+                + self
+                    .quota_root_items
+                    .iter()
+                    .map(|item| item.len() + 4)
+                    .sum::<usize>()
+        };
+        quota_roots
+            + self
+                .quota_items
+                .iter()
+                .map(|item| {
+                    QUOTA_FRAMING_LEN + item.name.len() + 4 + item.resources.len() * RESOURCE_LEN
+                })
+                .sum::<usize>()
+    }
+}
+
+#[cfg(all(test, stalwart_tests))]
+#[rustfmt::skip]
+#[path = "../../../../../stalwart-tests/unit/imap-proto/src/protocol/quota/tests.rs"]
+mod tests;

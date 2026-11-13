@@ -1,0 +1,18 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+pub mod acl;
+pub mod filter;
+pub mod lockinfo;
+pub mod mkcol;
+pub mod propertyupdate;
+pub mod propfind;
+pub mod report;
+
+#[cfg(all(test, stalwart_tests))]
+#[rustfmt::skip]
+#[path = "../../../../../stalwart-tests/unit/dav-proto/src/requests/tests.rs"]
+mod tests;

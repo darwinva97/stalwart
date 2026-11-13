@@ -1,0 +1,331 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use super::{assert_is_unique_uid, is_same_uid};
+use crate::{
+    DavError, DavErrorCondition, DavMethod,
+    common::{
+        lock::{LockRequestHandler, ResourceState},
+        uri::DavUriResource,
+    },
+    file::DavFileResource,
+};
+use calcard::{
+    Entry, Parser,
+    vcard::{VCardProperty, VCardValue},
+};
+use common::{DavName, Server, auth::AccessToken};
+use dav_proto::{
+    RequestHeaders, Return,
+    schema::{property::Rfc1123DateTime, response::CardCondition},
+};
+// [fragmento SEL eliminado: 6 líneas]
+use groupware::{
+    cache::GroupwareCache,
+    contact::{ContactCard, ContactCardContent},
+};
+use http_proto::HttpResponse;
+use hyper::StatusCode;
+use registry::schema::enums::StorageQuota;
+use store::write::BatchBuilder;
+use trc::AddContext;
+use types::{
+    acl::Acl,
+    collection::{Collection, SyncCollection},
+    field::ContactField,
+};
+
+pub(crate) trait CardUpdateRequestHandler: Sync + Send {
+    fn handle_card_update_request(
+        &self,
+        access_token: &AccessToken,
+        headers: &RequestHeaders<'_>,
+        bytes: &[u8],
+        is_patch: bool,
+    ) -> impl Future<Output = crate::Result<HttpResponse>> + Send;
+}
+
+impl CardUpdateRequestHandler for Server {
+    async fn handle_card_update_request(
+        &self,
+        access_token: &AccessToken,
+        headers: &RequestHeaders<'_>,
+        bytes: &[u8],
+        _is_patch: bool,
+    ) -> crate::Result<HttpResponse> {
+        // Validate URI
+        let resource = self
+            .validate_uri(access_token, headers.uri)
+            .await?
+            .into_owned_uri()?;
+        let account_id = resource.account_id;
+        let resources = self
+            .fetch_groupware_resources(
+                access_token.account_id(),
+                account_id,
+                SyncCollection::AddressBook,
+            )
+            .await
+            .caused_by(trc::location!())?;
+        let resource_name = resource
+            .resource
+            .ok_or(DavError::Code(StatusCode::CONFLICT))?;
+
+        if bytes.len() > self.core.groupware.max_vcard_size {
+            return Err(DavError::Condition(DavErrorCondition::new(
+                StatusCode::PRECONDITION_FAILED,
+                CardCondition::MaxResourceSize(self.core.groupware.max_vcard_size as u32),
+            )));
+        }
+        let vcard_raw = std::str::from_utf8(bytes).map_err(|_| {
+            DavError::Condition(
+                DavErrorCondition::new(
+                    StatusCode::PRECONDITION_FAILED,
+                    CardCondition::SupportedAddressData,
+                )
+                .with_details("The request body is not valid UTF-8."),
+            )
+        })?;
+
+        let mut vcard = match Parser::new(vcard_raw).strict().entry() {
+            Entry::VCard(vcard) => vcard,
+            _ => {
+                return Err(DavError::Condition(
+                    DavErrorCondition::new(
+                        StatusCode::PRECONDITION_FAILED,
+                        CardCondition::SupportedAddressData,
+                    )
+                    .with_details("Failed to parse vCard data."),
+                ));
+            }
+        };
+        let media_size = vcard.embedded_size();
+        if self.core.groupware.max_media_size != 0
+            && media_size > self.core.groupware.max_media_size
+        {
+            return Err(DavError::Condition(
+                DavErrorCondition::new(
+                    StatusCode::PRECONDITION_FAILED,
+                    CardCondition::MaxResourceSize(self.core.groupware.max_media_size as u32),
+                )
+                .with_details(format!(
+                    "The size of the embedded media ({media_size} bytes) exceeds the maximum of {} bytes.",
+                    self.core.groupware.max_media_size
+                )),
+            ));
+        }
+
+        if let Some(resource) = resources.by_path(resource_name) {
+            if resource.is_container() {
+                return Err(DavError::Code(StatusCode::METHOD_NOT_ALLOWED));
+            }
+
+            // Validate ACL
+            let parent_id = resource.parent_id().unwrap();
+            let document_id = resource.document_id();
+            if !access_token.is_member(account_id)
+                && !resources.has_access_to_container(access_token, parent_id, Acl::ModifyItems)
+            {
+                return Err(DavError::Code(StatusCode::FORBIDDEN));
+            }
+
+            // Update
+            let (card_, content_) = self
+                .archive_and_field(
+                    account_id,
+                    Collection::ContactCard,
+                    document_id,
+                    ContactField::Content.field(),
+                )
+                .await
+                .caused_by(trc::location!())?;
+            let card_ = card_.ok_or(DavError::Code(StatusCode::NOT_FOUND))?;
+            let card = card_
+                .to_unarchived::<ContactCard>()
+                .caused_by(trc::location!())?;
+            let content_ = content_.ok_or(DavError::Code(StatusCode::NOT_FOUND))?;
+            let content = content_
+                .to_unarchived::<ContactCardContent>()
+                .caused_by(trc::location!())?;
+
+            // Validate headers
+            match self
+                .validate_headers(
+                    access_token,
+                    headers,
+                    vec![ResourceState {
+                        account_id,
+                        collection: Collection::ContactCard,
+                        document_id: Some(document_id),
+                        etag: format!("\"{}\"", card.inner.etag.to_native()).into(),
+                        path: resource_name,
+                        ..Default::default()
+                    }],
+                    Default::default(),
+                    DavMethod::PUT,
+                )
+                .await
+            {
+                Ok(_) => {}
+                Err(DavError::Code(StatusCode::PRECONDITION_FAILED))
+                    if headers.ret == Return::Representation =>
+                {
+                    let mut vcard = String::with_capacity(u32::from(card.inner.size) as usize);
+                    let _ = content.inner.card.write_to(
+                        &mut vcard,
+                        headers
+                            .vcard_version
+                            .unwrap_or(self.core.groupware.vcard_version),
+                    );
+
+                    return Ok(HttpResponse::new(StatusCode::PRECONDITION_FAILED)
+                        .with_content_type("text/vcard; charset=utf-8")
+                        .with_etag(format!("\"{}\"", card.inner.etag.to_native()))
+                        .with_last_modified(
+                            Rfc1123DateTime::new(i64::from(card.inner.modified)).to_string(),
+                        )
+                        .with_header("Preference-Applied", "return=representation")
+                        .with_binary_body(vcard));
+                }
+                Err(e) => return Err(e),
+            }
+
+            // Validate UID
+            let restored_uid = match (
+                content.inner.card.uid().filter(|uid| !uid.is_empty()),
+                vcard.uid().filter(|uid| !uid.is_empty()),
+            ) {
+                (Some(stored_uid), Some(uid)) if is_same_uid(stored_uid, uid) => {
+                    (stored_uid != uid).then_some(stored_uid)
+                }
+                (None, uid) => {
+                    assert_is_unique_uid(&resources, parent_id, uid)?;
+                    None
+                }
+                _ => {
+                    return Err(DavError::Condition(DavErrorCondition::new(
+                        StatusCode::FORBIDDEN,
+                        CardCondition::NoUidConflict(resources.format_resource(resource).into()),
+                    )));
+                }
+            };
+            if let Some(stored_uid) = restored_uid
+                && let Some(value) = vcard
+                    .entries
+                    .iter_mut()
+                    .find(|entry| entry.name == VCardProperty::Uid)
+                    .and_then(|entry| entry.values.first_mut())
+            {
+                *value = VCardValue::Text(stored_uid.to_string());
+            }
+
+            // Build node
+            let new_card = card
+                .deserialize::<ContactCard>()
+                .caused_by(trc::location!())?;
+            let new_content = ContactCardContent { card: vcard };
+
+            let account = self.account(account_id).await?;
+            // [fragmento SEL eliminado: 14 líneas]
+
+            // Prepare write batch
+            let mut batch = BatchBuilder::new();
+            batch.with_account_id(account_id);
+            self.limit_disk_quota(&mut batch, &account);
+            let etag = new_card
+                .update_full(
+                    new_content,
+                    self.core.groupware.vcard_version,
+                    access_token.changed_by(),
+                    card,
+                    content.inner,
+                    account_id,
+                    document_id,
+                    None,
+                    &mut batch,
+                )
+                .caused_by(trc::location!())?;
+            self.commit_batch(batch).await.caused_by(trc::location!())?;
+
+            Ok(HttpResponse::new(StatusCode::NO_CONTENT)
+                .with_etag_opt(restored_uid.is_none().then_some(etag)))
+        } else if let Some((Some(parent), name)) = resources.map_parent(resource_name) {
+            if !parent.is_container() {
+                return Err(DavError::Code(StatusCode::METHOD_NOT_ALLOWED));
+            }
+
+            // Validate ACL
+            if !access_token.is_member(account_id)
+                && !resources.has_access_to_container(
+                    access_token,
+                    parent.document_id(),
+                    Acl::AddItems,
+                )
+            {
+                return Err(DavError::Code(StatusCode::FORBIDDEN));
+            }
+
+            // Validate headers
+            self.validate_headers(
+                access_token,
+                headers,
+                vec![ResourceState {
+                    account_id,
+                    collection: resource.collection,
+                    document_id: Some(u32::MAX),
+                    path: resource_name,
+                    ..Default::default()
+                }],
+                Default::default(),
+                DavMethod::PUT,
+            )
+            .await?;
+
+            // Validate UID
+            assert_is_unique_uid(&resources, parent.document_id(), vcard.uid())?;
+
+            // Validate object quota
+            let account = self.account(account_id).await?;
+            self.assert_object_quota(&account, StorageQuota::MaxContactCards, 1, || {
+                resources.resources.count(false)
+            })?;
+
+            // [fragmento SEL eliminado: 10 líneas]
+
+            // Build node
+            let card = ContactCard {
+                names: vec![DavName {
+                    name: name.to_string(),
+                    parent_id: parent.document_id(),
+                }],
+                ..Default::default()
+            };
+            let content = ContactCardContent { card: vcard };
+
+            // Prepare write batch
+            let mut batch = BatchBuilder::new();
+            batch.with_account_id(account_id);
+            self.limit_disk_quota(&mut batch, &account);
+            let document_id = batch.reserve_document_id(account_id, Collection::ContactCard);
+            let etag = card
+                .insert(
+                    content,
+                    self.core.groupware.vcard_version,
+                    access_token.changed_by(),
+                    account_id,
+                    document_id,
+                    None,
+                    &mut batch,
+                )
+                .caused_by(trc::location!())?;
+            self.commit_batch(batch).await.caused_by(trc::location!())?;
+
+            Ok(HttpResponse::new(StatusCode::CREATED).with_etag(etag))
+        } else {
+            Err(DavError::Code(StatusCode::CONFLICT))?
+        }
+    }
+}

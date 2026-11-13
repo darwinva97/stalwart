@@ -1,0 +1,39 @@
+[package]
+name = "email"
+version = "1.1.0"
+edition = "2024"
+
+[dependencies]
+utils = { path = "../utils" }
+nlp = { path = "../nlp" }
+store = { path = "../store" }
+trc = { path = "../trc" }
+types = { path = "../types" }
+jmap_proto = { path = "../jmap-proto" }
+jmap-tools = { path = "../jmap-tools" }
+common = { path =  "../common" }
+groupware = { path =  "../groupware" }
+registry = { path =  "../registry" }
+crypto = { path = "../crypto" }
+text-extract = { path = "../text-extract" }
+mail-parser = { version = "1.0", features = ["full_encoding"] } 
+mail-builder = { version = "2.0" }
+sieve-rs = { path = "../sieve" }
+tokio = { version = "1.54", features = ["net", "macros"] }
+rand = "0.8"
+hashify = "0.3"
+rkyv.workspace = true
+compact_str = "0.10.0"
+tinyvec = { version = "1.13.3", features = ["alloc"] }
+bytecount = "0.6"
+
+[features]
+enterprise = ["utils/enterprise", "store/enterprise", "trc/enterprise", "jmap_proto/enterprise", "common/enterprise", "groupware/enterprise", "registry/enterprise"]
+
+[dev-dependencies]
+encodify = "1.0"
+tokio = { version = "1.54", features = ["full"] }
+serde_json = "1.0"
+
+[lints]
+workspace = true

@@ -1,0 +1,344 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+use super::{ImapContext, ToModSeq};
+use crate::core::{Resolved, SavedSearch, SelectedMailbox, Session, SessionData};
+use common::{MessageStoreCache, network::SessionStream, storage::index::ObjectIndexBuilder};
+use email::{
+    cache::{MessageCacheFetch, email::MessageCacheAccess},
+    message::{delete::EmailDeletion, messagedata::EmailMessageData},
+};
+use imap_proto::{
+    Command, ResponseCode, ResponseType, StatusResponse,
+    parser::parse_sequence_set,
+    receiver::{Request, Token},
+};
+use rand::RngExt;
+use registry::schema::enums::Permission;
+use std::{
+    ops::RangeInclusive,
+    sync::Arc,
+    time::{Duration, Instant},
+};
+use store::{
+    roaring::RoaringBitmap,
+    write::{BatchBuilder, SearchIndex},
+};
+use tokio::sync::OwnedSemaphorePermit;
+use trc::AddContext;
+use types::{
+    acl::Acl,
+    collection::{Collection, SyncCollection, VanishedCollection},
+    keyword::Keyword,
+};
+
+const MAX_EXPUNGE_RETRIES: u32 = 3;
+const EXPUNGE_RETRY_BACKOFF_MS: RangeInclusive<u64> = 1..=15;
+
+impl<T: SessionStream> Session<T> {
+    pub async fn handle_expunge(
+        &mut self,
+        request: Request<Command>,
+        is_uid: bool,
+        _permit: Option<OwnedSemaphorePermit>,
+    ) -> trc::Result<()> {
+        // Validate access
+        self.assert_has_permission(Permission::ImapExpunge)?;
+
+        let op_start = Instant::now();
+        let (data, mailbox) = self.state.select_data();
+        let cache = data
+            .server
+            .get_cached_messages(mailbox.id.account_id)
+            .await
+            .imap_ctx(&request.tag, trc::location!())?;
+
+        // Validate ACL
+        if !data
+            .check_mailbox_acl(
+                Some(&cache),
+                mailbox.id.account_id,
+                mailbox.id.mailbox_id,
+                Acl::RemoveItems,
+            )
+            .await
+            .imap_ctx(&request.tag, trc::location!())?
+        {
+            return Err(trc::ImapEvent::Error
+                .into_err()
+                .details(concat!(
+                    "You do not have the required permissions ",
+                    "to remove messages from this mailbox."
+                ))
+                .code(ResponseCode::NoPerm)
+                .id(request.tag));
+        }
+
+        data.sync_view(&mailbox, &cache, None)
+            .await
+            .imap_ctx(&request.tag, trc::location!())?;
+
+        // Parse sequence to operate on
+        let sequence = match request.tokens.into_iter().next() {
+            Some(Token::Argument(value)) if is_uid => {
+                let sequence = parse_sequence_set(&value).map_err(|err| {
+                    trc::ImapEvent::Error
+                        .into_err()
+                        .details(err)
+                        .ctx(trc::Key::Type, ResponseType::Bad)
+                        .id(request.tag.clone())
+                })?;
+                Some(
+                    mailbox
+                        .resolve(&sequence, true)
+                        .await
+                        .map_err(|err| err.id(request.tag.clone()))?,
+                )
+            }
+
+            _ => None,
+        };
+
+        // RFC 9738 limits UID EXPUNGE but never a plain EXPUNGE
+        let message_limit = if is_uid {
+            self.server.core.imap.max_messages_per_command
+        } else {
+            u32::MAX
+        };
+
+        // Expunge
+        let limited_uid = data
+            .expunge(mailbox.clone(), cache, sequence, message_limit, op_start)
+            .await
+            .imap_ctx(&request.tag, trc::location!())?;
+
+        // Clear saved searches
+        *mailbox.saved_search.lock() = SavedSearch::None;
+
+        // Synchronize messages
+        let cache = data
+            .server
+            .get_cached_messages(mailbox.id.account_id)
+            .await
+            .imap_ctx(&request.tag, trc::location!())?;
+        let modseq = data
+            .write_mailbox_changes(&mailbox, &cache, self.is_qresync || self.is_uidonly)
+            .await
+            .imap_ctx(&request.tag, trc::location!())?;
+        let mut response =
+            StatusResponse::completed(Command::Expunge(is_uid)).with_tag(request.tag);
+
+        let mut untagged = Vec::new();
+        if let Some(uid) = limited_uid {
+            let code = ResponseCode::MessageLimit {
+                limit: message_limit,
+                uid: uid.into(),
+            };
+            if self.is_condstore {
+                untagged = StatusResponse::ok("Some messages were not expunged.")
+                    .with_code(code)
+                    .into_bytes();
+            } else {
+                response = response.with_code(code);
+            }
+        }
+        if self.is_condstore {
+            response = response.with_code(ResponseCode::HighestModseq {
+                modseq: modseq.to_modseq(),
+            });
+        }
+
+        self.write_bytes(response.serialize(untagged)).await
+    }
+}
+
+impl<T: SessionStream> SessionData<T> {
+    pub async fn expunge(
+        &self,
+        mailbox: Arc<SelectedMailbox>,
+        mut cache: Arc<MessageStoreCache>,
+        sequence: Option<Vec<Resolved>>,
+        message_limit: u32,
+        op_start: Instant,
+    ) -> trc::Result<Option<u32>> {
+        let account_id = mailbox.id.account_id;
+        let sequence = sequence.map(|sequence| {
+            RoaringBitmap::from_iter(sequence.into_iter().map(|resolved| resolved.id))
+        });
+        let mut retries = 0;
+
+        loop {
+            // Obtain message ids
+            let mut deleted_ids = RoaringBitmap::from_iter(
+                cache
+                    .in_mailbox_with_keyword(mailbox.id.mailbox_id, &Keyword::Deleted)
+                    .map(|m| m.document_id()),
+            );
+
+            // Filter by sequence
+            if let Some(sequence) = &sequence {
+                deleted_ids &= sequence;
+            }
+
+            // RFC 9738 requires the highest UIDs to be processed first when truncating.
+            let mut limited_uid = None;
+            if deleted_ids.len() > message_limit as u64 {
+                let mut uids = {
+                    let view = mailbox.view.lock();
+                    deleted_ids
+                        .iter()
+                        .filter_map(|id| view.map_result(id).map(|resolved| (resolved.uid, id)))
+                        .collect::<Vec<_>>()
+                };
+
+                if uids.len() > message_limit as usize {
+                    let cutoff = uids.len() - message_limit as usize;
+                    let (below, lowest, _) = uids.select_nth_unstable(cutoff);
+                    limited_uid = Some(lowest.0);
+                    for (_, id) in below {
+                        deleted_ids.remove(*id);
+                    }
+                }
+            }
+
+            // Delete ids
+            let mut batch = BatchBuilder::new();
+            let (fully_deleted, thread_ids) = self
+                .email_untag_or_delete(
+                    account_id,
+                    mailbox.id.mailbox_id,
+                    &deleted_ids,
+                    &cache,
+                    &mut batch,
+                )
+                .await
+                .caused_by(trc::location!())?;
+            self.server
+                .log_emptied_threads(account_id, &mut batch, thread_ids, &fully_deleted)
+                .await
+                .caused_by(trc::location!())?;
+
+            // Write changes on source account
+            if !batch.is_empty()
+                && let Err(err) = self.server.commit_batch(batch).await
+            {
+                if !err.is_assertion_failure() {
+                    return Err(err.caused_by(trc::location!()));
+                } else if retries == MAX_EXPUNGE_RETRIES {
+                    return Err(trc::ImapEvent::Error
+                        .into_err()
+                        .details("Some messages were modified by another process."));
+                }
+
+                retries += 1;
+                let backoff = rand::rng().random_range(EXPUNGE_RETRY_BACKOFF_MS);
+                tokio::time::sleep(Duration::from_millis(backoff)).await;
+                self.server
+                    .inner
+                    .mark_cache_stale(account_id, SyncCollection::Email);
+                cache = self
+                    .server
+                    .get_cached_messages(account_id)
+                    .await
+                    .caused_by(trc::location!())?;
+                continue;
+            }
+
+            trc::event!(
+                Imap(trc::ImapEvent::Expunge),
+                SpanId = self.session_id,
+                AccountId = account_id,
+                MailboxId = mailbox.id.mailbox_id,
+                DocumentId = deleted_ids.iter().map(trc::Value::from).collect::<Vec<_>>(),
+                Elapsed = op_start.elapsed()
+            );
+
+            return Ok(limited_uid);
+        }
+    }
+
+    pub async fn email_untag_or_delete(
+        &self,
+        account_id: u32,
+        mailbox_id: u32,
+        deleted_ids: &RoaringBitmap,
+        cache: &MessageStoreCache,
+        batch: &mut BatchBuilder,
+    ) -> trc::Result<(RoaringBitmap, RoaringBitmap)> {
+        let flagged_ids = deleted_ids
+            .iter()
+            .filter(|document_id| {
+                cache.email_by_id(document_id).is_some_and(|message| {
+                    !cache.metadata_kinds(message).is_empty()
+                        && matches!(message.mailboxes(), [only] if only.mailbox_id == mailbox_id)
+                })
+            })
+            .collect::<RoaringBitmap>();
+        let containers = self
+            .server
+            .preload_container_cleanup(
+                self.access_token.changed_by(),
+                account_id,
+                Collection::Email,
+                &flagged_ids,
+            )
+            .await
+            .caused_by(trc::location!())?;
+        batch
+            .with_account_id(account_id)
+            .with_collection(Collection::Email);
+
+        let mut fully_deleted = RoaringBitmap::new();
+        let mut thread_ids = RoaringBitmap::new();
+        self.server
+            .message_datas(account_id, deleted_ids, |document_id, metadata| {
+                if let Some(message_uid) = metadata.message_uid(mailbox_id) {
+                    // Add vanished items
+                    batch.with_document(document_id);
+                    batch.log_vanished_item(VanishedCollection::Email, (mailbox_id, message_uid));
+
+                    if metadata.mailboxes.len() == 1 {
+                        // Delete message
+                        fully_deleted.insert(document_id);
+                        thread_ids.insert(metadata.thread_id);
+                        if !metadata.metadata_kinds().is_empty() {
+                            containers.release_or_assert_absent(batch, account_id, document_id);
+                        }
+                        batch
+                            .custom(
+                                ObjectIndexBuilder::<_, ()>::new()
+                                    .with_changed_by(self.access_token.changed_by())
+                                    .with_current(metadata),
+                            )
+                            .caused_by(trc::location!())?
+                            .queue_document_unindex(SearchIndex::Email, account_id, document_id)
+                            .commit_point();
+                    } else {
+                        // Untag message from this mailbox and remove Deleted flag
+                        let mut new_metadata = metadata.clone();
+                        new_metadata.remove_mailbox(mailbox_id);
+                        new_metadata.remove_keyword(&Keyword::Deleted);
+
+                        // Write changes
+                        batch
+                            .custom(
+                                ObjectIndexBuilder::new()
+                                    .with_current(metadata)
+                                    .with_changes(new_metadata),
+                            )
+                            .caused_by(trc::location!())?
+                            .commit_point();
+                    }
+                }
+
+                Ok(true)
+            })
+            .await
+            .caused_by(trc::location!())?;
+
+        Ok((fully_deleted, thread_ids))
+    }
+}
