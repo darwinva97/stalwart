@@ -31,6 +31,15 @@ jmap '["x:Tenant/set",{"create":{"t":{
 - `logo` (opcional): URL https, `data:image/png;base64,...` o base64. Se verá en `https://SU-DOMINIO/logo`.
 - Sin `roles` ni `permissions`, el inquilino puede lo que da el rol **Tenant Administrator** (dominios, cuentas,
   grupos, listas, roles, DKIM…), nunca la configuración del servidor.
+- Límites de envío (opcionales, propios de esta edición; sin poner = sin límite), para que una empresa no acapare
+  la cola ni queme la reputación de la IP de todos:
+  `"bezentiMessageRate":{"count":500,"period":3600000}` (mensajes por hora; el periodo va en milisegundos),
+  `"bezentiRecipientRate":{"count":2000,"period":3600000}` (destinatarios por hora) y
+  `"bezentiMaxQueuedMessages":200` (mensajes suyos a la vez en la cola de salida). Al pasarse, sus envíos se
+  aplazan con `451 4.7.1` o `452 4.3.1` y el programa de correo los reintenta. Aunque no pongas límites, la entrega
+  reparte los hilos entre empresas: un envío masivo de una no retrasa el correo de las demás.
+- Su administrador ve y gestiona su propia cola de salida (reintentar, cancelar), sus informes DMARC/TLS y las
+  cuentas que borró mientras se puedan recuperar (si `archiveDeletedAccountsFor` está puesto).
 
 ## 2. Su dominio
 
