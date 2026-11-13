@@ -533,8 +533,8 @@ impl Server {
         resolve: bool,
     ) -> trc::Result<Option<u32>> {
         let address = address.to_canonical_address();
-        if let Some((local_part, domain)) = address.split_once('@') {
-            if let Some(domain) = self.domain(domain).await? {
+        if let Some((local_part, domain_part)) = address.split_once('@') {
+            if let Some(domain) = self.domain(domain_part).await? {
                 let mut local_part = Cow::Borrowed(local_part);
                 if resolve {
                     if domain.flags & DOMAIN_FLAG_SUB_ADDRESSING != 0 {
@@ -557,6 +557,20 @@ impl Server {
                         }
                     }
                     // [fragmento SEL eliminado: 22 líneas]
+                    // bezenti (fase 3): una dirección enmascarada vigente es de su cuenta.
+                    #[cfg(feature = "bezenti")]
+                    if let Some(destino) = self
+                        .masked_email_resolve(local_part.as_ref(), domain_part, domain.id)
+                        .await?
+                    {
+                        return Ok(match destino {
+                            crate::bezenti::enmascaradas::DestinoEnmascarada::Entregar {
+                                account_id,
+                                ..
+                            } => Some(account_id),
+                            crate::bezenti::enmascaradas::DestinoEnmascarada::Rechazar => None,
+                        });
+                    }
                 }
 
                 let mut result = self

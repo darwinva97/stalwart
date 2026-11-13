@@ -6,6 +6,8 @@
 
 #![warn(clippy::large_futures)]
 
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod cache;
 pub mod identity;
 pub mod mailbox;

@@ -151,6 +151,20 @@ impl RegistryQuery for Server {
                 .into_err()
                 .details("Actions cannot be queried")),
 
+            // bezenti: archivo de borrados (fase 3).
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => crate::registry::archivo::archived_item_query(
+                RegistryQueryResponse {
+                    server: self,
+                    access_token,
+                    object_type,
+                    request,
+                },
+                &tenant,
+            )
+            .await
+            .and_then(|response| response.build()),
+
             _ => {
                 let mut query = store::registry::RegistryQuery::new(object_type);
                 // [fragmento SEL eliminado: 8 líneas]

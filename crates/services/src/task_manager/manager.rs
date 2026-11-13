@@ -517,9 +517,12 @@ fn is_enabled(task_type: TaskType, roles: &ClusterRoles) -> bool {
         | TaskType::DnsManagement
         | TaskType::ExternalPublicKeyMaintenance => true,
         // [fragmento SEL eliminado: 6 líneas]
-        // bezenti: sin implementar todavía (fases 2 y 3), no se programan.
+        // bezenti: restaurar elementos archivados (fase 3) es mantenimiento de cuentas.
         #[cfg(feature = "bezenti")]
-        TaskType::RestoreArchivedItem | TaskType::TenantMaintenance => false,
+        TaskType::RestoreArchivedItem => roles.account_maintenance,
+        // bezenti: no se implementa (el uso de disco del inquilino se calcula al leerlo; ver multi-inquilino.md).
+        #[cfg(feature = "bezenti")]
+        TaskType::TenantMaintenance => false,
     }
 }
 

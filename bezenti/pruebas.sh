@@ -20,7 +20,7 @@ cargo test "${JOBS[@]}" -p registry --features bezenti --lib bezenti::
 echo "### Fase 1: el crate registry sigue compilando y pasando sus pruebas sin la feature"
 cargo test "${JOBS[@]}" -p registry --lib
 
-echo "### Fase 2: pruebas unitarias del multi-inquilino (crate common, feature bezenti)"
+echo "### Fases 2 y 3: pruebas unitarias (multi-inquilino, enmascaradas y archivo; crate common, feature bezenti)"
 cargo test "${JOBS[@]}" -p common --features bezenti --lib bezenti::
 
 echo "### Fase 2: integración multi-inquilino contra el servidor real (SQLite, JMAP, SMTP, IMAP, HTTP)"
@@ -35,5 +35,8 @@ if [ -z "$BIN" ]; then
 fi
 python3 -I bezenti/pruebas/multi_inquilino.py "$BIN"
 
-echo "### Fase 2: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
-cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p jmap -p http@1.1.0
+echo "### Fase 3: integración de direcciones enmascaradas y archivo de borrados (SQLite, JMAP, SMTP, IMAP)"
+python3 -I bezenti/pruebas/archivo_enmascaradas.py "$BIN"
+
+echo "### Fases 2 y 3: sin la feature bezenti, los crates tocados siguen compilando (comportamiento libre)"
+cargo check "${JOBS[@]}" -p store -p common -p email -p imap -p dav -p services -p jmap -p http@1.1.0

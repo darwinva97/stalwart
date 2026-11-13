@@ -81,6 +81,24 @@ impl Server {
 
         // [fragmento SEL eliminado: 34 líneas]
 
+        // bezenti (fase 3): direcciones enmascaradas, antes de cualquier directorio externo (documentación
+        // pública, «RCPT stage»). Una vigente se reescribe a una dirección de su cuenta en el mismo dominio; una
+        // desactivada, caducada o sin cuenta se rechaza como destinatario desconocido.
+        #[cfg(feature = "bezenti")]
+        if let Some(destino) = self
+            .masked_email_resolve(local_part.as_ref(), domain_part, domain.id)
+            .await?
+        {
+            return Ok(match destino {
+                crate::bezenti::enmascaradas::DestinoEnmascarada::Entregar {
+                    direccion, ..
+                } => RcptResolution::Rewrite(direccion),
+                crate::bezenti::enmascaradas::DestinoEnmascarada::Rechazar => {
+                    RcptResolution::UnknownRecipient
+                }
+            });
+        }
+
         // Obtain external directory, if configured
         let directory = self
             .get_directory_for_cached_domain(&domain)

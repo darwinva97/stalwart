@@ -370,6 +370,27 @@ async fn process_email_items(
                     _ => nothing_to_index(partition, account_id, item.id_suffix),
                 }
             } else {
+                // bezenti (fase 3): si el mensaje se apuntó para el archivo, se archiva ahora que se suelta su blob.
+                #[cfg(feature = "bezenti")]
+                if let Err(err) = crate::bezenti::archivo::archive_deleted_email(
+                    server,
+                    batch,
+                    account_id,
+                    item.id_suffix,
+                    row.as_ref(),
+                )
+                .await
+                {
+                    let reason = err.to_string();
+                    trc::error!(
+                        err.account_id(account_id)
+                            .document_id(item.id_suffix)
+                            .details("No se pudo archivar un mensaje borrado")
+                            .caused_by(trc::location!())
+                    );
+
+                    return Err(reason.into());
+                }
                 if let Err(err) =
                     delete_email_metadata(server, batch, account_id, item.id_suffix, row.as_ref())
                 {

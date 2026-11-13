@@ -89,8 +89,15 @@ async fn destroy_account(server: &Server, task: &TaskDestroyAccount) -> trc::Res
 
     // Destroy public keys, masked emails and OAuth grants
     // [fragmento SEL eliminado: 10 líneas]
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(not(any(feature = "enterprise", feature = "bezenti")))]
     let objects = [ObjectType::PublicKey, ObjectType::OAuthGrant];
+    // bezenti (fase 3): las direcciones enmascaradas no sobreviven a su cuenta (documentación pública).
+    #[cfg(feature = "bezenti")]
+    let objects = [
+        ObjectType::PublicKey,
+        ObjectType::OAuthGrant,
+        ObjectType::MaskedEmail,
+    ];
     for object in objects {
         let mut batch = BatchBuilder::new();
         let ids = server
@@ -100,7 +107,12 @@ async fn destroy_account(server: &Server, task: &TaskDestroyAccount) -> trc::Res
         let object_id = object.to_id();
 
         for id in ids {
-            if object == ObjectType::OAuthGrant {
+            // Por el registro, para que se borren también sus claves únicas (la dirección enmascarada).
+            #[cfg(feature = "bezenti")]
+            let by_registry = matches!(object, ObjectType::OAuthGrant | ObjectType::MaskedEmail);
+            #[cfg(not(feature = "bezenti"))]
+            let by_registry = object == ObjectType::OAuthGrant;
+            if by_registry {
                 match server
                     .registry()
                     .write(RegistryWrite::delete(ObjectId::new(object, id)))
@@ -151,6 +163,16 @@ async fn destroy_account(server: &Server, task: &TaskDestroyAccount) -> trc::Res
 
     // Remove archived items
     // [fragmento SEL eliminado: 11 líneas]
+    // bezenti (fase 3): el archivo de la cuenta y sus mensajes pendientes de archivar.
+    #[cfg(feature = "bezenti")]
+    {
+        destroy_temporary_items(server, account_id, ObjectType::ArchivedItem, |value| {
+            let item = common::bezenti::archivo::ElementoArchivado::deserializar(value)?;
+            Ok((item.blob_hash(), item.hasta))
+        })
+        .await?;
+        server.clear_pending_email_archive(account_id).await?;
+    }
 
     // Remove spam training samples
     destroy_temporary_items(

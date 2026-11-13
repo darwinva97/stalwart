@@ -69,6 +69,13 @@ pub struct EmailConfig {
     pub account_purge_frequency: SimpleCron,
     pub data_purge_frequency: SimpleCron,
     pub blob_purge_frequency: SimpleCron,
+
+    /// bezenti (fase 3): segundos que se guardan en el archivo los elementos borrados (`None` = no se archivan).
+    #[cfg(feature = "bezenti")]
+    pub archive_deleted_items_for: Option<u64>,
+    /// bezenti (fase 3): segundos que se aplaza el borrado de los datos de una cuenta eliminada.
+    #[cfg(feature = "bezenti")]
+    pub archive_deleted_accounts_for: Option<u64>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -171,6 +178,11 @@ impl EmailConfig {
             if let Some(max) = max {
                 max_objects.set(item, max as u32);
             }
+        }
+        // bezenti (fase 3): máximo de direcciones enmascaradas por cuenta (`x:Email.maxMaskedAddresses`).
+        #[cfg(feature = "bezenti")]
+        if let Some(max) = email.max_masked_addresses {
+            max_objects.set(StorageQuota::MaxMaskedAddresses, max as u32);
         }
         // [fragmento SEL eliminado: 8 líneas]
 
@@ -351,6 +363,14 @@ impl EmailConfig {
             blob_purge_frequency: dr.blob_cleanup_schedule.into(),
             default_domain_id: system.default_domain_id.id() as u32,
             default_domain_name,
+            #[cfg(feature = "bezenti")]
+            archive_deleted_items_for: dr
+                .archive_deleted_items_for
+                .map(|d| d.into_inner().as_secs().max(1)),
+            #[cfg(feature = "bezenti")]
+            archive_deleted_accounts_for: dr
+                .archive_deleted_accounts_for
+                .map(|d| d.into_inner().as_secs().max(1)),
         }
     }
 }

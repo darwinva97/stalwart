@@ -102,6 +102,9 @@ impl EmailDeletion for Server {
             if !metadata.metadata_kinds().is_empty() {
                 containers.release_or_assert_absent(batch, account_id, document_id);
             }
+            // bezenti (fase 3): apuntar el mensaje para el archivo de borrados.
+            #[cfg(feature = "bezenti")]
+            crate::bezenti::mark_email_for_archive(self, batch, account_id, document_id, &metadata);
             let index_builder = ObjectIndexBuilder::<_, ()>::new();
             // [fragmento SEL eliminado: 6 líneas]
             batch

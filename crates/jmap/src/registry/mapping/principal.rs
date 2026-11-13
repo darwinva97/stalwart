@@ -11,7 +11,9 @@ use common::{
 };
 use directory::core::secret::{hash_secret, is_password_hash};
 use jmap_proto::error::set::SetError;
-use registry::{schema::structs::TaskStatus, types::datetime::UTCDateTime};
+#[cfg(not(feature = "bezenti"))]
+use registry::schema::structs::TaskStatus;
+use registry::types::datetime::UTCDateTime;
 use registry::{
     schema::{
         enums::{AccountType, Permission},
@@ -392,8 +394,12 @@ pub async fn schedule_account_destruction(
 ) -> trc::Result<()> {
     // [fragmento SEL eliminado: 12 líneas]
 
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(not(any(feature = "enterprise", feature = "bezenti")))]
     let status = TaskStatus::now();
+    // bezenti (fase 3): con `archiveDeletedAccountsFor`, el borrado de los datos se aplaza y la cuenta se puede
+    // recuperar borrando la tarea antes de que venza.
+    #[cfg(feature = "bezenti")]
+    let status = crate::registry::archivo::account_destruction_status(server);
 
     let (account_domain_id, account_name, account_type, member_group_ids) = match account {
         Account::User(account) => (

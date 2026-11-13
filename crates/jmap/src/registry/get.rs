@@ -196,9 +196,16 @@ impl RegistryGet for Server {
             | ObjectType::PublicKey
             | ObjectType::DkimSignature
             | ObjectType::Domain => registry_object_get(get).await,
-            // bezenti: inquilinos (fase 2).
+            // bezenti: inquilinos (fase 2) y direcciones enmascaradas (fase 3).
             #[cfg(feature = "bezenti")]
-            ObjectType::Tenant => registry_object_get(get).await,
+            ObjectType::Tenant | ObjectType::MaskedEmail => registry_object_get(get).await,
+            // bezenti: archivo de borrados (fase 3).
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => {
+                crate::registry::archivo::archived_item_get(get, access_token)
+                    .await
+                    .map(|get| get.into_response())
+            }
             // [fragmento SEL eliminado: 13 líneas]
             ObjectType::QueuedMessage => {
                 queued_message_get(get).await.map(|get| get.into_response())
@@ -226,12 +233,10 @@ impl RegistryGet for Server {
             | ObjectType::AppPassword
             | ObjectType::Passkey => account_get(get).await.map(|get| get.into_response()),
             ObjectType::Action => Ok(get.not_found_any().into_response()),
-            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 2 a 5).
+            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 4 y 5).
             #[cfg(feature = "bezenti")]
             ObjectType::AiModel
             | ObjectType::Alert
-            | ObjectType::ArchivedItem
-            | ObjectType::MaskedEmail
             | ObjectType::Metric
             | ObjectType::MetricsStore
             | ObjectType::SpamAi

@@ -356,9 +356,22 @@ impl Store {
 impl BlobLinkValue {
     // [fragmento SEL eliminado: 12 líneas]
 
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(not(any(feature = "enterprise", feature = "bezenti")))]
     fn is_archived_item(_value: &[u8]) -> bool {
         false
+    }
+
+    /// bezenti (fase 3): un enlace temporal cuyo valor apunta a un `x:ArchivedItem` es un elemento del archivo
+    /// de borrados (datos de usuario, no una subida temporal).
+    #[cfg(feature = "bezenti")]
+    fn is_archived_item(value: &[u8]) -> bool {
+        value.len() > OBJECT_ID_LEN
+            && value
+                .split_last_chunk::<OBJECT_ID_LEN>()
+                .and_then(|(_, object_id)| ObjectId::deserialize(object_id).ok())
+                .is_some_and(|object_id| {
+                    object_id.object() == registry::schema::prelude::ObjectType::ArchivedItem
+                })
     }
 }
 

@@ -121,6 +121,15 @@ impl MailboxDestroy for Server {
 
                     if prev_message_data.mailboxes.len() == 1 {
                         // Delete message
+                        // bezenti (fase 3): apuntar el mensaje para el archivo de borrados.
+                        #[cfg(feature = "bezenti")]
+                        crate::bezenti::mark_email_for_archive(
+                            self,
+                            &mut batch,
+                            account_id,
+                            message_id,
+                            &prev_message_data,
+                        );
                         for mailbox in prev_message_data.mailboxes.iter() {
                             batch.log_vanished_item(
                                 VanishedCollection::Email,

@@ -306,7 +306,16 @@ pub(crate) async fn task_set(
 
         // [fragmento SEL eliminado: 66 líneas]
 
-        #[cfg(not(feature = "enterprise"))]
+        // bezenti (fase 3): borrar una tarea `DestroyAccount` pendiente recupera la cuenta.
+        #[cfg(feature = "bezenti")]
+        if let Task::DestroyAccount(destroy) = &task
+            && let Err(err) = crate::registry::archivo::recover_account(set.server, destroy).await?
+        {
+            set.response.not_destroyed.append(id, err);
+            continue;
+        }
+
+        #[cfg(not(any(feature = "enterprise", feature = "bezenti")))]
         if let Task::DestroyAccount(_) = task {
             set.response.not_destroyed.append(
                 id,

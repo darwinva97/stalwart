@@ -327,6 +327,17 @@ async fn registry_object_set(
                     .validate_public_key(set.account_id, key, modification.as_public_key())
                     .await?
             }
+            // bezenti (fase 3): dirección, límite, fecha y cliente de una dirección enmascarada.
+            #[cfg(feature = "bezenti")]
+            ObjectInner::MaskedEmail(masked) => {
+                crate::registry::enmascaradas::validate_masked_email(
+                    server,
+                    access_token,
+                    masked,
+                    modification.as_masked_email(),
+                )
+                .await?
+            }
             ObjectInner::DkimSignature(key) => {
                 validate_dkim_signature(key, modification.as_dkim_signature()).await?
             }
@@ -527,8 +538,15 @@ async fn registry_object_set(
     }
 
     // [fragmento SEL eliminado: 10 líneas]
-    #[cfg(not(feature = "enterprise"))]
+    #[cfg(not(any(feature = "enterprise", feature = "bezenti")))]
     const ACCOUNT_ORPHAN_TYPES: &[ObjectType] = &[ObjectType::PublicKey, ObjectType::OAuthGrant];
+    // bezenti (fase 3): las direcciones enmascaradas se borran con la cuenta (tarea `DestroyAccount`).
+    #[cfg(feature = "bezenti")]
+    const ACCOUNT_ORPHAN_TYPES: &[ObjectType] = &[
+        ObjectType::PublicKey,
+        ObjectType::OAuthGrant,
+        ObjectType::MaskedEmail,
+    ];
 
     // Process destroy
     for id in set.destroy.drain(..) {
@@ -810,9 +828,14 @@ impl RegistrySet for Server {
             | ObjectType::OAuthGrant
             | ObjectType::Role
             | ObjectType::Domain => registry_object_set(set).await,
-            // bezenti: inquilinos (fase 2).
+            // bezenti: inquilinos (fase 2) y direcciones enmascaradas (fase 3).
             #[cfg(feature = "bezenti")]
-            ObjectType::Tenant => registry_object_set(set).await,
+            ObjectType::Tenant | ObjectType::MaskedEmail => registry_object_set(set).await,
+            // bezenti: archivo de borrados (fase 3).
+            #[cfg(feature = "bezenti")]
+            ObjectType::ArchivedItem => crate::registry::archivo::archived_item_set(set)
+                .await
+                .map(|set| set.into_response()),
             // [fragmento SEL eliminado: 13 líneas]
             ObjectType::ArfExternalReport
             | ObjectType::DmarcExternalReport
@@ -854,12 +877,10 @@ impl RegistrySet for Server {
                 set.fail_all_destroy("Telemetry objects cannot be deleted");
                 Ok(set.into_response())
             }
-            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 2 a 5).
+            // bezenti: objetos de pago con modelo de datos (fase 1) pero aún sin lógica (fases 4 y 5).
             #[cfg(feature = "bezenti")]
             ObjectType::AiModel
             | ObjectType::Alert
-            | ObjectType::ArchivedItem
-            | ObjectType::MaskedEmail
             | ObjectType::Metric
             | ObjectType::MetricsStore
             | ObjectType::SpamAi
@@ -975,6 +996,17 @@ impl Modification {
             Modification::Create { .. } => None,
             Modification::Update { id, object } => match &object.inner {
                 ObjectInner::ExternalPublicKey(key) => Some((*id, key)),
+                _ => None,
+            },
+        }
+    }
+
+    #[cfg(feature = "bezenti")]
+    fn as_masked_email(&self) -> Option<&registry::schema::structs::MaskedEmail> {
+        match self {
+            Modification::Create { .. } => None,
+            Modification::Update { object, .. } => match &object.inner {
+                ObjectInner::MaskedEmail(masked) => Some(masked),
                 _ => None,
             },
         }

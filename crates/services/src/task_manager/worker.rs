@@ -363,11 +363,16 @@ async fn execute(server: &Server, task: &Task, server_instance: Arc<ServerInstan
             server.external_public_key_maintenance(task).await
         }
         Task::BlobRecode(task) => server.blob_recode(task).await,
-        // bezenti: el modelo existe desde la fase 1; la lógica llega en las fases 2 (inquilinos) y 3 (archivo).
-        // Mientras tanto estas tareas no se programan (ver `is_enabled`) y, si llegan, fallan sin reintentos.
+        // bezenti: `RestoreArchivedItem` es de la fase 3 (archivo). `TenantMaintenance` no se programa (ver
+        // `is_enabled`) y, si llega, falla sin reintentos.
         #[cfg(feature = "bezenti")]
-        Task::RestoreArchivedItem(_) | Task::TenantMaintenance(_) => {
-            Outcome::Fatal("tarea de la edición bezenti todavía no implementada".to_string())
+        Task::RestoreArchivedItem(task) => {
+            use crate::bezenti::archivo::RestoreArchivedItemTask;
+            server.restore_archived_item(task).await
+        }
+        #[cfg(feature = "bezenti")]
+        Task::TenantMaintenance(_) => {
+            Outcome::Fatal("tarea de la edición bezenti que no se implementa".to_string())
         }
     }
 }

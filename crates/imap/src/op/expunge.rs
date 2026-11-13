@@ -303,6 +303,15 @@ impl<T: SessionStream> SessionData<T> {
                     if metadata.mailboxes.len() == 1 {
                         // Delete message
                         fully_deleted.insert(document_id);
+                        // bezenti (fase 3): apuntar el mensaje para el archivo de borrados.
+                        #[cfg(feature = "bezenti")]
+                        email::bezenti::mark_email_for_archive(
+                            &self.server,
+                            batch,
+                            account_id,
+                            document_id,
+                            &metadata,
+                        );
                         thread_ids.insert(metadata.thread_id);
                         if !metadata.metadata_kinds().is_empty() {
                             containers.release_or_assert_absent(batch, account_id, document_id);

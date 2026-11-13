@@ -648,6 +648,9 @@ const METADATA_COLLECTION: u8 = Collection::Metadata as u8;
 const EMAIL_COLLECTION: u8 = Collection::Email as u8;
 // [fragmento SEL eliminado: 6 líneas]
 const REG_SPAM_SAMPLE: u16 = ObjectType::SpamTrainingSample as u16;
+// bezenti: los elementos archivados (fase 3) viven en su propio subespacio.
+#[cfg(feature = "bezenti")]
+const REG_ARCHIVED_ITEM: u16 = ObjectType::ArchivedItem as u16;
 const REG_ACCOUNT: u16 = ObjectType::Account as u16;
 const REG_DOMAIN: u16 = ObjectType::Domain as u16;
 // [fragmento SEL eliminado: 6 líneas]
@@ -767,6 +770,8 @@ impl ValueClass {
                     | REG_PUBLIC_KEY | REG_OAUTH_GRANT => Subspace::Directory,
                     // [fragmento SEL eliminado: 8 líneas]
                     REG_SPAM_SAMPLE => Subspace::SpamSamples,
+                    #[cfg(feature = "bezenti")]
+                    REG_ARCHIVED_ITEM => Subspace::DeletedItems,
                     REPORT_EXTERNAL_ARF | REPORT_EXTERNAL_DMARC | REPORT_EXTERNAL_TLS => {
                         Subspace::ReportIn
                     }

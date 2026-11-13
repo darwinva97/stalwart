@@ -16,6 +16,8 @@ use common::{
 use state_manager::manager::spawn_push_router;
 use std::sync::Arc;
 
+#[cfg(feature = "bezenti")]
+pub mod bezenti;
 pub mod broadcast;
 pub mod index_queue;
 pub mod state_manager;
